@@ -35,11 +35,16 @@ class ShopController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'key' => 'required|string|max:500',
+            'name' => 'required|unique:shops,name|string|max:255',
+            'key' => 'required|unique:api_keys,key|max:500',
         ]);
- 
-        $request->user()->ownShops()->create(['name' => $validated['name']]);
+
+        $shop = $request->user()->ownShops()->create(['name' => $validated['name']]);
+
+        $request->user()->ownApiKeys()->create([
+            'key' => $validated['key'],
+            'shop_id' => $shop->id
+        ]);
  
         return redirect(route('shops.index'));
     }

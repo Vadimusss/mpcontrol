@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Shop extends Model
 {
     protected $fillable = [
-        'key',
+        'api_key_id',
         'name',
     ];
 
@@ -23,8 +24,8 @@ class Shop extends Model
         return $this->belongsToMany(User::class);
     }
 
-    public function apiKey(): BelongsTo
+    public function apiKey(): HasOne
     {
-        return $this->belongsTo(ApiKey::class);
+        return $this->HasOne(ApiKey::class);
     }
 }

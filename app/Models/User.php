@@ -53,6 +53,11 @@ class User extends Authenticatable
         return $this->hasMany(Shop::class);
     }
 
+    public function ownApiKeys(): HasMany
+    {
+        return $this->hasMany(ApiKey::class);
+    }
+
     public function availableShops(): BelongsToMany
     {
         return $this->belongsToMany(Shop::class);

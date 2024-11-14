@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('api_keys', function (Blueprint $table) {
             $table->id();
+            $table->integer('user_id');
+            $table->integer('shop_id');
             $table->string('key', length: 500);
             $table->boolean('is_busy')->default(false);
             $table->timestamps();

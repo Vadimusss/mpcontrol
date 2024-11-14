@@ -40,7 +40,8 @@ export default function Index({ auth }) {
                             className="block w-full border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm"
                             onChange={e => setData('key', e.target.value)}
                         ></textarea>
-                        <InputError message={errors.message} className="mt-2" />
+                        <InputError message={errors.name} className="mt-2" />
+                        <InputError message={errors.key} className="mt-2" />
                         <PrimaryButton className="mt-4" disabled={processing}>Add Shop</PrimaryButton>
                 </form>
             </div>
