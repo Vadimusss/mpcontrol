@@ -14,10 +14,11 @@ class ShopController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        // dump($request->user()->ownShops()->get());
         return Inertia::render('Shops/Index', [
-            //
+            'ownShops' => $request->user()->ownShops()->get(),
         ]);
     }
 
@@ -34,17 +35,25 @@ class ShopController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|unique:shops,name|string|max:255',
-            'key' => 'required|unique:api_keys,key|max:500',
-        ]);
 
-        $shop = $request->user()->ownShops()->create(['name' => $validated['name']]);
-
-        $request->user()->ownApiKeys()->create([
-            'key' => $validated['key'],
-            'shop_id' => $shop->id
-        ]);
+        if ($request->has(['name', 'key'])) {
+            $validated = $request->validate([
+                'name' => 'required|unique:shops,name|string|max:255',
+                'key' => 'required|unique:api_keys,key|max:500',
+            ]);
+    
+            $shop = $request->user()->ownShops()->create(['name' => $validated['name']]);
+    
+            $request->user()->ownApiKeys()->create([
+                'key' => $validated['key'],
+                'shop_id' => $shop->id
+            ]);
+        }
+        elseif ($request->has(['email'])) {
+            $validated = $request->validate([
+                'email' => 'required|unique:shops,name|string|max:255',
+            ]);
+        }
  
         return redirect(route('shops.index'));
     }

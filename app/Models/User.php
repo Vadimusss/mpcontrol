@@ -50,7 +50,7 @@ class User extends Authenticatable
 
     public function ownShops(): HasMany
     {
-        return $this->hasMany(Shop::class);
+        return $this->hasMany(Shop::class)->chaperone();
     }
 
     public function ownApiKeys(): HasMany
