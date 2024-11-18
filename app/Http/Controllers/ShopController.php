@@ -35,7 +35,6 @@ class ShopController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-
         if ($request->has(['name', 'key'])) {
             $validated = $request->validate([
                 'name' => 'required|unique:shops,name|string|max:255',
@@ -49,10 +48,12 @@ class ShopController extends Controller
                 'shop_id' => $shop->id
             ]);
         }
-        elseif ($request->has(['email'])) {
+        elseif ($request->has(['email', 'shopId'])) {
             $validated = $request->validate([
-                'email' => 'required|unique:shops,name|string|max:255',
+                'email' => 'required|exists:users,email|email|max:255',
+                'shopId' => 'required|integer|min:1|max:999',
             ]);
+            // dump($validated);
         }
  
         return redirect(route('shops.index'));
