@@ -17,10 +17,6 @@ export default function Index({ auth, ownShops }) {
             }); */
 
     // console.log(useForm({}));
-    const addCustomerForms = ownShops.reduce((acc, shop) => {
-        acc[shop.id] = useForm({ email: '' });
-        return acc;
-    }, {});
 
     const addShopForm = useForm({
         name: '',
@@ -30,12 +26,6 @@ export default function Index({ auth, ownShops }) {
     const submitAddShopData = (e) => {
         e.preventDefault();
         addShopForm.post(route('shops.store'), { onSuccess: () => addShopForm.reset() });
-    };
-
-    const submitAddCustomerData = (e) => {
-        const shopId = e.target.dataset.shopId;
-        e.preventDefault();
-        addCustomerForms[shopId].post(route('shops.store'), { onSuccess: () => addCustomerForms[shopId].reset() });
     };
 
     return (
@@ -56,18 +46,6 @@ export default function Index({ auth, ownShops }) {
                             <p>ID: {shop.id}</p>
                             <p>Name: {shop.name}</p>
                             <p>Owner: {shop.owner.name}</p>
-                            <form onSubmit={submitAddCustomerData} data-shop-id={shop.id}>
-                                {/* <input type="hidden" name="shopId" value="shop.id" /> */}
-                                <input
-                                    value={addCustomerForms[shop.id].data.email}
-                                    type="text"
-                                    placeholder="E-mail пользователя"
-                                    className="block w-full border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mb-4"
-                                    onChange={e => addCustomerForms[shop.id].setData('email', e.target.value)}
-                                />
-                                <InputError message={addCustomerForms[shop.id].errors.email} className="mt-2" />
-                                <PrimaryButton className="mt-4" disabled={addCustomerForms[shop.id].processing}>Add Customer</PrimaryButton>
-                            </form>
                         </div>
                     )}
                 </div>
