@@ -53,7 +53,7 @@ class ShopController extends Controller
                 'email' => 'required|exists:users,email|email|max:255',
                 'shopId' => 'required|integer|min:1|max:999',
             ]);
-            // dump($validated);
+            dump($validated);
         }
  
         return redirect(route('shops.index'));

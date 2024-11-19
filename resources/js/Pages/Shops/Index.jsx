@@ -1,59 +1,33 @@
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import AddCustomerForm from '@/Components/Forms/AddCustomerForm';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import Modal from '@/Components/Modal';
 import { useForm, Head } from '@inertiajs/react';
 
 export default function Index({ auth, ownShops }) {
-    const addCustomerForm = useForm({
-        shopId: null,
-        email: '',
-    });
-
     const addShopForm = useForm({
         name: '',
         key: '',
     });
 
-    const [addCustomerState, setAddCustomerState] = useState({
-        modalIsOpen: false,
-        currentShopId: null,
-    });
+    const [currentShopId, setCurrentShopId] = useState(null);
+    const [addCustomerModalIsOpen, setAddCustomerModalIsOpen] = useState(false);
 
     const submitAddShopData = (e) => {
         e.preventDefault();
         addShopForm.post(route('shops.store'), { onSuccess: () => addShopForm.reset() });
     };
 
-    const submitAddCustomerData = (e) => {
-        e.preventDefault();
-        addCustomerForm.setData({ shopId: addCustomerState.currentShopId });
-        addCustomerForm.post(route('shops.store'), {
-            onSuccess: () => {
-                addCustomerForm.reset();
-                setAddCustomerState({
-                    modalIsOpen: false,
-                    currentShopId: null,
-                });
-            }
-        });
-    };
-
     const handleAddCustomerButtonClick = (e) => {
-        setAddCustomerState({
-            modalIsOpen: true,
-            currentShopId: e.target.dataset.shopId,
-        });
+        setCurrentShopId(e.target.dataset.shopId);
+        setAddCustomerModalIsOpen(true);
     };
 
     const closeAddCustomerModal = (() => {
-        setAddCustomerState({
-            isOpen: false,
-            currentShopId: null,
-        });
-        addCustomerForm.clearErrors();
-        addCustomerForm.reset();
+        setCurrentShopId(null);
+        setAddCustomerModalIsOpen(false);
     });
 
     return (
@@ -108,21 +82,8 @@ export default function Index({ auth, ownShops }) {
                     </form>
                 </div>
             </div>
-            <Modal show={addCustomerState.modalIsOpen} onClose={closeAddCustomerModal}>
-                <div className="p-8">
-                <h2 className="text-l font-bold mb-3">Добавить пользователя в магазин</h2>
-                <form onSubmit={submitAddCustomerData}>
-                    <input
-                        value={addCustomerForm.data.email}
-                        type="text"
-                        placeholder="E-mail пользователя"
-                        className="block w-full border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mb-4"
-                        onChange={e => addCustomerForm.setData('email', e.target.value)}
-                    />
-                    <InputError message={addCustomerForm.errors.email} className="mt-2" />
-                    <PrimaryButton className="mt-4" disabled={addCustomerForm.processing}>Add Customer</PrimaryButton>
-                </form>
-                </div>
+            <Modal show={addCustomerModalIsOpen} onClose={closeAddCustomerModal}>
+                <AddCustomerForm currentShopId={currentShopId} closeModal={() => closeAddCustomerModal()} />
             </Modal>
         </AuthenticatedLayout>
     );
