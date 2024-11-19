@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Shop;
 use App\Models\ApiKey;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Rules\UniqueCustomer;
 
 class ShopController extends Controller
 {
@@ -45,15 +48,20 @@ class ShopController extends Controller
     
             $request->user()->ownApiKeys()->create([
                 'key' => $validated['key'],
-                'shop_id' => $shop->id
+                'shop_id' => $shop->id,
             ]);
         }
         elseif ($request->has(['email', 'shopId'])) {
-            $validated = $request->validate([
-                'email' => 'required|exists:users,email|email|max:255',
-                'shopId' => 'required|integer|min:1|max:999',
-            ]);
-            dump($validated);
+            $validator = Validator::make($request->all(), [
+                'email' => ['required', 'exists:users,email', 'email', 'max:255'],
+                'shopId' => ['required', 'integer', 'min:1', 'max:999', new UniqueCustomer],
+             ])->stopOnFirstFailure(true);
+
+            $validated = $validator->validate();
+
+            $shop = Shop::find($validated['shopId']);
+            $user = User::firstWhere('email', $validated['email']);
+            $shop->customers()->attach($user->id);
         }
  
         return redirect(route('shops.index'));
