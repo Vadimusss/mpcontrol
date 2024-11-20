@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Closure;
 use App\Models\User;
 use App\Models\Shop;
 use App\Models\ApiKey;
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Rules\UniqueCustomer;
+use App\Rules\NotOwner;
+use Illuminate\Support\Facades\Gate;
 
 class ShopController extends Controller
 {
@@ -19,9 +22,19 @@ class ShopController extends Controller
      */
     public function index(Request $request): Response
     {
-        // dump($request->user()->ownShops()->get());
+        $availableShops = [];
+        foreach ($request->user()->availableShops as ['id' => $id, 'name' => $name]) {
+            $shop= Shop::find($id);
+            $availableShops[] = [
+                'id' => $id,
+                'name' => $name,
+                'owner' => $shop->owner,
+            ];
+        };
+        // dump($availableShops);
         return Inertia::render('Shops/Index', [
-            'ownShops' => $request->user()->ownShops()->get(),
+            'ownShops' => $request->user()->ownShops,
+            'availableShops' => $availableShops,
         ]);
     }
 
@@ -51,18 +64,6 @@ class ShopController extends Controller
                 'shop_id' => $shop->id,
             ]);
         }
-        elseif ($request->has(['email', 'shopId'])) {
-            $validator = Validator::make($request->all(), [
-                'email' => ['required', 'exists:users,email', 'email', 'max:255'],
-                'shopId' => ['required', 'integer', 'min:1', 'max:999', new UniqueCustomer],
-             ])->stopOnFirstFailure(true);
-
-            $validated = $validator->validate();
-
-            $shop = Shop::find($validated['shopId']);
-            $user = User::firstWhere('email', $validated['email']);
-            $shop->customers()->attach($user->id);
-        }
  
         return redirect(route('shops.index'));
     }
@@ -86,9 +87,26 @@ class ShopController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Shop $shop)
+    public function update(Request $request, Shop $shop): RedirectResponse
     {
-        //
+        Gate::authorize('update', $shop);
+
+        if ($request->has(['email', 'shopId'])) {
+            $validated = $request->validate([
+                'email' => [
+                    'required',
+                    'exists:users,email',
+                    'email',
+                    new UniqueCustomer,
+                    new NotOwner,
+                ],
+            ]);
+
+            $user = User::firstWhere('email', $validated['email']);
+            $shop->customers()->attach($user->id);
+        }
+ 
+        return redirect(route('shops.index'));
     }
 
     /**

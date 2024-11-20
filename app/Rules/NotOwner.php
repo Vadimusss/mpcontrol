@@ -8,7 +8,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 
-class UniqueCustomer implements DataAwareRule, ValidationRule
+class NotOwner implements DataAwareRule, ValidationRule
 {
     protected $data = [];
 
@@ -30,8 +30,8 @@ class UniqueCustomer implements DataAwareRule, ValidationRule
         $userId = User::firstWhere('email', $value)->id;
         $shopId = $this->data['shopId'];
 
-        if (DB::table('shop_user')->where('shop_id', $shopId)->where('user_id', $userId)->exists()) {
-             $fail("Пользователь с e-mail {$this->data['email']} уже добавлен!");
+        if (DB::table('shops')->where('id', $shopId)->where('user_id', $userId)->exists()) {
+             $fail("Пользователь с e-mail {$this->data['email']} владелец магазина!");
         }
     }
 }
