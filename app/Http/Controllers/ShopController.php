@@ -22,18 +22,37 @@ class ShopController extends Controller
      */
     public function index(Request $request): Response
     {
-        $availableShops = [];
-        foreach ($request->user()->availableShops as ['id' => $id, 'name' => $name]) {
-            $shop= Shop::find($id);
-            $availableShops[] = [
-                'id' => $id,
-                'name' => $name,
-                'owner' => $shop->owner,
+        $availableShops = $request->user()->availableShops->map(function ($shop) {
+            return [
+                'id' => $shop->id,
+                'name' => $shop->name,
+                'owner' => [
+                    'id' => $shop->owner->id,
+                    'name' => $shop->owner->name,
+                    'email' => $shop->owner->email,
+                ],
             ];
-        };
-        // dump($availableShops);
+        });
+
+        $ownShops = $request->user()->ownShops->map(function ($shop) {
+            $customers =  $shop->customers->map(function ($customer) {
+                return ['id' => $customer->id, 'name' => $customer->name, 'email' => $customer->email];
+            });
+
+            return [
+                'id' => $shop->id,
+                'name' => $shop->name,
+                'owner' => [
+                    'id' => $shop->owner->id,
+                    'name' => $shop->owner->name,
+                    'email' => $shop->owner->email,
+                ],
+                'customers' => (count($customers) === 0) ? false : $customers,
+            ];
+        });
+
         return Inertia::render('Shops/Index', [
-            'ownShops' => $request->user()->ownShops,
+            'ownShops' => $ownShops,
             'availableShops' => $availableShops,
         ]);
     }
@@ -104,6 +123,17 @@ class ShopController extends Controller
 
             $user = User::firstWhere('email', $validated['email']);
             $shop->customers()->attach($user->id);
+        }
+
+        if ($request->has(['customerId'])) {
+            $validated = $request->validate([
+                'customerId' => [
+                    'required',
+                    'integer',
+                ],
+            ]);
+
+            $shop->customers()->detach($validated['customerId']);
         }
  
         return redirect(route('shops.index'));

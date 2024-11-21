@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import AddShopForm from '@/Components/Forms/AddShopForm';
-import Shop from '@/Components/Shop'
+import AddShopForm from '@/Pages/Shops/Components/Forms/AddShopForm';
+import Shop from '@/Pages/Shops/Components/Shop'
 import PrimaryButton from '@/Components/PrimaryButton';
 import Modal from '@/Components/Modal';
-import { Head, auth } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 
 export default function Index({ auth, ownShops, availableShops }) {
     const [addShopModalIsOpen, setAddShopModalIsOpen] = useState(false);
