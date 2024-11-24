@@ -7,12 +7,18 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
+/*     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
-    ]);
+    ]); */
+
+    if (Auth::check()) {
+        return redirect()->route('shops.index');;
+    } else {
+        return redirect()->route('login');
+    }
 });
 
 /* Route::get('/dashboard', function () {
@@ -26,7 +32,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::resource('shops', ShopController::class)
-    ->only(['index', 'store', 'update'])
+    ->only(['index', 'store', 'update', 'destroy'])
     ->middleware(['auth', 'verified']);
 
 require __DIR__.'/auth.php';

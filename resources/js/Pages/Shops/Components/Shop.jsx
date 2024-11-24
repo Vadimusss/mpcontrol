@@ -2,19 +2,41 @@ import { useState } from 'react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import Modal from '@/Components/Modal';
 import AddCustomerForm from '@/Pages/Shops/Components/Forms/AddCustomerForm';
+import ChangeApiKeyForm from '@/Pages/Shops/Components/Forms/ChangeApiKeyForm';
+import DeleteShopConfirmModal from '@/Pages/Shops/Components/Modals/DeleteShopConfirmModal';
 import Customers from '@/Pages/Shops/Components/Customers';
 import { usePage } from '@inertiajs/react';
 
 export default function Shop({ shop }) {
     const { auth } = usePage().props;
-    const [addCustomerModalIsOpen, setAddCustomerModalIsOpen] = useState(false);
+    const [modalState, setModalIState] = useState({
+        addCustomerModalIsOpen: false,
+        changeApiKeyModalIsOpen: false,
+        deleteShopConfirmModalIsOpen: false,
+    });
 
-    const handleAddCustomerButtonClick = (e) => {
-        setAddCustomerModalIsOpen(true);
+    const handleAddCustomer = (e) => {
+        setModalIState({ addCustomerModalIsOpen: true });
     };
 
     const closeAddCustomerModal = (() => {
-        setAddCustomerModalIsOpen(false);
+        setModalIState({ addCustomerModalIsOpen: false });
+    });
+
+    const handleChangeApiKey = (e) => {
+        setModalIState({ changeApiKeyModalIsOpen: true });
+    };
+
+    const closeChangeApiKeyModal = (() => {
+        setModalIState({ changeApiKeyModalIsOpen: false });
+    });
+
+    const closeDeleteModal = (() => {
+        setModalIState({ deleteShopConfirmModalIsOpen: false });
+    });
+
+    const openDeleteModal = (() => {
+        setModalIState({ deleteShopConfirmModalIsOpen: true });
     });
 
     return (
@@ -22,17 +44,39 @@ export default function Shop({ shop }) {
             <p>ID: {shop.id}</p>
             <p>{shop.name}</p>
             <p>Владелец: {shop.owner.name}</p>
-            {shop.customers &&
+            {(shop.customers && shop.owner.id === auth.user.id) &&
                 <Customers shopId={shop.id} customers={shop.customers} />
             }
-            <PrimaryButton
-                className="mt-4"
-                onClick={(e) => handleAddCustomerButtonClick(e)}>
-                Добавить пользователя
-            </PrimaryButton>
-            <Modal show={addCustomerModalIsOpen} onClose={closeAddCustomerModal}>
-                <AddCustomerForm currentShopId={shop.id} closeModal={() => closeAddCustomerModal()} />
-            </Modal>
+            {(shop.owner.id === auth.user.id) &&
+                <div className="flex flex-col">
+                    <PrimaryButton
+                        className="mt-4 max-w-fit"
+                        onClick={(e) => handleAddCustomer(e)}>
+                        Добавить пользователя
+                    </PrimaryButton>
+                    <PrimaryButton
+                        className="mt-4 max-w-fit"
+                        onClick={(e) => handleChangeApiKey(e)}>
+                        Изменить ключ Api
+                    </PrimaryButton>
+                    <PrimaryButton
+                        className="mt-4 max-w-fit"
+                        onClick={(e) => openDeleteModal()}>
+                        Удалить магазин
+                    </PrimaryButton>
+                    <Modal show={modalState.addCustomerModalIsOpen} onClose={closeAddCustomerModal}>
+                        <AddCustomerForm currentShopId={shop.id} closeModal={() => closeAddCustomerModal()} />
+                    </Modal>
+                    <Modal show={modalState.changeApiKeyModalIsOpen} onClose={closeChangeApiKeyModal}>
+                        <ChangeApiKeyForm currentShopId={shop.id} closeModal={() => closeChangeApiKeyModal()} />
+                    </Modal>
+                    <DeleteShopConfirmModal
+                        shop={shop}
+                        maxWidth={'xl'}
+                        IsOpen={modalState.deleteShopConfirmModalIsOpen}
+                        closeModal={closeDeleteModal}
+                    />
+                </div>}
         </div >
     );
 }

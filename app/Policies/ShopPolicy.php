@@ -45,7 +45,7 @@ class ShopPolicy
      */
     public function delete(User $user, Shop $shop): bool
     {
-        //
+        return $this->update($user, $shop);
     }
 
     /**

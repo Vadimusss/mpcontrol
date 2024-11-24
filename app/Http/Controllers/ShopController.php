@@ -14,6 +14,7 @@ use Inertia\Response;
 use App\Rules\UniqueCustomer;
 use App\Rules\NotOwner;
 use Illuminate\Support\Facades\Gate;
+use App\Events\ShopDeleted;
 
 class ShopController extends Controller
 {
@@ -110,40 +111,53 @@ class ShopController extends Controller
     {
         Gate::authorize('update', $shop);
 
-        if ($request->has(['email', 'shopId'])) {
-            $validated = $request->validate([
-                'email' => [
-                    'required',
-                    'exists:users,email',
-                    'email',
-                    new UniqueCustomer,
-                    new NotOwner,
-                ],
-            ]);
+        switch ($request['type']) {
+            case 'addCustomer':
+                $validated = $request->validate([
+                    'email' => [
+                        'required',
+                        'exists:users,email',
+                        'email',
+                        new UniqueCustomer,
+                        new NotOwner,
+                    ],
+                ]);
+    
+                $user = User::firstWhere('email', $validated['email']);
+                $shop->customers()->attach($user->id);
+                break;
+            case 'deleteCustomer':
+                $validated = $request->validate([
+                    'customerId' => [
+                        'required',
+                        'integer',
+                    ],
+                ]);
+    
+                $shop->customers()->detach($validated['customerId']);
+                break;
+            case 'changeApiKey':
+                $validated = $request->validate([
+                    'key' => 'required', 'unique:api_keys,key', 'max:500',
+                ]);
 
-            $user = User::firstWhere('email', $validated['email']);
-            $shop->customers()->attach($user->id);
+                $shop->apiKey()->update($validated);
+                break;
         }
 
-        if ($request->has(['customerId'])) {
-            $validated = $request->validate([
-                'customerId' => [
-                    'required',
-                    'integer',
-                ],
-            ]);
-
-            $shop->customers()->detach($validated['customerId']);
-        }
- 
         return redirect(route('shops.index'));
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Shop $shop)
+    public function destroy(Request $request, Shop $shop): RedirectResponse
     {
-        //
+        Gate::authorize('delete', $shop);
+
+        ShopDeleted::dispatch($shop);
+        $shop->delete();
+
+        return redirect(route('shops.index'));
     }
 }

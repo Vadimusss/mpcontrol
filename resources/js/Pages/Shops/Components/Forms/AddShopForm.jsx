@@ -12,6 +12,7 @@ export default function AddShopForm({ closeModal }) {
     const submitAddShopData = (e) => {
         e.preventDefault();
         post(route('shops.store'), {
+            preserveScroll: true,
             onSuccess: () => {
                 reset();
                 closeModal();

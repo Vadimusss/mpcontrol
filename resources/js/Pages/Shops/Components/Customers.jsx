@@ -1,18 +1,7 @@
 import { useState } from 'react';
-import { usePage, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 
 export default function Customers({ shopId, customers }) {
-    const { auth } = usePage().props;
-    const [addCustomerModalIsOpen, setAddCustomerModalIsOpen] = useState(false);
-
-    const handleAddCustomerButtonClick = (e) => {
-        setAddCustomerModalIsOpen(true);
-    };
-
-    const closeAddCustomerModal = (() => {
-        setAddCustomerModalIsOpen(false);
-    });
-
     return (
         <>
             <p>Пользователи:</p>
@@ -25,7 +14,7 @@ export default function Customers({ shopId, customers }) {
                             preserveScroll
                             method="patch"
                             href={route('shops.update', shopId)}
-                            data = { { customerId: customer.id } }
+                            data = { { customerId: customer.id, type: 'deleteCustomer' } }
                             className='border border-gray-300 rounded-md px-2 cursor-pointer hover:bg-gray-100'>
                             X
                         </Link>
