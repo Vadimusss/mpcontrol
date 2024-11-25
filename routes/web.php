@@ -1,29 +1,19 @@
 <?php
 
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\WorkSpaceController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-/*     return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]); */
-
     if (Auth::check()) {
         return redirect()->route('shops.index');;
     } else {
         return redirect()->route('login');
     }
 });
-
-/* Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard'); */
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -32,7 +22,11 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::resource('shops', ShopController::class)
-    ->only(['index', 'store', 'update', 'destroy'])
+    ->only(['index', 'show', 'store', 'update', 'destroy'])
+    ->middleware(['auth', 'verified']);
+
+Route::resource('workspases', WorkSpaceController::class)
+    ->only(['store', 'update', 'destroy'])
     ->middleware(['auth', 'verified']);
 
 require __DIR__.'/auth.php';

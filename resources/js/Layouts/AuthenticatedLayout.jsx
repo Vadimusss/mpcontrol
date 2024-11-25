@@ -4,7 +4,7 @@ import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function AuthenticatedLayout({ header, children, navigation }) {
+export default function AuthenticatedLayout({ shopId, header, children, navigation }) {
     const user = usePage().props.auth.user;
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
@@ -24,6 +24,12 @@ export default function AuthenticatedLayout({ header, children, navigation }) {
                                     <NavLink href={route('shops.index')} active={route().current('shops.index')}>
                                         Shops
                                     </NavLink>
+                                    <NavLink href={route('shops.show', shopId)} active={route().current('shops.show')}>
+                                        Work Spaces
+                                    </NavLink>
+                                    {/*                                     <NavLink href={route('shops.index')} active={route().current('shops.index')}>
+                                        Product lists
+                                    </NavLink> */}
                                 </div>
                             )}
                         </div>

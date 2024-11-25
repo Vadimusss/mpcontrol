@@ -22,6 +22,7 @@ class DeleteShopData
     public function handle(ShopDeleted $event): void
     {
         $event->shop->apiKey()->delete();
+        $event->shop->workSpaces()->delete();
         $event->shop->customers()->detach();
     }
 }

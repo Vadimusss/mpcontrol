@@ -17,6 +17,8 @@ export default function Index({ auth, ownShops, availableShops }) {
         setAddShopModalIsOpen(false);
     });
 
+    // console.log(availableShops);
+
     return (
         <AuthenticatedLayout
             navigation={false}

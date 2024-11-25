@@ -6,6 +6,7 @@ import ChangeApiKeyForm from '@/Pages/Shops/Components/Forms/ChangeApiKeyForm';
 import DeleteShopConfirmModal from '@/Pages/Shops/Components/Modals/DeleteShopConfirmModal';
 import Customers from '@/Pages/Shops/Components/Customers';
 import { usePage } from '@inertiajs/react';
+import { Inertia } from '@inertiajs/inertia';
 
 export default function Shop({ shop }) {
     const { auth } = usePage().props;
@@ -47,36 +48,42 @@ export default function Shop({ shop }) {
             {(shop.customers && shop.owner.id === auth.user.id) &&
                 <Customers shopId={shop.id} customers={shop.customers} />
             }
-            {(shop.owner.id === auth.user.id) &&
-                <div className="flex flex-col">
-                    <PrimaryButton
-                        className="mt-4 max-w-fit"
-                        onClick={(e) => handleAddCustomer(e)}>
-                        Добавить пользователя
-                    </PrimaryButton>
-                    <PrimaryButton
-                        className="mt-4 max-w-fit"
-                        onClick={(e) => handleChangeApiKey(e)}>
-                        Изменить ключ Api
-                    </PrimaryButton>
-                    <PrimaryButton
-                        className="mt-4 max-w-fit"
-                        onClick={(e) => openDeleteModal()}>
-                        Удалить магазин
-                    </PrimaryButton>
-                    <Modal show={modalState.addCustomerModalIsOpen} onClose={closeAddCustomerModal}>
-                        <AddCustomerForm currentShopId={shop.id} closeModal={() => closeAddCustomerModal()} />
-                    </Modal>
-                    <Modal show={modalState.changeApiKeyModalIsOpen} onClose={closeChangeApiKeyModal}>
-                        <ChangeApiKeyForm currentShopId={shop.id} closeModal={() => closeChangeApiKeyModal()} />
-                    </Modal>
-                    <DeleteShopConfirmModal
-                        shop={shop}
-                        maxWidth={'xl'}
-                        IsOpen={modalState.deleteShopConfirmModalIsOpen}
-                        closeModal={closeDeleteModal}
-                    />
-                </div>}
+            <div className="flex flex-col">
+                {(shop.owner.id === auth.user.id) &&
+                    <>
+                        <PrimaryButton
+                            className="mt-4 max-w-fit"
+                            onClick={(e) => handleAddCustomer(e)}>
+                            Добавить пользователя
+                        </PrimaryButton>
+                        <div className="flex gap-x-2">
+                            <PrimaryButton
+                                className="mt-4 max-w-fit"
+                                onClick={(e) => handleChangeApiKey(e)}>
+                                Изменить ключ Api
+                            </PrimaryButton>
+                            <PrimaryButton
+                                className="mt-4 max-w-fit"
+                                onClick={(e) => openDeleteModal()}>
+                                Удалить магазин
+                            </PrimaryButton>
+                        </div>
+                        <Modal show={modalState.addCustomerModalIsOpen} onClose={closeAddCustomerModal}>
+                            <AddCustomerForm currentShopId={shop.id} closeModal={() => closeAddCustomerModal()} />
+                        </Modal><Modal show={modalState.changeApiKeyModalIsOpen} onClose={closeChangeApiKeyModal}>
+                            <ChangeApiKeyForm currentShopId={shop.id} closeModal={() => closeChangeApiKeyModal()} />
+                        </Modal><DeleteShopConfirmModal
+                            shop={shop}
+                            maxWidth={'xl'}
+                            IsOpen={modalState.deleteShopConfirmModalIsOpen}
+                            closeModal={closeDeleteModal} />
+                    </>}
+                <PrimaryButton
+                    className="mt-4 max-w-fit"
+                    onClick={(e) => Inertia.get(route('shops.show', shop.id))}>
+                    Вход
+                </PrimaryButton>
+            </div>
         </div >
     );
 }

@@ -53,6 +53,16 @@ class User extends Authenticatable
         return $this->hasMany(Shop::class)->chaperone();
     }
 
+    public function ownWorkSpaces(): HasMany
+    {
+        return $this->hasMany(WorkSpace::class);
+    }
+
+    public function ownProductLists(): HasMany
+    {
+        return $this->hasMany(ProductList::class)->chaperone();
+    }
+
     public function ownApiKeys(): HasMany
     {
         return $this->hasMany(ApiKey::class);

@@ -24,46 +24,13 @@ class ShopController extends Controller
     public function index(Request $request): Response
     {
         $availableShops = $request->user()->availableShops->map(function ($shop) {
-            return [
-                'id' => $shop->id,
-                'name' => $shop->name,
-                'owner' => [
-                    'id' => $shop->owner->id,
-                    'name' => $shop->owner->name,
-                    'email' => $shop->owner->email,
-                ],
-            ];
-        });
-
-        $ownShops = $request->user()->ownShops->map(function ($shop) {
-            $customers =  $shop->customers->map(function ($customer) {
-                return ['id' => $customer->id, 'name' => $customer->name, 'email' => $customer->email];
-            });
-
-            return [
-                'id' => $shop->id,
-                'name' => $shop->name,
-                'owner' => [
-                    'id' => $shop->owner->id,
-                    'name' => $shop->owner->name,
-                    'email' => $shop->owner->email,
-                ],
-                'customers' => (count($customers) === 0) ? false : $customers,
-            ];
+            return $shop['owner'] = $shop->owner;
         });
 
         return Inertia::render('Shops/Index', [
-            'ownShops' => $ownShops,
-            'availableShops' => $availableShops,
+            'ownShops' => $request->user()->ownShops,
+            'availableShops' => $request->user()->availableShops,
         ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -71,19 +38,17 @@ class ShopController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        if ($request->has(['name', 'key'])) {
-            $validated = $request->validate([
-                'name' => 'required|unique:shops,name|string|max:255',
-                'key' => 'required|unique:api_keys,key|max:500',
-            ]);
-    
-            $shop = $request->user()->ownShops()->create(['name' => $validated['name']]);
-    
-            $request->user()->ownApiKeys()->create([
-                'key' => $validated['key'],
-                'shop_id' => $shop->id,
-            ]);
-        }
+        $validated = $request->validate([
+            'name' => 'required|unique:shops,name|string|max:255',
+            'key' => 'required|unique:api_keys,key|max:500',
+        ]);
+
+        $shop = $request->user()->ownShops()->create(['name' => $validated['name']]);
+
+        $request->user()->ownApiKeys()->create([
+            'key' => $validated['key'],
+            'shop_id' => $shop->id,
+        ]);
  
         return redirect(route('shops.index'));
     }
@@ -91,17 +56,12 @@ class ShopController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Shop $shop)
+    public function show(Shop $shop): Response
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Shop $shop)
-    {
-        //
+        return Inertia::render('WorkSpaces/Index', [
+            'shop' => $shop,
+            'workSpaces' => $shop->workSpaces,
+        ]);
     }
 
     /**
@@ -151,7 +111,7 @@ class ShopController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, Shop $shop): RedirectResponse
+    public function destroy(Shop $shop): RedirectResponse
     {
         Gate::authorize('delete', $shop);
 
