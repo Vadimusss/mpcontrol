@@ -30,7 +30,7 @@ export default function AddCustomerForm({ currentShopId, closeModal }) {
                     onChange={e => setData('email', e.target.value)}
                 />
                 <InputError message={errors.email} className="mt-2" />
-                <PrimaryButton className="mt-4" disabled={processing}>Add Customer</PrimaryButton>
+                <PrimaryButton className="mt-4" disabled={processing}>Добавить</PrimaryButton>
             </form>
         </div>
     );

@@ -22,10 +22,10 @@ export default function AuthenticatedLayout({ shopId, header, children, navigati
                             {navigation && (
                                 <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                     <NavLink href={route('shops.index')} active={route().current('shops.index')}>
-                                        Shops
+                                        Магазины
                                     </NavLink>
                                     <NavLink href={route('shops.show', shopId)} active={route().current('shops.show')}>
-                                        Work Spaces
+                                        Рабочие области
                                     </NavLink>
                                     {/*                                     <NavLink href={route('shops.index')} active={route().current('shops.index')}>
                                         Product lists
@@ -65,14 +65,14 @@ export default function AuthenticatedLayout({ shopId, header, children, navigati
                                         <Dropdown.Link
                                             href={route('profile.edit')}
                                         >
-                                            Profile
+                                            Профиль
                                         </Dropdown.Link>
                                         <Dropdown.Link
                                             href={route('logout')}
                                             method="post"
                                             as="button"
                                         >
-                                            Log Out
+                                            Выход
                                         </Dropdown.Link>
                                     </Dropdown.Content>
                                 </Dropdown>
@@ -130,7 +130,7 @@ export default function AuthenticatedLayout({ shopId, header, children, navigati
                 >
                     <div className="space-y-1 pb-3 pt-2">
                         <ResponsiveNavLink href={route('shops.index')} active={route().current('shops.index')}>
-                            Shops
+                            Магазины
                         </ResponsiveNavLink>
                     </div>
 
@@ -146,14 +146,14 @@ export default function AuthenticatedLayout({ shopId, header, children, navigati
 
                         <div className="mt-3 space-y-1">
                             <ResponsiveNavLink href={route('profile.edit')}>
-                                Profile
+                                Профиль
                             </ResponsiveNavLink>
                             <ResponsiveNavLink
                                 method="post"
                                 href={route('logout')}
                                 as="button"
                             >
-                                Log Out
+                                Выход
                             </ResponsiveNavLink>
                         </div>
                     </div>

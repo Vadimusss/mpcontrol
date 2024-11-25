@@ -17,14 +17,14 @@ export default function Index({ auth, ownShops, availableShops }) {
         setAddShopModalIsOpen(false);
     });
 
-    // console.log(availableShops);
+    console.log(ownShops);
 
     return (
         <AuthenticatedLayout
             navigation={false}
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Shops
+                    Магазины
                 </h2>
             }>
             <Head title="Shops" />

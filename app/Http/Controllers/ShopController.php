@@ -24,12 +24,37 @@ class ShopController extends Controller
     public function index(Request $request): Response
     {
         $availableShops = $request->user()->availableShops->map(function ($shop) {
-            return $shop['owner'] = $shop->owner;
+            return [
+                'id' => $shop->id,
+                'name' => $shop->name,
+                'owner' => [
+                    'id' => $shop->owner->id,
+                    'name' => $shop->owner->name,
+                    'email' => $shop->owner->email,
+                ],
+            ];
+        });
+
+        $ownShops = $request->user()->ownShops->map(function ($shop) {
+            $customers =  $shop->customers->map(function ($customer) {
+                return ['id' => $customer->id, 'name' => $customer->name, 'email' => $customer->email];
+            });
+
+            return [
+                'id' => $shop->id,
+                'name' => $shop->name,
+                'owner' => [
+                    'id' => $shop->owner->id,
+                    'name' => $shop->owner->name,
+                    'email' => $shop->owner->email,
+                ],
+                'customers' => (count($customers) === 0) ? false : $customers,
+            ];
         });
 
         return Inertia::render('Shops/Index', [
-            'ownShops' => $request->user()->ownShops,
-            'availableShops' => $request->user()->availableShops,
+            'ownShops' => $ownShops,
+            'availableShops' => $availableShops,
         ]);
     }
 
