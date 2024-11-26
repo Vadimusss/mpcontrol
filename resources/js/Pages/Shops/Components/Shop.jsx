@@ -80,7 +80,7 @@ export default function Shop({ shop }) {
                     </>}
                 <PrimaryButton
                     className="mt-4 max-w-fit"
-                    onClick={(e) => Inertia.get(route('shops.show', shop.id))}>
+                    onClick={(e) => Inertia.get(route('shops.workspaces.index', shop.id))}>
                     Вход
                 </PrimaryButton>
             </div>

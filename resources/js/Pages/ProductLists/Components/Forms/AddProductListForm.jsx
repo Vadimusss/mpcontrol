@@ -3,16 +3,16 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import React from 'react';
 import { useForm } from '@inertiajs/react';
 
-export default function AddWorkSpaceForm({ shopId, closeModal }) {
+export default function AddProductListForm({ shopId, closeModal }) {
     const { data, setData, post, processing, errors } = useForm({
-        type: 'addWorkSpace',
+        type: 'addProductList',
         name: '',
         shopId: shopId,
     });
 
-    const submitWorkSpace = (e) => {
+    const submitProductList = (e) => {
         e.preventDefault();
-        post(route('shops.workspaces.store', shopId), {
+        post(route('shops.productlists.store', shopId), {
             preserveScroll: true,
             onSuccess: () => {
                 closeModal();
@@ -22,12 +22,12 @@ export default function AddWorkSpaceForm({ shopId, closeModal }) {
 
     return (
         <div className="p-8">
-            <h2 className="text-l font-bold mb-3">Добавить рабочую область</h2>
-            <form onSubmit={submitWorkSpace}>
+            <h2 className="text-l font-bold mb-3">Добавить список товаров</h2>
+            <form onSubmit={submitProductList}>
                 <input
                     value={data.name}
                     type="text"
-                    placeholder="Название рабочей области"
+                    placeholder="Название списка товаров"
                     className="block w-full border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mb-4"
                     onChange={e => setData('name', e.target.value)}
                 />

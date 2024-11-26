@@ -24,12 +24,12 @@ export default function AuthenticatedLayout({ shopId, header, children, navigati
                                     <NavLink href={route('shops.index')} active={route().current('shops.index')}>
                                         Магазины
                                     </NavLink>
-                                    <NavLink href={route('shops.show', shopId)} active={route().current('shops.show')}>
+                                    <NavLink href={route('shops.workspaces.index', shopId)} active={route().current('shops.workspaces.index')}>
                                         Рабочие области
                                     </NavLink>
-                                    {/*                                     <NavLink href={route('shops.index')} active={route().current('shops.index')}>
-                                        Product lists
-                                    </NavLink> */}
+                                    <NavLink href={route('shops.productlists.index', shopId)} active={route().current('shops.productlists.index')}>
+                                        Списки товаров
+                                    </NavLink>
                                 </div>
                             )}
                         </div>

@@ -3,16 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProductList;
+use App\Models\Shop;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ProductListController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request, Shop $shop): Response
     {
-        //
+        return Inertia::render('ProductLists/Index', [
+            'shop' => $shop,
+            'productLists' => $shop->productLists,
+        ]);
     }
 
     /**
@@ -26,9 +33,15 @@ class ProductListController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, Shop $shop): RedirectResponse
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|unique:product_lists,name|string|max:255',
+        ]);
+
+        $shop->productLists()->create(['name' => $validated['name'], 'user_id' => $request->user()->id]);
+
+        return redirect(route('shops.productlists.index', $request['shopId']));
     }
 
     /**

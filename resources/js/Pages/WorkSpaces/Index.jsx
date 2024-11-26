@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PrimaryButton from '@/Components/PrimaryButton';
 import AddWorkSpaceForm from '@/Pages/WorkSpaces/Components/Forms/AddWorkSpaceForm';
 import Modal from '@/Components/Modal';
+import WorkSpace from '@/Pages/WorkSpaces/Components/WorkSpace';
 import { Head } from '@inertiajs/react';
 
 export default function WorkSpaces({ shop, workSpaces }) {
@@ -33,7 +34,7 @@ export default function WorkSpaces({ shop, workSpaces }) {
                 <div className="p-2 sm:p-3 lg:p-6">
                     <h2 className="text-xl font-bold mb-3">Рабочие области</h2>
                     {workSpaces && workSpaces.map((workSpace) =>
-                        <p>{workSpace.name}</p>
+                        <WorkSpace shopId={shop.id} workSpace={workSpace} key={workSpace.id} />
                     )}
                     <PrimaryButton
                         className="mt-4"

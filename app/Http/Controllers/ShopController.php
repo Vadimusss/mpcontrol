@@ -61,7 +61,7 @@ class ShopController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, Shop $shop): RedirectResponse
     {
         $validated = $request->validate([
             'name' => 'required|unique:shops,name|string|max:255',
@@ -76,17 +76,6 @@ class ShopController extends Controller
         ]);
  
         return redirect(route('shops.index'));
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Shop $shop): Response
-    {
-        return Inertia::render('WorkSpaces/Index', [
-            'shop' => $shop,
-            'workSpaces' => $shop->workSpaces,
-        ]);
     }
 
     /**
