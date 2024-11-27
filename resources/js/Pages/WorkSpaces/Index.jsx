@@ -3,10 +3,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PrimaryButton from '@/Components/PrimaryButton';
 import AddWorkSpaceForm from '@/Pages/WorkSpaces/Components/Forms/AddWorkSpaceForm';
 import Modal from '@/Components/Modal';
-import WorkSpace from '@/Pages/WorkSpaces/Components/WorkSpace';
+import WorkSpaceCard from '@/Pages/WorkSpaces/Components/WorkSpaceCard';
 import { Head } from '@inertiajs/react';
 
-export default function WorkSpaces({ shop, workSpaces }) {
+export default function WorkSpaces({ shop, ownWorkSpaces, workSpaces }) {
     const [addWorkSpaceModalIsOpen, setAddWorkSpaceModalIsOpen] = useState(false);
 
     const handleAddWorkSpaceButtonClick = () => {
@@ -17,12 +17,10 @@ export default function WorkSpaces({ shop, workSpaces }) {
         setAddWorkSpaceModalIsOpen(false);
     });
 
-    // console.log(workSpaces);
-
     return (
         <AuthenticatedLayout
             navigation={true}
-            shopId = {shop.id}
+            shopId={shop.id}
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
                     {shop.name}
@@ -32,13 +30,17 @@ export default function WorkSpaces({ shop, workSpaces }) {
 
             <div className="max-w-2xl mx-auto">
                 <div className="p-2 sm:p-3 lg:p-6">
-                    <h2 className="text-xl font-bold mb-3">Рабочие области</h2>
-                    {workSpaces && workSpaces.map((workSpace) =>
-                        <WorkSpace shopId={shop.id} workSpace={workSpace} key={workSpace.id} />
-                    )}
+                    {workSpaces && <h2 className="text-xl font-bold mb-3">Рабочие области магазина</h2>}
+                    {workSpaces &&
+                        workSpaces.map((workSpace) =>
+                            <WorkSpaceCard shopId={shop.id} workSpace={workSpace} key={workSpace.id} />)}
+                    {ownWorkSpaces && <h2 className="text-xl font-bold mb-3">Мои рабочие области</h2>}
+                    {ownWorkSpaces &&
+                        ownWorkSpaces.map((workSpace) =>
+                            <WorkSpaceCard shopId={shop.id} workSpace={workSpace} key={workSpace.id} />)}
                     <PrimaryButton
                         className="mt-4"
-                        onClick={(e) => handleAddWorkSpaceButtonClick(e)}>
+                        onClick={() => handleAddWorkSpaceButtonClick()}>
                         Добавить рабочую область
                     </PrimaryButton>
                 </div>

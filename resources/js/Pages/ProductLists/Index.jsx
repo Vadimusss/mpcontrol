@@ -2,11 +2,15 @@ import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PrimaryButton from '@/Components/PrimaryButton';
 import AddProductListForm from '@/Pages/ProductLists/Components/Forms/AddProductListForm';
+import ProductListCard from '@/Pages/ProductLists/Components/ProductListCard';
 import Modal from '@/Components/Modal';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 
-export default function ProductLists({ shop, productLists }) {
+export default function ProductLists({ shop, ownProductLists, productLists }) {
+    const { auth } = usePage().props;
     const [addProductListModalIsOpen, setAddProductListModalIsOpen] = useState(false);
+
+    // const ownProductLists = productLists.filter((ProductList) => ProductList.creator.id);
 
     const handleAddProductListButtonClick = () => {
         setAddProductListModalIsOpen(true);
@@ -19,7 +23,7 @@ export default function ProductLists({ shop, productLists }) {
     return (
         <AuthenticatedLayout
             navigation={true}
-            shopId = {shop.id}
+            shopId={shop.id}
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
                     {shop.name}
@@ -29,10 +33,14 @@ export default function ProductLists({ shop, productLists }) {
 
             <div className="max-w-2xl mx-auto">
                 <div className="p-2 sm:p-3 lg:p-6">
-                    <h2 className="text-xl font-bold mb-3">Списки товаров</h2>
-                    {productLists && productLists.map((productList) =>
-                        <p>{productList.name}</p>
-                    )}
+                    {productLists.length !== 0 && <h2 className="text-xl font-bold mb-3">Списки товаров магазина</h2>}
+                    {productLists &&
+                        productLists.map((productList) =>
+                            <ProductListCard shopId={shop.id} productList={productList} key={productList.id} />)}
+                    {ownProductLists && <h2 className="text-xl font-bold mb-3">Мои списки товаров</h2>}
+                    {ownProductLists &&
+                        ownProductLists.map((productList) =>
+                            <ProductListCard shopId={shop.id} productList={productList} key={productList.id} />)}
                     <PrimaryButton
                         className="mt-4"
                         onClick={(e) => handleAddProductListButtonClick(e)}>

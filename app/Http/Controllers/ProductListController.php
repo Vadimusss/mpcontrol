@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ProductList;
 use App\Models\Shop;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -16,9 +17,30 @@ class ProductListController extends Controller
      */
     public function index(Request $request, Shop $shop): Response
     {
+        $ownProductLists = [];
+        $productLists = [];
+
+        foreach ($shop->productLists as $productList) {
+            $item = [
+                'id' => $productList->id,
+                'name' => $productList->name,
+                'creator' => [
+                    'id' => $productList->creator->id,
+                    'name' => $productList->creator->name,
+                    'email' => $productList->creator->email,
+                ],
+            ];
+            if ($productList->creator->id === $request->user()->id) {
+                $ownProductLists[] = $item;
+            } else {
+                $productLists[] = $item;
+            }
+        };
+
         return Inertia::render('ProductLists/Index', [
             'shop' => $shop,
-            'productLists' => $shop->productLists,
+            'ownProductLists' => $ownProductLists,
+            'productLists' => $productLists,
         ]);
     }
 

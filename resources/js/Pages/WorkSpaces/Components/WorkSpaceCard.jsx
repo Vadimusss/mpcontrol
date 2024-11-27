@@ -5,7 +5,7 @@ import DeleteWorkSpaceConfirmModal from '@/Pages/WorkSpaces/Components/Modals/De
 import { usePage } from '@inertiajs/react';
 import { Inertia } from '@inertiajs/inertia';
 
-export default function WorkSpace({ shopId, workSpace }) {
+export default function WorkSpaceCard({ shopId, workSpace }) {
     const { auth } = usePage().props;
     const [modalState, setModalIState] = useState({
         changeSettingModalIsOpen: false,
@@ -62,7 +62,7 @@ export default function WorkSpace({ shopId, workSpace }) {
                 <PrimaryButton
                     className="mt-4 max-w-fit"
                     onClick={(e) => Inertia.get(route('shops.workspaces.show', workSpace.id))}>
-                    Вход
+                    Открыть
                 </PrimaryButton>
             </div>
         </div >

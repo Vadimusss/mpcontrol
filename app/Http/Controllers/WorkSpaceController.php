@@ -14,8 +14,11 @@ class WorkSpaceController extends Controller
 {
     public function index(Request $request, Shop $shop): Response
     {
-        $workSpaces = $shop->workSpaces->map(function ($workSpace) {
-            return [
+        $ownWorkSpaces = [];
+        $workSpaces = [];
+
+        foreach ($shop->workSpaces as $workSpace) {
+            $item = [
                 'id' => $workSpace->id,
                 'name' => $workSpace->name,
                 'creator' => [
@@ -24,10 +27,16 @@ class WorkSpaceController extends Controller
                     'email' => $workSpace->creator->email,
                 ],
             ];
-        });
+            if ($workSpace->creator->id === $request->user()->id) {
+                $ownWorkSpaces[] = $item;
+            } else {
+                $workSpaces[] = $item;
+            }
+        };
 
         return Inertia::render('WorkSpaces/Index', [
             'shop' => $shop,
+            'ownWorkSpaces' => $ownWorkSpaces,
             'workSpaces' => $workSpaces,
         ]);
     }
