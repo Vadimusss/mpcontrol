@@ -6,7 +6,7 @@ import Modal from '@/Components/Modal';
 import WorkSpaceCard from '@/Pages/WorkSpaces/Components/WorkSpaceCard';
 import { Head } from '@inertiajs/react';
 
-export default function WorkSpaces({ shop, ownWorkSpaces, workSpaces }) {
+export default function WorkSpaces({ shop, ownWorkSpaces, workSpaces, goodLists }) {
     const [addWorkSpaceModalIsOpen, setAddWorkSpaceModalIsOpen] = useState(false);
 
     const handleAddWorkSpaceButtonClick = () => {
@@ -16,7 +16,7 @@ export default function WorkSpaces({ shop, ownWorkSpaces, workSpaces }) {
     const closeAddWorkSpaceModal = (() => {
         setAddWorkSpaceModalIsOpen(false);
     });
-
+console.log(goodLists);
     return (
         <AuthenticatedLayout
             navigation={true}
@@ -30,14 +30,20 @@ export default function WorkSpaces({ shop, ownWorkSpaces, workSpaces }) {
 
             <div className="max-w-2xl mx-auto">
                 <div className="p-2 sm:p-3 lg:p-6">
-                    {workSpaces && <h2 className="text-xl font-bold mb-3">Рабочие области магазина</h2>}
-                    {workSpaces &&
-                        workSpaces.map((workSpace) =>
-                            <WorkSpaceCard shopId={shop.id} workSpace={workSpace} key={workSpace.id} />)}
-                    {ownWorkSpaces && <h2 className="text-xl font-bold mb-3">Мои рабочие области</h2>}
-                    {ownWorkSpaces &&
-                        ownWorkSpaces.map((workSpace) =>
-                            <WorkSpaceCard shopId={shop.id} workSpace={workSpace} key={workSpace.id} />)}
+                    {workSpaces.length !== 0 &&
+                        <>
+                            <h2 className="text-xl font-bold mb-3">Рабочие области магазина</h2>
+                            {workSpaces.map((workSpace) =>
+                                <WorkSpaceCard shopId={shop.id} workSpace={workSpace} key={workSpace.id} />)}
+                        </>
+                    }
+                    {ownWorkSpaces.length !== 0 &&
+                        <>
+                            <h2 className="text-xl font-bold mb-3">Мои рабочие области</h2>
+                            {ownWorkSpaces.map((workSpace) =>
+                                <WorkSpaceCard shopId={shop.id} workSpace={workSpace} goodLists={goodLists} key={workSpace.id} />)}
+                        </>
+                    }
                     <PrimaryButton
                         className="mt-4"
                         onClick={() => handleAddWorkSpaceButtonClick()}>

@@ -23,6 +23,9 @@ class DeleteShopData
     {
         $event->shop->apiKey()->delete();
         $event->shop->workSpaces()->delete();
+        $event->shop->goodLists()->delete();
+        $event->shop->sizes()->delete();
+        $event->shop->goods()->delete();
         $event->shop->customers()->detach();
     }
 }

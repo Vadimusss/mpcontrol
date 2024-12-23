@@ -15,12 +15,10 @@ use App\Rules\UniqueCustomer;
 use App\Rules\NotOwner;
 use Illuminate\Support\Facades\Gate;
 use App\Events\ShopDeleted;
+use App\Events\ShopCreated;
 
 class ShopController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request): Response
     {
         $availableShops = $request->user()->availableShops->map(function ($shop) {
@@ -58,9 +56,6 @@ class ShopController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request, Shop $shop): RedirectResponse
     {
         $validated = $request->validate([
@@ -74,13 +69,12 @@ class ShopController extends Controller
             'key' => $validated['key'],
             'shop_id' => $shop->id,
         ]);
+
+        ShopCreated::dispatch($shop);
  
         return redirect(route('shops.index'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Shop $shop): RedirectResponse
     {
         Gate::authorize('update', $shop);
@@ -122,9 +116,6 @@ class ShopController extends Controller
         return redirect(route('shops.index'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Shop $shop): RedirectResponse
     {
         Gate::authorize('delete', $shop);

@@ -2,10 +2,11 @@ import { useState } from 'react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import Modal from '@/Components/Modal';
 import DeleteWorkSpaceConfirmModal from '@/Pages/WorkSpaces/Components/Modals/DeleteWorkSpaceConfirmModal';
+import SetWorkSpaceSettingModal from '@/Pages/WorkSpaces/Components/Modals/SetWorkSpaceSettingModal';
 import { usePage } from '@inertiajs/react';
 import { Inertia } from '@inertiajs/inertia';
 
-export default function WorkSpaceCard({ shopId, workSpace }) {
+export default function WorkSpaceCard({ shopId, workSpace, goodLists }) {
     const { auth } = usePage().props;
     const [modalState, setModalIState] = useState({
         changeSettingModalIsOpen: false,
@@ -48,9 +49,14 @@ export default function WorkSpaceCard({ shopId, workSpace }) {
                                 Удалить
                             </PrimaryButton>
                         </div>
-                        <Modal show={modalState.changeSettingModalIsOpen} onClose={closeChangeSettingModal}>
-                            <p>Test!!!</p>
-                        </Modal>
+                        <SetWorkSpaceSettingModal
+                            shopId={shopId}
+                            workSpace={workSpace}
+                            goodLists={goodLists}
+                            maxWidth={'xl'}
+                            IsOpen={modalState.changeSettingModalIsOpen}
+                            closeModal={closeChangeSettingModal}
+                        />
                         <DeleteWorkSpaceConfirmModal
                             shopId={shopId}
                             workSpace={workSpace}
@@ -61,7 +67,7 @@ export default function WorkSpaceCard({ shopId, workSpace }) {
                 }
                 <PrimaryButton
                     className="mt-4 max-w-fit"
-                    onClick={(e) => Inertia.get(route('shops.workspaces.show', workSpace.id))}>
+                    onClick={(e) => Inertia.get(route('shops.workspaces.show', { shop: shopId, workspace: workSpace.id }))}>
                     Открыть
                 </PrimaryButton>
             </div>

@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\WorkSpaceController;
-use App\Http\Controllers\ProductListController;
+use App\Http\Controllers\GoodListController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -27,11 +27,11 @@ Route::resource('shops', ShopController::class)
     ->middleware(['auth', 'verified']);
 
 Route::resource('shops.workspaces', WorkSpaceController::class)
-    ->only(['index', 'store', 'update', 'destroy'])
+    ->only(['index', 'store', 'update', 'show', 'destroy'])
     ->middleware(['auth', 'verified']);
 
-Route::resource('shops.productlists', ProductListController::class)
-    ->only(['index', 'store', 'update', 'destroy'])
+Route::resource('shops.goodlists', GoodListController::class)
+    ->only(['index', 'store', 'show', 'update', 'destroy'])
     ->middleware(['auth', 'verified']);
 
 require __DIR__.'/auth.php';

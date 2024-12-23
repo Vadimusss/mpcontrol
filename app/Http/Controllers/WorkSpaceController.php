@@ -38,6 +38,7 @@ class WorkSpaceController extends Controller
             'shop' => $shop,
             'ownWorkSpaces' => $ownWorkSpaces,
             'workSpaces' => $workSpaces,
+            'goodLists' => $shop->goodLists,
         ]);
     }
 
@@ -55,13 +56,29 @@ class WorkSpaceController extends Controller
         return redirect(route('shops.workspaces.index', $request['shopId']));
     }
 
+    public function show(Shop $shop, WorkSpace $workspace)
+    {
+        return Inertia::render('WorkSpace/Index', [
+            'shop' => $shop,
+            'workSpace' => $workspace,
+            'goodlists' => $shop->goodLists,
+        ]);
+    }
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, WorkSpace $workSpace)
+    public function update(Request $request, Shop $shop, WorkSpace $workspace)
     {
-        //
+        dump($workspace);
+        Gate::authorize('update', $workspace);
+
+        $validated = $request->validate([
+            'goodListId' => 'required|integer',
+        ]);
+
+        dump($validated['goodListId']);
     }
 
     /**

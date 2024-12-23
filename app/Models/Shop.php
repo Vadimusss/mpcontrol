@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Shop extends Model
 {
@@ -35,8 +36,18 @@ class Shop extends Model
         return $this->hasMany(WorkSpace::class);
     }
 
-    public function productLists(): HasMany
+    public function goodLists(): HasMany
     {
-        return $this->hasMany(ProductList::class);
+        return $this->hasMany(GoodList::class);
+    }
+
+    public function goods(): HasMany
+    {
+        return $this->hasMany(Good::class);
+    }
+
+    public function sizes(): HasManyThrough
+    {
+        return $this->hasManyThrough(WbListGoodSize::class, Good::class);
     }
 }

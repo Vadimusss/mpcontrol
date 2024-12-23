@@ -15,19 +15,19 @@ export default function AuthenticatedLayout({ shopId, header, children, navigati
             <nav className="border-b border-gray-100 bg-white">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
-                        <div className="flex">
+                        <div className="flex w-full justify-between">
                             <div className="flex shrink-0 items-center">
                                 {header}
                             </div>
                             {navigation && (
-                                <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                                <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex justify-end">
                                     <NavLink href={route('shops.index')} active={route().current('shops.index')}>
                                         Магазины
                                     </NavLink>
                                     <NavLink href={route('shops.workspaces.index', shopId)} active={route().current('shops.workspaces.index')}>
                                         Рабочие области
                                     </NavLink>
-                                    <NavLink href={route('shops.productlists.index', shopId)} active={route().current('shops.productlists.index')}>
+                                    <NavLink href={route('shops.goodlists.index', shopId)} active={route().current('shops.goodlists.index')}>
                                         Списки товаров
                                     </NavLink>
                                 </div>

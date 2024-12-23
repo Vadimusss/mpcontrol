@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
+use App\Models\GoodList;
 use App\Models\User;
-use App\Models\WorkSpace;
 use Illuminate\Auth\Access\Response;
 
-class WorkSpacePolicy
+class GoodListPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -19,7 +19,7 @@ class WorkSpacePolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, WorkSpace $workSpace): bool
+    public function view(User $user, GoodList $goodList): bool
     {
         //
     }
@@ -35,23 +35,23 @@ class WorkSpacePolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, WorkSpace $workSpace): bool
+    public function update(User $user, GoodList $goodList): bool
     {
-        return $workSpace->creator()->is($user);
+        //
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, WorkSpace $workSpace): bool
+    public function delete(User $user, GoodList $goodList): bool
     {
-        return $workSpace->creator()->is($user);
+        return $goodList->creator()->is($user);
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, WorkSpace $workSpace): bool
+    public function restore(User $user, GoodList $goodList): bool
     {
         //
     }
@@ -59,7 +59,7 @@ class WorkSpacePolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, WorkSpace $workSpace): bool
+    public function forceDelete(User $user, GoodList $goodList): bool
     {
         //
     }

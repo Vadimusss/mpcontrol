@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class WorkSpace extends Model
+class GoodList extends Model
 {
     protected $fillable = [
         'shop_id',
@@ -24,8 +24,18 @@ class WorkSpace extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function connectedGoodLists(): BelongsToMany
+    public function customers(): BelongsToMany
     {
-        return $this->belongsToMany(GoodList::class);
+        return $this->belongsToMany(User::class);
+    }
+
+    public function goods(): BelongsToMany
+    {
+        return $this->belongsToMany(Good::class);
+    }
+
+    public function connectedWorkSpaces(): BelongsToMany
+    {
+        return $this->belongsToMany(WorkSpace::class);
     }
 }

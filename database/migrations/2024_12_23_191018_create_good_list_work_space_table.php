@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('good_lists', function (Blueprint $table) {
+        Schema::create('good_list_work_space', function (Blueprint $table) {
             $table->id();
-            $table->integer('shop_id');
-            $table->integer('user_id');
-            $table->string('name');
+            $table->integer('good_list_id');
+            $table->integer('work_space_id');
             $table->timestamps();
         });
     }
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('good_lists');
+        Schema::dropIfExists('good_list_work_space');
     }
 };

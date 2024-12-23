@@ -3,16 +3,17 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import React from 'react';
 import { useForm } from '@inertiajs/react';
 
-export default function AddProductListForm({ shopId, closeModal }) {
+export default function AddGoodListForm({ shopId, closeModal, selectedGoodsId }) {
     const { data, setData, post, processing, errors } = useForm({
-        type: 'addProductList',
+        type: 'addGoodList',
         name: '',
         shopId: shopId,
+        goodsId: selectedGoodsId,
     });
 
-    const submitProductList = (e) => {
+    const submitGoodList = (e) => {
         e.preventDefault();
-        post(route('shops.productlists.store', shopId), {
+        post(route('shops.goodlists.store', shopId), {
             preserveScroll: true,
             onSuccess: () => {
                 closeModal();
@@ -23,7 +24,7 @@ export default function AddProductListForm({ shopId, closeModal }) {
     return (
         <div className="p-8">
             <h2 className="text-l font-bold mb-3">Добавить список товаров</h2>
-            <form onSubmit={submitProductList}>
+            <form onSubmit={submitGoodList}>
                 <input
                     value={data.name}
                     type="text"

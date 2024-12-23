@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('good_lists', function (Blueprint $table) {
+        Schema::create('wb_list_good_sizes', function (Blueprint $table) {
             $table->id();
-            $table->integer('shop_id');
-            $table->integer('user_id');
-            $table->string('name');
+            $table->integer('good_id');
+            $table->integer('size_id');
+            $table->integer('price');
+            $table->integer('discounted_price');
+            $table->integer('club_discounted_price');
+            $table->string('tech_size_name');
             $table->timestamps();
         });
     }
@@ -25,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('good_lists');
+        Schema::dropIfExists('wb_list_good_sizes');
     }
 };
