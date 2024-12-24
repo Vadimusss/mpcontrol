@@ -16,6 +16,8 @@ class Shop extends Model
         'name',
     ];
 
+    protected $with = ['owner'];
+
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');

@@ -14,6 +14,8 @@ class WorkSpace extends Model
         'name'
     ];
 
+    protected $with = ['creator', 'connectedGoodLists'];
+
     public function shop(): BelongsTo
     {
         return $this->belongsTo(Shop::class);

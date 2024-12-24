@@ -9,35 +9,15 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Gate;
+use App\Events\WorkSpaceDeleted;
 
 class WorkSpaceController extends Controller
 {
     public function index(Request $request, Shop $shop): Response
     {
-        $ownWorkSpaces = [];
-        $workSpaces = [];
-
-        foreach ($shop->workSpaces as $workSpace) {
-            $item = [
-                'id' => $workSpace->id,
-                'name' => $workSpace->name,
-                'creator' => [
-                    'id' => $workSpace->creator->id,
-                    'name' => $workSpace->creator->name,
-                    'email' => $workSpace->creator->email,
-                ],
-            ];
-            if ($workSpace->creator->id === $request->user()->id) {
-                $ownWorkSpaces[] = $item;
-            } else {
-                $workSpaces[] = $item;
-            }
-        };
-
         return Inertia::render('WorkSpaces/Index', [
             'shop' => $shop,
-            'ownWorkSpaces' => $ownWorkSpaces,
-            'workSpaces' => $workSpaces,
+            'workSpaces' => $shop->workSpaces,
             'goodLists' => $shop->goodLists,
         ]);
     }
@@ -71,14 +51,14 @@ class WorkSpaceController extends Controller
      */
     public function update(Request $request, Shop $shop, WorkSpace $workspace)
     {
-        dump($workspace);
         Gate::authorize('update', $workspace);
 
         $validated = $request->validate([
             'goodListId' => 'required|integer',
         ]);
 
-        dump($validated['goodListId']);
+        $workspace->connectedGoodLists()->detach();
+        $workspace->connectedGoodLists()->attach($validated['goodListId']);
     }
 
     /**
@@ -88,7 +68,7 @@ class WorkSpaceController extends Controller
     {
         Gate::authorize('delete', $workspace);
 
-        $workspace->delete();
+        WorkSpaceDeleted::dispatch($workspace);
 
         return redirect(route('shops.workspaces.index', $shop->id));
     }

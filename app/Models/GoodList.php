@@ -14,6 +14,8 @@ class GoodList extends Model
         'name'
     ];
 
+    protected $with = ['creator'];
+
     public function shop(): BelongsTo
     {
         return $this->belongsTo(Shop::class);

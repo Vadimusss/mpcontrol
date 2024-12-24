@@ -1,13 +1,24 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PrimaryButton from '@/Components/PrimaryButton';
 import AddWorkSpaceForm from '@/Pages/WorkSpaces/Components/Forms/AddWorkSpaceForm';
 import Modal from '@/Components/Modal';
 import WorkSpaceCard from '@/Pages/WorkSpaces/Components/WorkSpaceCard';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 
-export default function WorkSpaces({ shop, ownWorkSpaces, workSpaces, goodLists }) {
+export default function WorkSpaces({ shop, workSpaces, goodLists }) {
+    const { auth } = usePage().props;
     const [addWorkSpaceModalIsOpen, setAddWorkSpaceModalIsOpen] = useState(false);
+
+    const availableWorkSpaces = useMemo(
+        () => workSpaces.filter((workSpace) => workSpace.creator.id !== auth.user.id),
+        [workSpaces]
+    );
+
+    const ownWorkSpaces = useMemo(
+        () => workSpaces.filter((workSpace) => workSpace.creator.id === auth.user.id),
+        [workSpaces]
+    );
 
     const handleAddWorkSpaceButtonClick = () => {
         setAddWorkSpaceModalIsOpen(true);
@@ -16,7 +27,9 @@ export default function WorkSpaces({ shop, ownWorkSpaces, workSpaces, goodLists 
     const closeAddWorkSpaceModal = (() => {
         setAddWorkSpaceModalIsOpen(false);
     });
-console.log(goodLists);
+/*     console.log(shop);
+    console.log(workSpaces);
+    console.log(goodLists); */
     return (
         <AuthenticatedLayout
             navigation={true}
@@ -30,10 +43,10 @@ console.log(goodLists);
 
             <div className="max-w-2xl mx-auto">
                 <div className="p-2 sm:p-3 lg:p-6">
-                    {workSpaces.length !== 0 &&
+                    {availableWorkSpaces.length !== 0 &&
                         <>
                             <h2 className="text-xl font-bold mb-3">Рабочие области магазина</h2>
-                            {workSpaces.map((workSpace) =>
+                            {availableWorkSpaces.map((workSpace) =>
                                 <WorkSpaceCard shopId={shop.id} workSpace={workSpace} key={workSpace.id} />)}
                         </>
                     }
