@@ -6,7 +6,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import Modal from '@/Components/Modal';
 import { Head } from '@inertiajs/react';
 
-export default function Index({ auth, ownShops, availableShops }) {
+export default function Index({ ownShops, availableShops }) {
     const [addShopModalIsOpen, setAddShopModalIsOpen] = useState(false);
 
     const handleAddShopButtonClick = () => {
@@ -16,8 +16,6 @@ export default function Index({ auth, ownShops, availableShops }) {
     const closeAddShopModal = (() => {
         setAddShopModalIsOpen(false);
     });
-
-    console.log(ownShops);
 
     return (
         <AuthenticatedLayout

@@ -45,7 +45,7 @@ export default function Shop({ shop }) {
             <p>ID: {shop.id}</p>
             <p>{shop.name}</p>
             <p>Владелец: {shop.owner.name}</p>
-            {(shop.customers && shop.owner.id === auth.user.id) &&
+            {(shop.customers.length !== 0 && shop.owner.id === auth.user.id) &&
                 <Customers shopId={shop.id} customers={shop.customers} />
             }
             <div className="flex flex-col">
@@ -72,7 +72,8 @@ export default function Shop({ shop }) {
                             <AddCustomerForm currentShopId={shop.id} closeModal={() => closeAddCustomerModal()} />
                         </Modal><Modal show={modalState.changeApiKeyModalIsOpen} onClose={closeChangeApiKeyModal}>
                             <ChangeApiKeyForm currentShopId={shop.id} closeModal={() => closeChangeApiKeyModal()} />
-                        </Modal><DeleteShopConfirmModal
+                        </Modal>
+                        <DeleteShopConfirmModal
                             shop={shop}
                             maxWidth={'xl'}
                             IsOpen={modalState.deleteShopConfirmModalIsOpen}

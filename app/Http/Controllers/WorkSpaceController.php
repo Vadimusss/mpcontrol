@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\WorkSpace;
 use App\Models\Shop;
+use App\Models\Good;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -38,10 +39,14 @@ class WorkSpaceController extends Controller
 
     public function show(Shop $shop, WorkSpace $workspace)
     {
+        $goods = $workspace->connectedGoodLists->load(['goods'])->flatMap(function ($list) {
+            return Good::find($list->goods)->load('wbListGoodRow', 'sizes');
+        });
+
         return Inertia::render('WorkSpace/Index', [
             'shop' => $shop,
             'workSpace' => $workspace,
-            'goodlists' => $shop->goodLists,
+            'goods' => $goods,
         ]);
     }
 

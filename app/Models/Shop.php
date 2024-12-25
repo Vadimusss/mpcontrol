@@ -16,7 +16,7 @@ class Shop extends Model
         'name',
     ];
 
-    protected $with = ['owner'];
+    protected $with = ['owner', 'customers'];
 
     public function owner(): BelongsTo
     {

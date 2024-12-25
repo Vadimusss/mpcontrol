@@ -3,11 +3,9 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import Modal from '@/Components/Modal';
 import DeleteWorkSpaceConfirmModal from '@/Pages/WorkSpaces/Components/Modals/DeleteWorkSpaceConfirmModal';
 import SetWorkSpaceSettingModal from '@/Pages/WorkSpaces/Components/Modals/SetWorkSpaceSettingModal';
-import { usePage } from '@inertiajs/react';
 import { Inertia } from '@inertiajs/inertia';
 
-export default function WorkSpaceCard({ shopId, workSpace, goodLists }) {
-    const { auth } = usePage().props;
+export default function WorkSpaceCard({ auth, shopId, workSpace, goodLists }) {
     const [modalState, setModalIState] = useState({
         changeSettingModalIsOpen: false,
         deleteConfirmModalIsOpen: false,
@@ -28,7 +26,7 @@ export default function WorkSpaceCard({ shopId, workSpace, goodLists }) {
     const closeDeleteModal = (() => {
         setModalIState({ deleteConfirmModalIsOpen: false });
     });
-console.log(workSpace);
+// console.log(workSpace);
     return (
         <div className="border border-gray-300 rounded-md shadow-sm bg-white mb-2 p-2">
             <p><span className='font-semibold text-gray-900'>ID:</span> {workSpace.id}</p>

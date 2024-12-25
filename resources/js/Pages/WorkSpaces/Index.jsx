@@ -4,10 +4,9 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import AddWorkSpaceForm from '@/Pages/WorkSpaces/Components/Forms/AddWorkSpaceForm';
 import Modal from '@/Components/Modal';
 import WorkSpaceCard from '@/Pages/WorkSpaces/Components/WorkSpaceCard';
-import { Head, usePage } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 
-export default function WorkSpaces({ shop, workSpaces, goodLists }) {
-    const { auth } = usePage().props;
+export default function WorkSpaces({ auth, shop, workSpaces, goodLists }) {
     const [addWorkSpaceModalIsOpen, setAddWorkSpaceModalIsOpen] = useState(false);
 
     const availableWorkSpaces = useMemo(
@@ -47,14 +46,14 @@ export default function WorkSpaces({ shop, workSpaces, goodLists }) {
                         <>
                             <h2 className="text-xl font-bold mb-3">Рабочие области магазина</h2>
                             {availableWorkSpaces.map((workSpace) =>
-                                <WorkSpaceCard shopId={shop.id} workSpace={workSpace} key={workSpace.id} />)}
+                                <WorkSpaceCard auth={auth} shopId={shop.id} workSpace={workSpace} key={workSpace.id} />)}
                         </>
                     }
                     {ownWorkSpaces.length !== 0 &&
                         <>
                             <h2 className="text-xl font-bold mb-3">Мои рабочие области</h2>
                             {ownWorkSpaces.map((workSpace) =>
-                                <WorkSpaceCard shopId={shop.id} workSpace={workSpace} goodLists={goodLists} key={workSpace.id} />)}
+                                <WorkSpaceCard auth={auth} shopId={shop.id} workSpace={workSpace} goodLists={goodLists} key={workSpace.id} />)}
                         </>
                     }
                     <PrimaryButton
