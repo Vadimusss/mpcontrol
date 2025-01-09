@@ -29,10 +29,15 @@ export default function Index({ ownShops, availableShops }) {
 
             <div className="max-w-2xl mx-auto">
                 <div className="p-2 sm:p-3 lg:p-6">
-                    <h2 className="text-xl font-bold mb-3">Мои магазины</h2>
-                    {ownShops && ownShops.map((shop) =>
-                        <Shop shop={shop} key={shop.id} />
-                    )}
+                    {ownShops.length !== 0 &&
+                        <>
+                            <h2 className="text-xl font-bold mb-3">Мои магазины</h2>
+                            {ownShops.map((shop) =>
+                                <Shop shop={shop} key={shop.id} />
+                            )}
+                        </>
+                    }
+
                     <PrimaryButton
                         className="mt-4"
                         onClick={(e) => handleAddShopButtonClick(e)}>
@@ -40,10 +45,14 @@ export default function Index({ ownShops, availableShops }) {
                     </PrimaryButton>
                 </div>
                 <div className="p-2 sm:p-3 lg:p-6">
-                    <h2 className="text-xl font-bold mb-2">Доступные магазины</h2>
-                    {availableShops && availableShops.map((shop) =>
-                        <Shop shop={shop} key={shop.id} />
-                    )}
+                    {availableShops.length !== 0 &&
+                        <>
+                            <h2 className="text-xl font-bold mb-2">Доступные магазины</h2>
+                            {availableShops.map((shop) =>
+                                <Shop shop={shop} key={shop.id} />
+                            )}
+                        </>
+                    }
                 </div>
             </div>
             <Modal show={addShopModalIsOpen} onClose={closeAddShopModal}>

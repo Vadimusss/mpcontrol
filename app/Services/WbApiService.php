@@ -58,6 +58,14 @@ class WbApiService
         return $response->getBody()->getContents();
     }
 
+    public function makeDiscountsPricesApiPing() {
+        $response = Http::withToken($this->apiKey)->
+        retry(3, 1000, throw: false)->
+        get('https://discounts-prices-api.wildberries.ru/ping');
+
+        return $response->successful();
+    }
+
     public function test()
     {
         return 'Success!';

@@ -6,9 +6,9 @@ import { Head, usePage } from '@inertiajs/react';
 import { Inertia } from '@inertiajs/inertia';
 
 export default function WorkSpace({ shop, workSpace, goods }) {
-    console.log(shop);
+/*     console.log(shop);
     console.log(workSpace);
-    console.log(goods);
+    console.log(goods); */
     return (
         <AuthenticatedLayout
             navigation={true}

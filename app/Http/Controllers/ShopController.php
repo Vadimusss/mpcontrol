@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Rules\UniqueCustomer;
+use App\Rules\ApiKeyIsWorking;
 use App\Rules\NotOwner;
 use Illuminate\Support\Facades\Gate;
 use App\Events\ShopDeleted;
@@ -31,7 +32,12 @@ class ShopController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|unique:shops,name|string|max:255',
-            'key' => 'required|unique:api_keys,key|max:500',
+            'key' => [
+                'required',
+                'unique:api_keys,key',
+                'max:500',
+                new ApiKeyIsWorking,
+            ],
         ]);
 
         $shop = $request->user()->ownShops()->create(['name' => $validated['name']]);
@@ -77,7 +83,12 @@ class ShopController extends Controller
                 break;
             case 'changeApiKey':
                 $validated = $request->validate([
-                    'key' => 'required', 'unique:api_keys,key', 'max:500',
+                    'key' => [
+                        'required',
+                        'unique:api_keys,key',
+                        'max:500',
+                        new ApiKeyIsWorking,
+                    ],
                 ]);
 
                 $shop->apiKey()->update($validated);
