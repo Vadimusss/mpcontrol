@@ -35,4 +35,9 @@ class Good extends Model
     {
         return $this->hasMany(WbListGoodSize::class);
     }
+
+    public function WbNmReportDetailHistory(): HasMany
+    {
+        return $this->hasMany(WbNmReportDetailHistory::class);
+    }
 }

@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Services;
- 
+
+use Illuminate\Support\Sleep;
 use Illuminate\Support\Facades\Http;
  
 class WbApiService
@@ -49,6 +50,23 @@ class WbApiService
         }
 
         return $fullData;
+    }
+
+    public function getApiV2NmReportDetailHistory(array $nmIDs, array $period = null)
+    {
+        $response = Http::withToken($this->apiKey)->
+        retry(3, 1000, throw: false)->
+        post('https://seller-analytics-api.wildberries.ru/api/v2/nm-report/detail/history', [
+            'nmIDs' => $nmIDs,
+            'period' => $period ? $period : [
+                'begin' => date('Y-m-d', time()),
+                'end' => date('Y-m-d', time()),
+            ],
+        ]);
+
+        Sleep::for(20)->seconds();
+
+        return $response->collect(['data']);
     }
 
     public function getApiV2ListGoodsFilter(int $filterNmID)
