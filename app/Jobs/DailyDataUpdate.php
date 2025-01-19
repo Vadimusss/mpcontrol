@@ -27,14 +27,17 @@ class DailyDataUpdate implements ShouldQueue
         $shops = Shop::without(['owner', 'customers'])->with('goods')->get();
 
         $shops->each(function ($shop, int $key) {
-            $shopNmIds = $shop->goods()->pluck('nm_id')->toArray();
-            $chunks = array_chunk($shopNmIds, 20);
-            $period = [
-                'begin' => date('Y-m-d', time()),
-                'end' => date('Y-m-d', time()),
-            ];
+            $shopGoods = $shop->goods();
+            $today = date('Y-m-d', time());
+            DB::table('wb_nm_report_detail_histories')->where('dt', '=', $yesterday)->delete();
 
-            $jobs = array_map(function ($chunk) use ($shop) {
+            $period = [
+                'begin' => $today,
+                'end' => $today,
+            ];
+            $shopNmIds = $shopGoods->pluck('nm_id')->toArray();
+            $chunks = array_chunk($shopNmIds, 20);
+            $jobs = array_map(function ($chunk) use ($shop, $period) {
                 return new AddWbNmReportDetailHistory($shop, $chunk, $period);
             }, $chunks);
 
