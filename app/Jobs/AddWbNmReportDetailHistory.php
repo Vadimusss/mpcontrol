@@ -11,7 +11,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Throwable;
 
-class AddShopWbListGoods implements ShouldQueue
+class AddWbNmReportDetailHistory implements ShouldQueue
 {
     use Queueable;
 
