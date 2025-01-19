@@ -1,0 +1,63 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Models\Shop;
+use App\Services\WbApiService;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+
+class AddShopWbListGoods implements ShouldQueue
+{
+    use Queueable;
+
+    /**
+     * Create a new job instance.
+     */
+    public function __construct(public Shop $shop)
+    {
+        $this->shop = $shop->withoutRelations();
+    }
+
+    /**
+     * Execute the job.
+     */
+    public function handle(): void
+    {
+        $shop = $this->shop;
+        $apiKey = $shop->apiKey->key;
+
+        $api = new WbApiService($apiKey);
+        $wbGoodListData = $api->getFullApiV2ListGoods();
+        // dump($wbGoodListData);
+
+        $wbGoodListData->each(function ($goodFromApi) use ($shop) {
+            $good = $shop->goods()->create([
+                'shop_id' => $shop->id,
+                'nm_id' => $goodFromApi['nmID'],
+                'vendor_code' => $goodFromApi['vendorCode'],
+            ]);
+
+            $wbListGood = $good->wbListGoodRow()->create([
+                'good_id' => $good->id,
+                'nm_id' => $goodFromApi['nmID'],
+                'vendor_code' => $goodFromApi['vendorCode'],
+                'currency_iso_code_4217' => $goodFromApi['currencyIsoCode4217'],
+                'discount' => $goodFromApi['discount'],
+                'club_discount' => $goodFromApi['clubDiscount'],
+                'editable_size_price' => $goodFromApi['editableSizePrice'],
+            ]);
+
+            collect($goodFromApi['sizes'])->each(function ($size) use ($good) {
+                $good->sizes()->create([
+                    'good_id' => $good->id,
+                    'size_id' => $size['sizeID'],
+                    'price' => $size['price'],
+                    'discounted_price' => $size['discountedPrice'],
+                    'club_discounted_price' => $size['clubDiscountedPrice'],
+                    'tech_size_name' => $size['techSizeName'],
+                ]);
+            });
+        });
+    }
+}
