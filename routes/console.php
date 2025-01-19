@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\DailyDataUpdate;
+use App\Jobs\ReloadYesterdayWbNmReportDetailHistory;
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -12,6 +13,6 @@ Artisan::command('inspire', function () {
 
 // Schedule::job(new DailyDataUpdate)->everyMinute();
 
-Schedule::job(new DailyDataUpdate, 'main')->everyMinute();
+Schedule::job(new ReloadYesterdayWbNmReportDetailHistory, 'main')->everyMinute();
 
 // Schedule::job(new DailyDataUpdate, 'api')->everyMinute();

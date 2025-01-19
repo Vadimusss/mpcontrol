@@ -23,7 +23,9 @@ class WbApiService
                 'limit' => $limit,
                 'offset' => $offset,
             ]);
- 
+
+        $response->throw();
+        
         return $response->collect(['data', 'listGoods']);
     }
 
@@ -52,19 +54,18 @@ class WbApiService
         return $fullData;
     }
 
-    public function getApiV2NmReportDetailHistory(array $nmIDs, array $period = null)
+    public function getApiV2NmReportDetailHistory(array $nmIDs, array $period)
     {
         $response = Http::withToken($this->apiKey)->
         retry(3, 1000, throw: false)->
         post('https://seller-analytics-api.wildberries.ru/api/v2/nm-report/detail/history', [
             'nmIDs' => $nmIDs,
-            'period' => $period ? $period : [
-                'begin' => date('Y-m-d', time()),
-                'end' => date('Y-m-d', time()),
-            ],
+            'period' => $period,
         ]);
 
         Sleep::for(20)->seconds();
+
+        $response->throw();
 
         return $response->collect(['data']);
     }
@@ -72,6 +73,8 @@ class WbApiService
     public function getApiV2ListGoodsFilter(int $filterNmID)
     {
         $response = Http::get('https://discounts-prices-api.wildberries.ru/api/v2/list/goods/filter');
+
+        $response->throw();
  
         return $response->getBody()->getContents();
     }

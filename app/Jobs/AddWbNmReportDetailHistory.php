@@ -11,17 +11,18 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Throwable;
 
-class AddTodayWbNmReportDetailHistory implements ShouldQueue
+class AddWbNmReportDetailHistory implements ShouldQueue
 {
     use Queueable;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(public Shop $shop, public array $nmIds)
+    public function __construct(public Shop $shop, public array $nmIds, public array $period)
     {
         $this->shop = $shop->withoutRelations();
         $this->nmIds = $nmIds;
+        $this->period = $period;
     }
 
     /**
@@ -30,7 +31,7 @@ class AddTodayWbNmReportDetailHistory implements ShouldQueue
     public function handle(): void
     {
         $api = new WbApiService($this->shop->apiKey->key);
-        $WbNmReportDetailHistoryData = $api->getApiV2NmReportDetailHistory($this->nmIds);
+        $WbNmReportDetailHistoryData = $api->getApiV2NmReportDetailHistory($this->nmIds, $this->period);
 
         $WbNmReportDetailHistoryData->each(function ($row) {
             $good = Good::firstWhere('nm_id', $row['nmID']);
