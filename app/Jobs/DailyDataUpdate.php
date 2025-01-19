@@ -30,7 +30,7 @@ class DailyDataUpdate implements ShouldQueue
         $shops->each(function ($shop, int $key) {
             $shopGoods = $shop->goods();
             $today = date('Y-m-d', time());
-            DB::table('wb_nm_report_detail_histories')->where('dt', '=', $yesterday)->delete();
+            DB::table('wb_nm_report_detail_histories')->where('dt', '=', $today)->delete();
 
             $period = [
                 'begin' => $today,
