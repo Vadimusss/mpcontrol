@@ -12,8 +12,8 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-// Schedule::job(new DailyWbNmReportDetailHistoryUpdate)->everyMinute();
+Schedule::job(new DailyWbNmReportDetailHistoryUpdate)->everyMinute();
 
 // Schedule::job(new ReloadYesterdayWbNmReportDetailHistory, 'main')->everyMinute();
 
-Schedule::job(new DailyWbAdvV1UpdUpdate, 'api')->everyMinute();
+// Schedule::job(new DailyWbAdvV1UpdUpdate, 'api')->everyMinute();
