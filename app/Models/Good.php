@@ -40,4 +40,9 @@ class Good extends Model
     {
         return $this->hasMany(WbNmReportDetailHistory::class);
     }
+
+    public function WbAdvV1Upd(): HasMany
+    {
+        return $this->hasMany(WbAdvV1Upd::class);
+    }
 }

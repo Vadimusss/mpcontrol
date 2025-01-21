@@ -4,14 +4,13 @@ namespace App\Jobs;
 
 use App\Models\Shop;
 use App\Jobs\AddWbNmReportDetailHistory;
-// use App\Jobs\TestJobWithError;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 
-class DailyDataUpdate implements ShouldQueue
+class DailyWbNmReportDetailHistoryUpdate implements ShouldQueue
 {
     use Queueable;
 
@@ -42,7 +41,6 @@ class DailyDataUpdate implements ShouldQueue
                 return new AddWbNmReportDetailHistory($shop, $chunk, $period);
             }, $chunks);
 
-            // array_unshift($jobs, new TestJobWithError);
             Bus::chain($jobs)->onQueue('api')->dispatch();
         });
     }

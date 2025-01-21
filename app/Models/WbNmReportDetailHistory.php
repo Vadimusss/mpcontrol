@@ -9,18 +9,18 @@ class WbNmReportDetailHistory extends Model
     protected $fillable = [
         'good_id',
         'nm_id',
-        'imtName',
+        'imt_name',
         'vendor_code',
         'dt',
-        'openCardCount',
-        'addToCartCount',
-        'ordersCount',
-        'ordersSumRub',
-        'buyoutsCount',
-        'buyoutsSumRub',
-        'buyoutPercent',
-        'addToCartConversion',
-        'cartToOrderConversion',
+        'open_card_count',
+        'add_to_cart_count',
+        'orders_count',
+        'orders_sum_rub',
+        'buyouts_count',
+        'buyouts_sum_rub',
+        'buyout_percent',
+        'add_to_cart_conversion',
+        'cart_to_order_conversion',
     ];
 
     public function good(): BelongsTo

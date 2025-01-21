@@ -1,6 +1,7 @@
 <?php
 
-use App\Jobs\DailyDataUpdate;
+use App\Jobs\DailyWbNmReportDetailHistoryUpdate;
+use App\Jobs\DailyWbAdvV1UpdUpdate;
 use App\Jobs\ReloadYesterdayWbNmReportDetailHistory;
 
 use Illuminate\Foundation\Inspiring;
@@ -11,8 +12,8 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-Schedule::job(new DailyDataUpdate)->everyMinute();
+// Schedule::job(new DailyWbNmReportDetailHistoryUpdate)->everyMinute();
 
 // Schedule::job(new ReloadYesterdayWbNmReportDetailHistory, 'main')->everyMinute();
 
-// Schedule::job(new DailyDataUpdate, 'api')->everyMinute();
+Schedule::job(new DailyWbAdvV1UpdUpdate, 'api')->everyMinute();

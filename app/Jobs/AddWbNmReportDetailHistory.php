@@ -8,7 +8,6 @@ use App\Services\WbApiService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Throwable;
 
 class AddWbNmReportDetailHistory implements ShouldQueue
@@ -39,35 +38,24 @@ class AddWbNmReportDetailHistory implements ShouldQueue
             array_walk($row['history'], function ($day) use ($good, $row) {
                 $good->WbNmReportDetailHistory()->create([
                     'nm_id' => $row['nmID'],
-                    'imtName' => $row['imtName'],
+                    'imt_name' => $row['imtName'],
                     'vendor_code' => $row['vendorCode'],
                     'dt' => $day['dt'],
-                    'openCardCount' => $day['openCardCount'],
-                    'addToCartCount' => $day['addToCartCount'],
-                    'ordersCount' => $day['addToCartConversion'],
-                    'ordersSumRub' => $day['ordersCount'],
-                    'buyoutsCount' => $day['ordersSumRub'],
-                    'buyoutsSumRub' => $day['cartToOrderConversion'],
-                    'buyoutPercent' => $day['buyoutsCount'],
-                    'addToCartConversion' => $day['buyoutsSumRub'],
-                    'cartToOrderConversion' => $day['buyoutPercent'],
+                    'open_card_count' => $day['openCardCount'],
+                    'add_to_cart_count' => $day['addToCartCount'],
+                    'orders_count' => $day['addToCartConversion'],
+                    'orders_sum_rub' => $day['ordersCount'],
+                    'buyouts_count' => $day['ordersSumRub'],
+                    'buyouts_sum_rub' => $day['cartToOrderConversion'],
+                    'buyout_percent' => $day['buyoutsCount'],
+                    'add_to_cart_conversion' => $day['buyoutsSumRub'],
+                    'cart_to_order_conversion' => $day['buyoutPercent'],
                 ]);
             });
         });
 
         // dump($wbGoodListData);
     }
-
-        /**
-         * Получить посредника, через которого должно пройти задание.
-         *
-         * @return array<int, object>
-        */
-
-/*     public function middleware(): array
-    {
-        return [(new WithoutOverlapping($this->shop->id))->releaseAfter(60)];
-    } */
 
     public function failed(?Throwable $exception): void
     {

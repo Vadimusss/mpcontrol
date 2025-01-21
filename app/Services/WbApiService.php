@@ -79,10 +79,29 @@ class WbApiService
         return $response->getBody()->getContents();
     }
 
+    public function getAdvV1Upd(array $period)
+    {
+        $response = Http::withToken($this->apiKey)->
+            retry([1000, 2000, 3000])->
+            get('https://advert-api.wildberries.ru/adv/v1/upd', $period);
+
+        $response->throw();
+ 
+        return $response->collect();
+    }
+
     public function makeDiscountsPricesApiPing() {
         $response = Http::withToken($this->apiKey)->
         retry(3, 1000, throw: false)->
         get('https://discounts-prices-api.wildberries.ru/ping');
+
+        return $response->successful();
+    }
+
+    public function makeAdvertApiPing() {
+        $response = Http::withToken($this->apiKey)->
+        retry(3, 1000, throw: false)->
+        get('https://advert-api.wildberries.ru/ping');
 
         return $response->successful();
     }
