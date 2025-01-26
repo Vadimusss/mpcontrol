@@ -52,4 +52,19 @@ class Shop extends Model
     {
         return $this->hasManyThrough(WbListGoodSize::class, Good::class);
     }
+
+    public function WbNmReportDetailHistory(): HasManyThrough
+    {
+        return $this->hasManyThrough(WbNmReportDetailHistory::class, Good::class);
+    }
+
+    public function WbAdvV1Upd(): HasManyThrough
+    {
+        return $this->hasManyThrough(WbAdvV1Upd::class, Good::class);
+    }
+
+    public function WbV1SupplierOrders(): HasManyThrough
+    {
+        return $this->hasManyThrough(WbV1SupplierOrders::class, Good::class);
+    }
 }

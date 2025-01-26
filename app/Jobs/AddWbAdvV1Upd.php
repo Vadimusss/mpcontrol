@@ -6,10 +6,11 @@ use App\Models\Good;
 use App\Services\WbApiService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Bus\Batchable;
 
 class AddWbAdvV1Upd implements ShouldQueue
 {
-    use Queueable;
+    use Batchable, Queueable;
 
     public function __construct(
         public string $apiKey,
@@ -45,7 +46,5 @@ class AddWbAdvV1Upd implements ShouldQueue
                 ]);
             }
         });
-
-        // dump($wbGoodListData);
     }
 }

@@ -8,18 +8,23 @@ use App\Services\WbApiService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Bus\Batchable;
 use Throwable;
 
 class AddWbNmReportDetailHistory implements ShouldQueue
 {
-    use Queueable;
+    use Batchable, Queueable;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(public Shop $shop, public array $nmIds, public array $period)
+    public function __construct(
+        public string $apiKey,
+        public array $nmIds,
+        public array $period
+    )
     {
-        $this->shop = $shop->withoutRelations();
+        $this->apiKey = $apiKey;
         $this->nmIds = $nmIds;
         $this->period = $period;
     }
@@ -29,7 +34,7 @@ class AddWbNmReportDetailHistory implements ShouldQueue
      */
     public function handle(): void
     {
-        $api = new WbApiService($this->shop->apiKey->key);
+        $api = new WbApiService($this->apiKey);
         $WbNmReportDetailHistoryData = $api->getApiV2NmReportDetailHistory($this->nmIds, $this->period);
 
         $WbNmReportDetailHistoryData->each(function ($row) {

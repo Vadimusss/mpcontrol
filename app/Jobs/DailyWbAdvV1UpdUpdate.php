@@ -30,7 +30,7 @@ class DailyWbAdvV1UpdUpdate implements ShouldQueue
             DB::table('wb_adv_v1_upds')->delete();
 
             $period = [
-                'from' => date('Y-m-d', strtotime("-31 days")),
+                'from' => date('Y-m-d', time()),
                 'to' => date('Y-m-d', time()),
             ];
 

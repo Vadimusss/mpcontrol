@@ -38,7 +38,7 @@ class DailyWbNmReportDetailHistoryUpdate implements ShouldQueue
             $shopNmIds = $shopGoods->pluck('nm_id')->toArray();
             $chunks = array_chunk($shopNmIds, 20);
             $jobs = array_map(function ($chunk) use ($shop, $period) {
-                return new AddWbNmReportDetailHistory($shop, $chunk, $period);
+                return new AddWbNmReportDetailHistory($shop->apiKey->key, $chunk, $period);
             }, $chunks);
 
             Bus::chain($jobs)->onQueue('api')->dispatch();

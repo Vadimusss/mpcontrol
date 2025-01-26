@@ -83,7 +83,24 @@ class WbApiService
     {
         $response = Http::withToken($this->apiKey)->
             retry([1000, 2000, 3000])->
-            get('https://advert-api.wildberries.ru/adv/v1/upd', $period);
+            get('https://advert-api.wildberries.ru/adv/v1/upd', [
+                'from' => $period['begin'],
+                'to' => $period['end'],
+            ]);
+
+        $response->throw();
+ 
+        return $response->collect();
+    }
+
+    public function getApiV1SupplierOrders(string $dateFrom, $flag = 1)
+    {
+        $response = Http::withToken($this->apiKey)->
+            retry([1000, 2000, 3000])->
+            get('https://statistics-api.wildberries.ru/api/v1/supplier/orders', [
+                'dateFrom' => $dateFrom,
+                'flag' =>  $flag,
+            ]);
 
         $response->throw();
  

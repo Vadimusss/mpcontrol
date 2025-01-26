@@ -45,4 +45,9 @@ class Good extends Model
     {
         return $this->hasMany(WbAdvV1Upd::class);
     }
+
+    public function WbV1SupplierOrders(): HasMany
+    {
+        return $this->hasMany(WbV1SupplierOrders::class);
+    }
 }
