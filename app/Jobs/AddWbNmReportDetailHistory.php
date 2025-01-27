@@ -48,13 +48,13 @@ class AddWbNmReportDetailHistory implements ShouldQueue
                     'dt' => $day['dt'],
                     'open_card_count' => $day['openCardCount'],
                     'add_to_cart_count' => $day['addToCartCount'],
-                    'orders_count' => $day['addToCartConversion'],
-                    'orders_sum_rub' => $day['ordersCount'],
-                    'buyouts_count' => $day['ordersSumRub'],
-                    'buyouts_sum_rub' => $day['cartToOrderConversion'],
-                    'buyout_percent' => $day['buyoutsCount'],
-                    'add_to_cart_conversion' => $day['buyoutsSumRub'],
-                    'cart_to_order_conversion' => $day['buyoutPercent'],
+                    'orders_count' => $day['ordersCount'],
+                    'orders_sum_rub' => $day['ordersSumRub'],
+                    'buyouts_count' => $day['buyoutsCount'],
+                    'buyouts_sum_rub' => $day['buyoutsSumRub'],
+                    'buyout_percent' => $day['buyoutPercent'],
+                    'add_to_cart_conversion' => $day['addToCartConversion'],
+                    'cart_to_order_conversion' => $day['cartToOrderConversion'],
                 ]);
             });
         });
