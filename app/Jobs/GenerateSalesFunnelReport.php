@@ -15,9 +15,9 @@ class GenerateSalesFunnelReport implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public int $daysAgo = 0)
+    public function __construct(public string $day)
     {
-        $this->daysAgo = $daysAgo;
+        $this->day = $day;
     }
 
     /**
@@ -25,8 +25,6 @@ class GenerateSalesFunnelReport implements ShouldQueue
      */
     public function handle(): void
     {
-        $day = date('Y-m-d',strtotime("-{$this->daysAgo} days"));
-
         $WbNmReportDetailHistory = DB::table('wb_nm_report_detail_histories')->select(
                 'good_id',
                 'vendor_code',
@@ -36,17 +34,17 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'open_card_count',
                 'add_to_cart_count',
                 'orders_count',
-                'orders_sum_rub')->where('dt', '=', $day)->get();
+                'orders_sum_rub')->where('dt', '=', $this->day)->get();
 
         $WbAdvV1Upd = DB::table('wb_adv_v1_upds')->select(
                 'good_id',
                 'upd_sum',
-                'advert_type')->where('upd_time', 'like', "%{$day}%")->get();
+                'advert_type')->where('upd_time', 'like', "%{$this->day}%")->get();
         
         $WbV1SupplierOrders = DB::table('wb_v1_supplier_orders')->select(
                 'good_id',
                 'finished_price',
-                'price_with_disc')->where('date', 'like', "%{$day}%")->get();
+                'price_with_disc')->where('date', 'like', "%{$this->day}%")->get();
         
         $advCostsSumByGoodId = $WbAdvV1Upd->groupBy('good_id')->reduce(function ($carry, $day, $goodId) {
             $carry[$goodId] = $day->groupBy('advert_type')->reduce(function ($acc, $row, $advType) use ($goodId) {
