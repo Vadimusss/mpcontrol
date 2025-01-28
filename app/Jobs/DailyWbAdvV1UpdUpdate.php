@@ -6,11 +6,12 @@ use App\Models\Shop;
 use App\Jobs\AddWbAdvV1Upd;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Bus\Batchable;
 use Illuminate\Support\Facades\DB;
 
 class DailyWbAdvV1UpdUpdate implements ShouldQueue
 {
-    use Queueable;
+    use Batchable, Queueable;
 
     /**
      * Create a new job instance.

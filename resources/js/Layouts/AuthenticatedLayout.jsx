@@ -30,6 +30,9 @@ export default function AuthenticatedLayout({ shopId, header, children, navigati
                                     <NavLink href={route('shops.goodlists.index', shopId)} active={route().current('shops.goodlists.index')}>
                                         Списки товаров
                                     </NavLink>
+                                    <NavLink href={route('shops.reports.index', shopId)} active={route().current('shops.reports.index')}>
+                                        Выгрузки
+                                    </NavLink>
                                 </div>
                             )}
                         </div>

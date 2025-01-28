@@ -3,16 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Models\Report;
+use App\Models\Shop;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ReportController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request, Shop $shop): Response
     {
-        //
+        return Inertia::render('Reports/Index', [
+            'shop' => $shop,
+            'goodLists' => $shop->goodLists,
+            'reports' => Report::all(),
+        ]);
     }
 
     /**

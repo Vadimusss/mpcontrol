@@ -4,12 +4,13 @@ namespace App\Jobs;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Bus\Batchable;
 use App\Models\Good;
 use Illuminate\Support\Facades\DB;
 
 class GenerateSalesFunnelReport implements ShouldQueue
 {
-    use Queueable;
+    use Batchable, Queueable;
 
     /**
      * Create a new job instance.
