@@ -16,8 +16,7 @@ class SalesFunnel extends Model
         'add_to_cart_count',
         'orders_count',
         'orders_sum_rub',
-        'buyouts_count',
-        'buyouts_sum_rub',
+        'advertising_costs',
         'price_with_disc',
         'finished_price',
     ];

@@ -50,4 +50,9 @@ class Good extends Model
     {
         return $this->hasMany(WbV1SupplierOrders::class);
     }
+
+    public function salesFunnel(): HasMany
+    {
+        return $this->hasMany(SalesFunnel::class);
+    }
 }

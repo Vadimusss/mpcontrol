@@ -53,7 +53,7 @@ class DailyWbApiDataUpdate implements ShouldQueue
                 [new AddWbAdvV1Upd($apiKey, $period)],
                 [new AddWbV1SupplierOrders($apiKey, $day)],
             ])->then(function (Batch $batch) {
-                // GenerateSalesFunnelReport::dispatch();
+                GenerateSalesFunnelReport::dispatch();
             })->dispatch();
         });
     }
