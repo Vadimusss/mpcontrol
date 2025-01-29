@@ -19,12 +19,12 @@ class AddWbNmReportDetailHistory implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        public string $apiKey,
+        public Shop $shop,
         public array $nmIds,
         public array $period
     )
     {
-        $this->apiKey = $apiKey;
+        $this->shop = $shop;
         $this->nmIds = $nmIds;
         $this->period = $period;
     }
@@ -34,7 +34,7 @@ class AddWbNmReportDetailHistory implements ShouldQueue
      */
     public function handle(): void
     {
-        $api = new WbApiService($this->apiKey);
+        $api = new WbApiService($this->shop->apiKey->key);
         $WbNmReportDetailHistoryData = $api->getApiV2NmReportDetailHistory($this->nmIds, $this->period);
 
         $WbNmReportDetailHistoryData->each(function ($row) {

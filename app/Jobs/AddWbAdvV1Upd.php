@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Good;
+use App\Models\Shop;
 use App\Services\WbApiService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -13,12 +14,12 @@ class AddWbAdvV1Upd implements ShouldQueue
     use Batchable, Queueable;
 
     public function __construct(
-        public string $apiKey,
+        public Shop $shop,
         public array $period,
         public $timeout = 600,
     )
     {
-        $this->apiKey = $apiKey;
+        $this->shop = $shop;
         $this->period = $period;
     }
 
@@ -27,7 +28,10 @@ class AddWbAdvV1Upd implements ShouldQueue
      */
     public function handle(): void
     {
-        $api = new WbApiService($this->apiKey);
+        $day = $this->period['begin'];
+        $this->shop->WbAdvV1Upd()->where('upd_time', 'like', "%{$day}%")->delete();
+    
+        $api = new WbApiService($this->shop->apiKey->key);
         $WbAdvV1UpdData = $api->getAdvV1Upd($this->period);
 
         $WbAdvV1UpdData->each(function ($row) {

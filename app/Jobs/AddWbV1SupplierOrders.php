@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Good;
+use App\Models\Shop;
 use App\Services\WbApiService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -13,12 +14,12 @@ class AddWbV1SupplierOrders implements ShouldQueue
     use Batchable, Queueable;
 
     public function __construct(
-        public string $apiKey,
+        public Shop $shop,
         public string $dateFrom,
-        public $timeout = 600,
+        public $timeout = 1200,
     )
     {
-        $this->apiKey = $apiKey;
+        $this->shop = $shop;
         $this->dateFrom = $dateFrom;
     }
 
@@ -27,7 +28,9 @@ class AddWbV1SupplierOrders implements ShouldQueue
      */
     public function handle(): void
     {
-        $api = new WbApiService($this->apiKey);
+        $this->shop->WbV1SupplierOrders()->whereRaw("DATE(date) >= '{$this->dateFrom}'")->delete();
+
+        $api = new WbApiService($this->shop->apiKey->key);
         $WbV1SupplierOrdersData = $api->getApiV1SupplierOrders($this->dateFrom);
 
         $WbV1SupplierOrdersData->each(function ($row) {

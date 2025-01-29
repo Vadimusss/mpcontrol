@@ -6,6 +6,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use App\Models\Good;
+use App\Models\Shop;
 use Illuminate\Support\Facades\DB;
 
 class GenerateSalesFunnelReport implements ShouldQueue
@@ -15,9 +16,10 @@ class GenerateSalesFunnelReport implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public string $day)
+    public function __construct( public Shop $shop, public string $day)
     {
         $this->day = $day;
+        $this->shop = $shop;
     }
 
     /**
@@ -25,32 +27,31 @@ class GenerateSalesFunnelReport implements ShouldQueue
      */
     public function handle(): void
     {
-        $WbNmReportDetailHistory = DB::table('wb_nm_report_detail_histories')->select(
+        // $shop = Shop::find(117);
+        // $day = '2025-01-28';
+
+        $shop->salesFunnel()->where('date', '=', $day)->delete();
+
+        $WbNmReportDetailHistory = $shop->WbNmReportDetailHistory()->
+            select(
                 'good_id',
-                'vendor_code',
-                'nm_id',
+                'wb_nm_report_detail_histories.vendor_code',
+                'wb_nm_report_detail_histories.nm_id',
                 'imt_name',
                 'dt',
                 'open_card_count',
                 'add_to_cart_count',
-                'orders_count',
-                'orders_sum_rub')->where('dt', '=', $this->day)->get();
+                'orders_count', 'orders_sum_rub')->
+            where('dt', '=', $day)->get();
 
-        $WbAdvV1Upd = DB::table('wb_adv_v1_upds')->select(
-                'good_id',
-                'upd_sum',
-                'advert_type')->where('upd_time', 'like', "%{$this->day}%")->get();
+        $WbAdvV1Upd = $shop->WbAdvV1Upd()->
+            select('good_id', 'upd_sum', 'advert_type')->where('upd_time', 'like', "%{$day}%")->get();
         
-        $WbV1SupplierOrders = DB::table('wb_v1_supplier_orders')->select(
-                'good_id',
-                'finished_price',
-                'price_with_disc')->where('date', 'like', "%{$this->day}%")->get();
-        
+        $WbV1SupplierOrders = $shop->WbV1SupplierOrders()->
+            select('good_id', 'finished_price', 'price_with_disc')->where('date', 'like', "%{$day}%")->get();
+
         $advCostsSumByGoodId = $WbAdvV1Upd->groupBy('good_id')->reduce(function ($carry, $day, $goodId) {
-            $carry[$goodId] = $day->groupBy('advert_type')->reduce(function ($acc, $row, $advType) use ($goodId) {
-                $acc += $row->max('upd_sum');
-                return $acc;
-            }, 0);
+            $carry[$goodId] = $day->sum('upd_sum');
             return $carry;
         }, []);
 

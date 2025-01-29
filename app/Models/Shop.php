@@ -67,4 +67,9 @@ class Shop extends Model
     {
         return $this->hasManyThrough(WbV1SupplierOrders::class, Good::class);
     }
+
+    public function salesFunnel(): HasManyThrough
+    {
+        return $this->hasManyThrough(SalesFunnel::class, Good::class);
+    }
 }

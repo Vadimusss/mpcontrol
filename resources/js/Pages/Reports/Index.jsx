@@ -1,7 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import PrimaryButton from '@/Components/PrimaryButton';
-import Modal from '@/Components/Modal';
+import ReportCard from '@/Pages/Reports/Components/ReportCard';
 import { Head } from '@inertiajs/react';
 
 export default function WorkSpaces({ auth, shop, reports, goodLists }) {
@@ -18,8 +17,13 @@ export default function WorkSpaces({ auth, shop, reports, goodLists }) {
                 </h2>
             }>
             <Head title={`Магазин ${shop.name}`} />
-            <p>Test!</p>
-
+            <div className="max-w-2xl mx-auto">
+                <div className="p-2 sm:p-3 lg:p-6">
+                    <h2 className="text-xl font-bold mb-3">Выгрузки</h2>
+                    {/* {reports.map((report) =>
+                        <ReportCard auth={auth} shopId={shop.id} report={report} key={report.id} />)} */}
+                </div>
+            </div>
         </AuthenticatedLayout>
     );
 }

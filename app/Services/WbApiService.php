@@ -82,7 +82,7 @@ class WbApiService
     public function getAdvV1Upd(array $period)
     {
         $response = Http::withToken($this->apiKey)->
-            retry([1000, 2000, 3000])->
+            retry([1000, 5000, 20000, 60000])->
             get('https://advert-api.wildberries.ru/adv/v1/upd', [
                 'from' => $period['begin'],
                 'to' => $period['end'],

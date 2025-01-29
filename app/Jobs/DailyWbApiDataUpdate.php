@@ -32,28 +32,25 @@ class DailyWbApiDataUpdate implements ShouldQueue
         $shops->each(function ($shop, int $key) {
             $shopGoods = $shop->goods();
             $day = date('Y-m-d',strtotime("-{$this->daysAgo} days"));
-            DB::table('wb_nm_report_detail_histories')->where('dt', '=', $day)->delete();
-            DB::table('wb_adv_v1_upds')->whereRaw("DATE(upd_time) = '{$day}'")->delete();
-            DB::table('wb_v1_supplier_orders')->whereRaw("DATE(date) = '{$day}'")->delete();
-
             $period = [
                 'begin' => $day,
                 'end' => $day,
             ];
+
+            $shop->WbNmReportDetailHistory()->where('dt', '=', $day)->delete();
+
             $shopNmIds = $shopGoods->pluck('nm_id')->toArray();
             $chunks = array_chunk($shopNmIds, 20);
-            $apiKey = $shop->apiKey->key;
-
-            $jobs = array_map(function ($chunk) use ($apiKey, $period) {
-                return new AddWbNmReportDetailHistory($apiKey, $chunk, $period);
+            $jobs = array_map(function ($chunk) use ($shop, $period) {
+                return new AddWbNmReportDetailHistory($shop, $chunk, $period);
             }, $chunks);
 
             Bus::batch([
                 $jobs,
-                [new AddWbAdvV1Upd($apiKey, $period)],
-                [new AddWbV1SupplierOrders($apiKey, $day)],
-            ])->then(function (Batch $batch) use ($day) {
-                GenerateSalesFunnelReport::dispatch($day);
+                [new AddWbAdvV1Upd($shop, $period)],
+                [new AddWbV1SupplierOrders($shop, $day)],
+            ])->then(function (Batch $batch) use ($shop, $day) {
+                GenerateSalesFunnelReport::dispatch($shop, $day);
             })->dispatch();
         });
     }
