@@ -16,7 +16,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct( public Shop $shop, public string $day)
+    public function __construct(public Shop $shop, public string $day)
     {
         $this->day = $day;
         $this->shop = $shop;
@@ -30,9 +30,9 @@ class GenerateSalesFunnelReport implements ShouldQueue
         // $shop = Shop::find(117);
         // $day = '2025-01-28';
 
-        $shop->salesFunnel()->where('date', '=', $day)->delete();
+        $this->shop->salesFunnel()->where('date', '=', $this->day)->delete();
 
-        $WbNmReportDetailHistory = $shop->WbNmReportDetailHistory()->
+        $WbNmReportDetailHistory = $this->shop->WbNmReportDetailHistory()->
             select(
                 'good_id',
                 'wb_nm_report_detail_histories.vendor_code',
@@ -42,13 +42,13 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'open_card_count',
                 'add_to_cart_count',
                 'orders_count', 'orders_sum_rub')->
-            where('dt', '=', $day)->get();
+            where('dt', '=', $this->day)->get();
 
-        $WbAdvV1Upd = $shop->WbAdvV1Upd()->
-            select('good_id', 'upd_sum', 'advert_type')->where('upd_time', 'like', "%{$day}%")->get();
+        $WbAdvV1Upd = $this->shop->WbAdvV1Upd()->
+            select('good_id', 'upd_sum', 'advert_type')->where('upd_time', 'like', "%{$this->day}%")->get();
         
-        $WbV1SupplierOrders = $shop->WbV1SupplierOrders()->
-            select('good_id', 'finished_price', 'price_with_disc')->where('date', 'like', "%{$day}%")->get();
+        $WbV1SupplierOrders = $this->shop->WbV1SupplierOrders()->
+            select('good_id', 'finished_price', 'price_with_disc')->where('date', 'like', "%{$this->day}%")->get();
 
         $advCostsSumByGoodId = $WbAdvV1Upd->groupBy('good_id')->reduce(function ($carry, $day, $goodId) {
             $carry[$goodId] = $day->sum('upd_sum');

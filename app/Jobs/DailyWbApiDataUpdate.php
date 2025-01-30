@@ -9,6 +9,7 @@ use App\Jobs\AddWbV1SupplierOrders;
 use App\Jobs\GenerateSalesFunnelReport;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Bus\Batch;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
