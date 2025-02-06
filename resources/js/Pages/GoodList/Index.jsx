@@ -16,7 +16,7 @@ export default function GoodLists({ shop, goodList, goods }) {
             onSuccess: () => setSelectedGoodsId([]),
         });
     };
-console.log(goodList);
+    // console.log(goodList);
     return (
         <AuthenticatedLayout
             navigation={true}

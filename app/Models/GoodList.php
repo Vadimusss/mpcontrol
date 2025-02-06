@@ -40,4 +40,9 @@ class GoodList extends Model
     {
         return $this->belongsToMany(WorkSpace::class);
     }
+
+    public function connectedReports(): BelongsToMany
+    {
+        return $this->belongsToMany(Report::class);
+    }
 }

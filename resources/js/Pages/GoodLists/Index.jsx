@@ -19,7 +19,7 @@ export default function GoodLists({ shop, ownGoodLists, goodLists, goods }) {
     const closeAddGoodListModal = (() => {
         setAddGoodListModalIsOpen(false);
     });
-    console.log(goodLists);
+    // console.log(goodLists);
     return (
         <AuthenticatedLayout
             navigation={true}

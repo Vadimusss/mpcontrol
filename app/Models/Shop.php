@@ -48,6 +48,11 @@ class Shop extends Model
         return $this->hasMany(Good::class);
     }
 
+    public function WbListGood(): HasManyThrough
+    {
+        return $this->hasManyThrough(WbListGood::class, Good::class);
+    }
+
     public function sizes(): HasManyThrough
     {
         return $this->hasManyThrough(WbListGoodSize::class, Good::class);
@@ -71,5 +76,10 @@ class Shop extends Model
     public function salesFunnel(): HasManyThrough
     {
         return $this->hasManyThrough(SalesFunnel::class, Good::class);
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
     }
 }

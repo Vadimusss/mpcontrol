@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import PrimaryButton from '@/Components/PrimaryButton';
-import Modal from '@/Components/Modal';
 import DeleteWorkSpaceConfirmModal from '@/Pages/WorkSpaces/Components/Modals/DeleteWorkSpaceConfirmModal';
 import SetWorkSpaceSettingModal from '@/Pages/WorkSpaces/Components/Modals/SetWorkSpaceSettingModal';
 import { Inertia } from '@inertiajs/inertia';

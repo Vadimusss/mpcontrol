@@ -42,7 +42,6 @@ class GoodListController extends Controller
             'shop' => $shop,
             'ownGoodLists' => $ownGoodLists,
             'goodLists' => $goodLists,
-            // 'goodLists' => $shop->goodLists,
             'goods' => $shop->goods,
         ]);
     }

@@ -8,7 +8,7 @@ export default function GoodsTable({ goods, selectedGoodsId, setSelectedGoodsId 
         }, {})
     );
 
-    console.log(selectedGoodsId);
+    // console.log(selectedGoodsId);
 
     const handleOnChange = (id) => {
         if (!checkState[id]) {

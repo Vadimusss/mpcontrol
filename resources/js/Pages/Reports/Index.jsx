@@ -3,10 +3,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ReportCard from '@/Pages/Reports/Components/ReportCard';
 import { Head } from '@inertiajs/react';
 
-export default function WorkSpaces({ auth, shop, reports, goodLists }) {
+export default function WorkSpaces({ shop, reports, goodLists }) {
     console.log(shop);
     console.log(reports);
     console.log(goodLists);
+
     return (
         <AuthenticatedLayout
             navigation={true}
@@ -20,8 +21,12 @@ export default function WorkSpaces({ auth, shop, reports, goodLists }) {
             <div className="max-w-2xl mx-auto">
                 <div className="p-2 sm:p-3 lg:p-6">
                     <h2 className="text-xl font-bold mb-3">Выгрузки</h2>
-                    {/* {reports.map((report) =>
-                        <ReportCard auth={auth} shopId={shop.id} report={report} key={report.id} />)} */}
+                    {reports.map((report) =>
+                        <ReportCard 
+                            goodLists={goodLists}
+                            report={report}
+                            key={report.id}
+                        />)}
                 </div>
             </div>
         </AuthenticatedLayout>

@@ -36,7 +36,9 @@ Route::resource('shops.goodlists', GoodListController::class)
     ->middleware(['auth', 'verified']);
 
 Route::resource('shops.reports', ReportController::class)
-    ->only(['index', 'show'])
+    ->only(['index'])
     ->middleware(['auth', 'verified']);
+
+Route::get('reports/export', [ReportController::class, 'export'])->name('reports.export');
 
 require __DIR__.'/auth.php';
