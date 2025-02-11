@@ -1,12 +1,47 @@
-import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ReportCard from '@/Pages/Reports/Components/ReportCard';
 import { Head } from '@inertiajs/react';
 
-export default function WorkSpaces({ shop, reports, goodLists }) {
-    console.log(shop);
-    console.log(reports);
-    console.log(goodLists);
+export default function Report({ shop, reports, goodLists }) {
+        const handleDownload = (shopId, report, goodListId, beginDate, endDate) => {
+
+            const params = new URLSearchParams({
+                'shopId': shopId,
+                'reportId': report.id,
+                'goodListId': goodListId,
+                'beginDate': beginDate,
+                'endDate': endDate,
+            });
+
+            const goodListName = goodLists.filter((goodList) => goodList.id === Number(goodListId))[0].name;
+            const fileName = `${report.type.name} ${goodListName} ${beginDate} - ${endDate}.xlsx`;
+
+            fetch('/reports/export?' + params.toString(), {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              },
+            })
+              .then((response) => {
+                if (!response.ok) {
+                  throw new Error('Ошибка при скачивании файла');
+                }
+                return response.blob(); // Получаем бинарные данные
+              })
+              .then((blob) => {
+                // Создаем ссылку для скачивания
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', fileName); // Указываем имя файла
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link); // Удаляем ссылку после скачивания
+              })
+              .catch((error) => {
+                console.error('Ошибка при скачивании файла:', error);
+              });
+          };
 
     return (
         <AuthenticatedLayout
@@ -24,7 +59,9 @@ export default function WorkSpaces({ shop, reports, goodLists }) {
                     {reports.map((report) =>
                         <ReportCard 
                             goodLists={goodLists}
+                            shopId={shop.id}
                             report={report}
+                            handleDownload={handleDownload}
                             key={report.id}
                         />)}
                 </div>

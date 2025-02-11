@@ -49,30 +49,27 @@ class ReportController extends Controller
         
     }
 
-    public function export(Request $request, /* Shop $shop,  Report $report */)
+    public function export(Request $request)
     {
-/*         $validated = $request->validate([
+        $validated = $request->validate([
+            'shopId' =>  'required|integer',
             'reportId' => 'required|integer',
             'goodListId' => 'required|integer',
-            // 'begin' => 'required|string',
-            // 'end' => 'required|string',
+            'beginDate' => 'required|string',
+            'endDate' => 'required|string',
         ]);
 
+        $shop = Shop::find($validated['shopId']);
         $report = Report::find($validated['reportId']);
-        $goodList = GoodList::find($validated['goodListId']); */
-        // $begin = $validated['begin'];
-        // $end = $validated['end'];
+        $goodList = GoodList::find($validated['goodListId']);
 
-        // dump($goodList);
+        $begin = $validated['beginDate'];
+        $end = $validated['endDate'];
 
-        $begin = '2025-02-05';
-        $end = '2025-02-05';
+        $report->connectedGoodLists()->detach();
+        $report->connectedGoodLists()->attach($goodList->id);
 
-        // $report->connectedGoodLists()->detach();
-        // $report->connectedGoodLists()->attach($goodList);
-
-        return Excel::download(new ReportExport(/* $report,  */$begin, $end), 'report.xlsx');
-        // return Excel::download(new ReportExport(/* $report, */ $begin, $end), "{$reportName} {$begin}-{$end}.xlsx");
+        return Excel::download(new ReportExport($shop, $report, $goodList, $begin, $end), "test.xlsx");
     }
 
     /**

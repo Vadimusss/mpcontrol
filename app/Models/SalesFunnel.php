@@ -21,6 +21,10 @@ class SalesFunnel extends Model
         'finished_price',
     ];
 
+    protected $hidden = [
+        'laravel_through_key'
+    ];
+
     public function good(): BelongsTo
     {
         return $this->belongsTo(Good::class);

@@ -2,21 +2,29 @@
 
 namespace App\Exports;
 
+use App\Models\Shop;
+use App\Models\GoodList;
 use App\Models\Report;
 use App\Models\SalesFunnel;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
 
-class ReportExport implements FromCollection, WithHeadings
+class ReportExport implements FromCollection, WithHeadings, WithStrictNullComparison
 {
     public function __construct(
-        // public Report $report,
+        public Shop $shop,
+        public Report $report,
+        public GoodList $goodList,
         public string $begin,
         public string $end,
     )
     {
-        // $this->report = $report;
+        $this->shop = $shop;
+        $this->report = $report;
+        $this->goodList = $goodList;
         $this->begin = $begin;
         $this->end = $end;
     }
@@ -26,9 +34,11 @@ class ReportExport implements FromCollection, WithHeadings
     */
     public function collection()
     {
-        return SalesFunnel::select(
-            'vendor_code',
-            'nm_id',
+        $goodListNmIds = $this->goodList->goods()->pluck('nm_id');
+
+        $selectedData = $this->shop->salesFunnel()->select(
+            'sales_funnels.vendor_code',
+            'sales_funnels.nm_id',
             'imt_name',
             'date',
             'open_card_count',
@@ -37,8 +47,9 @@ class ReportExport implements FromCollection, WithHeadings
             'orders_sum_rub',
             'advertising_costs',
             'price_with_disc',
-            'finished_price')->
-            whereBetween('date', [$this->begin, $this->end])->get();
+            'finished_price')->whereBetween('date', [$this->begin, $this->end])->whereIn('sales_funnels.nm_id', $goodListNmIds)->get();
+
+        return $selectedData;
     }
 
     public function headings(): array

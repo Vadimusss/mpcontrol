@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import { Inertia } from '@inertiajs/inertia';
 
-export default function ReportCard({ report, goodLists }) {
+export default function ReportCard({ shopId, report, goodLists, handleDownload }) {
     const [selectedGoodListId, setSelectedGoodListId] = useState(
         goodLists.length === 0 ? null : goodLists[0].id
     );
@@ -10,45 +10,6 @@ export default function ReportCard({ report, goodLists }) {
     const currentDate = new Date().toISOString().split('T')[0];
     const [selectedBeginDate, setSelectedBeginDate] = useState(currentDate);
     const [selectedEndDate, setSelectedEndDate] = useState(currentDate);
-
-    console.log(selectedGoodListId);
-    console.log(selectedBeginDate);
-    console.log(selectedEndDate);
-
-    const params = new URLSearchParams({
-        'goodListId': selectedGoodListId,
-        'reportId': report.id,
-        'beginDate': selectedBeginDate,
-        'endDate': selectedEndDate,
-    });
-
-    const handleDownload = () => {
-        fetch('/reports/export', {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          },
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error('Ошибка при скачивании файла');
-            }
-            return response.blob(); // Получаем бинарные данные
-          })
-          .then((blob) => {
-            // Создаем ссылку для скачивания
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'filename.xlsx'); // Указываем имя файла
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link); // Удаляем ссылку после скачивания
-          })
-          .catch((error) => {
-            console.error('Ошибка при скачивании файла:', error);
-          });
-      };
 
     return (
         <div className="border border-gray-300 rounded-md shadow-sm bg-white mb-2 pt-2 pl-2 pb-2 pr-10">
@@ -63,7 +24,7 @@ export default function ReportCard({ report, goodLists }) {
                     </select>
                     <PrimaryButton
                         className="max-w-fit"
-                        onClick={(e) => handleDownload(e)}
+                        onClick={() => handleDownload(shopId, report, selectedGoodListId, selectedBeginDate, selectedEndDate)}
                         disabled={!selectedGoodListId}>
                         Скачать
                     </PrimaryButton>
