@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class WbV1SupplierOrders extends Model
 {
     protected $fillable = [
-        'good_id',
+        'shop_id',
         'date',
         'last_change_date',
         'warehouse_name',
@@ -39,8 +39,8 @@ class WbV1SupplierOrders extends Model
         'srid',
     ];
 
-    public function good(): BelongsTo
+    public function shop(): BelongsTo
     {
-        return $this->belongsTo(Good::class);
+        return $this->belongsTo(Shop::class);
     }
 }

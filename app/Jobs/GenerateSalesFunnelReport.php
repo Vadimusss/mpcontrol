@@ -16,7 +16,11 @@ class GenerateSalesFunnelReport implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public Shop $shop, public string $day)
+    public function __construct(
+        public Shop $shop,
+        public string $day,
+        public $timeout = 1200,
+    )
     {
         $this->day = $day;
         $this->shop = $shop;
@@ -48,23 +52,23 @@ class GenerateSalesFunnelReport implements ShouldQueue
             select('good_id', 'upd_sum', 'advert_type')->where('upd_time', 'like', "%{$this->day}%")->get();
         
         $WbV1SupplierOrders = $this->shop->WbV1SupplierOrders()->
-            select('good_id', 'finished_price', 'price_with_disc')->where('date', 'like', "%{$this->day}%")->get();
+            select('nm_id', 'finished_price', 'price_with_disc')->where('date', 'like', "%{$this->day}%")->get();
 
-        $advCostsSumByGoodId = $WbAdvV1Upd->groupBy('good_id')->reduce(function ($carry, $day, $goodId) {
-            $carry[$goodId] = $day->sum('upd_sum');
+        $advCostsSumByNmId = $WbAdvV1Upd->groupBy('nm_id')->reduce(function ($carry, $day, $nmId) {
+            $carry[$nmId] = $day->sum('upd_sum');
             return $carry;
         }, []);
 
-        $avgPricesByDay = $WbV1SupplierOrders->groupBy('good_id')->reduce(function ($carry, $day, $goodId) {
-            $carry[$goodId]['finished_price'] = round($day->avg('finished_price'), 2);
-            $carry[$goodId]['price_with_disc'] = round($day->avg('price_with_disc'), 2);
+        $avgPricesByDay = $WbV1SupplierOrders->groupBy('nm_id')->reduce(function ($carry, $day, $nmId) {
+            $carry[$nmId]['finished_price'] = round($day->avg('finished_price'), 2);
+            $carry[$nmId]['price_with_disc'] = round($day->avg('price_with_disc'), 2);
             return $carry;
         }, []);
 
-        $report = $WbNmReportDetailHistory->map(function ($row) use ($advCostsSumByGoodId, $avgPricesByDay) {
-            $row->advertising_costs = array_key_exists($row->good_id, $advCostsSumByGoodId) ? $advCostsSumByGoodId[$row->good_id] : 0;
-            $row->finished_price = array_key_exists($row->good_id, $avgPricesByDay) ? $avgPricesByDay[$row->good_id]['finished_price'] : 0;
-            $row->price_with_disc = array_key_exists($row->good_id, $avgPricesByDay) ? $avgPricesByDay[$row->good_id]['price_with_disc'] : 0;
+        $report = $WbNmReportDetailHistory->map(function ($row) use ($advCostsSumByNmId, $avgPricesByDay) {
+            $row->advertising_costs = array_key_exists($row->nm_id, $advCostsSumByNmId) ? $advCostsSumByNmId[$row->nm_id] : 0;
+            $row->finished_price = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['finished_price'] : 0;
+            $row->price_with_disc = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['price_with_disc'] : 0;
             return $row;
         });
 

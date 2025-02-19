@@ -68,9 +68,19 @@ class Shop extends Model
         return $this->hasManyThrough(WbAdvV1Upd::class, Good::class);
     }
 
-    public function WbV1SupplierOrders(): HasManyThrough
+    public function WbV1SupplierOrders(): HasMany
     {
-        return $this->hasManyThrough(WbV1SupplierOrders::class, Good::class);
+        return $this->hasMany(WbV1SupplierOrders::class);
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    public function stocks(): HasMany
+    {
+        return $this->hasMany(WbV1SupplierStocks::class);
     }
 
     public function salesFunnel(): HasManyThrough
@@ -78,8 +88,8 @@ class Shop extends Model
         return $this->hasManyThrough(SalesFunnel::class, Good::class);
     }
 
-    public function reports(): HasMany
+    public function stocksAndOrders(): HasMany
     {
-        return $this->hasMany(Report::class);
+        return $this->hasMany(StocksAndOrders::class);
     }
 }

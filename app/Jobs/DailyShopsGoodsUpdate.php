@@ -7,10 +7,11 @@ use App\Jobs\AddShopWbListGoods;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Bus\Batchable;
 
 class DailyShopsGoodsUpdate implements ShouldQueue
 {
-    use Queueable;
+    use Batchable, Queueable;
 
     /**
      * Create a new job instance.

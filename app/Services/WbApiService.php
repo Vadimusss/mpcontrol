@@ -103,6 +103,21 @@ class WbApiService
             ]);
 
         $response->throw();
+
+        Sleep::for(60)->seconds();
+ 
+        return $response->collect();
+    }
+
+    public function getApiV1SupplierStocks(string $dateFrom)
+    {
+        $response = Http::withToken($this->apiKey)->
+            retry([1000, 5000, 10000, 15000])->
+            get('https://statistics-api.wildberries.ru/api/v1/supplier/stocks', [
+                'dateFrom' => $dateFrom,
+            ]);
+
+        $response->throw();
  
         return $response->collect();
     }
