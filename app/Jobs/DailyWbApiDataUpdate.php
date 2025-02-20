@@ -25,18 +25,18 @@ class DailyWbApiDataUpdate implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct()
+    public function __construct(public int $daysAgo = 0)
     {
-        //
+        $this->daysAgo = $daysAgo;
     }
 
     public function handle(): void
     {
-        $shops = Shop::without(['owner', 'customers'])->with('goods')->get();
+        $shops = Shop::without(['owner', 'customers'])->with('goods')->take(2)->get();
 
         $shops->each(function ($shop, int $key) {
-           $shopGoods = $shop->goods();
-            $date = date('Y-m-d', time());
+            $shopGoods = $shop->goods();
+            $date = date('Y-m-d', strtotime("-{$this->daysAgo} days"));
             $period = [
                 'begin' => $date,
                 'end' => $date,
@@ -58,8 +58,8 @@ class DailyWbApiDataUpdate implements ShouldQueue
             ])->then(function (Batch $batch) use ($shop, $date) {
                 GenerateSalesFunnelReport::dispatch($shop, $date);
                 Bus::chain([
-                    new GenerateStocksAndOrdersReport($shop),
-                    new UpdateStocksAndOrdersReport($shop),
+                    new GenerateStocksAndOrdersReport($shop, $date),
+                    new UpdateStocksAndOrdersReport($shop, $date),
                 ])->dispatch();
                 // UpdateWbV1SupplierOrdersHistory::dispatch($shop);
             })->allowFailures()->dispatch();

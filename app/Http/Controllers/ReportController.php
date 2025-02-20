@@ -68,7 +68,7 @@ class ReportController extends Controller
 
         switch ($report->type->id) {
             case 1:
-                $goodList = GoodList::find($validated['goodListId']);
+                $goodList = GoodList::find($request->goodListId);
 
                 $report->connectedGoodLists()->detach();
                 $report->connectedGoodLists()->attach($goodList->id);

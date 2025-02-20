@@ -10,8 +10,8 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-Schedule::job(new DailyShopsGoodsUpdate)->dailyAt('1:00');
+Schedule::job(new DailyShopsGoodsUpdate)->dailyAt('22:00');
 
-Schedule::job(new DailyWbApiDataUpdate)->dailyAt('2:00');
+Schedule::job(new DailyWbApiDataUpdate)->dailyAt('23:00');
 
 // Schedule::job(new DailyWbAdvV1UpdUpdate, 'api')->everyMinute();
