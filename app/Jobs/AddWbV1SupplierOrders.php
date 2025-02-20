@@ -17,12 +17,12 @@ class AddWbV1SupplierOrders implements ShouldQueue
 
     public function __construct(
         public Shop $shop,
-        public string $day,
+        public string $date,
         public $timeout = 2400,
     )
     {
         $this->shop = $shop;
-        $this->day = $day;
+        $this->date = $date;
     }
 
     /**
@@ -30,10 +30,10 @@ class AddWbV1SupplierOrders implements ShouldQueue
      */
     public function handle(): void
     {
-        $this->shop->WbV1SupplierOrders()->whereRaw("DATE(date) >= '{$this->day}'")->delete();
+        $this->shop->WbV1SupplierOrders()->whereRaw("DATE(date) >= '{$this->date}'")->delete();
 
         $api = new WbApiService($this->shop->apiKey->key);
-        $api->getApiV1SupplierOrders($this->day)->
+        $api->getApiV1SupplierOrders($this->date)->
         map(function ($row) {
             $row['shop_id'] = $this->shop->id;
                 return $row;

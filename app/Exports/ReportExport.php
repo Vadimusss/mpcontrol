@@ -16,14 +16,12 @@ class ReportExport implements FromCollection, WithHeadings, WithStrictNullCompar
 {
     public function __construct(
         public Shop $shop,
-        public Report $report,
         public GoodList $goodList,
         public string $begin,
         public string $end,
     )
     {
         $this->shop = $shop;
-        $this->report = $report;
         $this->goodList = $goodList;
         $this->begin = $begin;
         $this->end = $end;

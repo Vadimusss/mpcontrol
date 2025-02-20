@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ReportExport;
+use App\Exports\StocksAndOrdersReportExport;
 
 class ReportController extends Controller
 {
@@ -54,22 +55,30 @@ class ReportController extends Controller
         $validated = $request->validate([
             'shopId' =>  'required|integer',
             'reportId' => 'required|integer',
-            'goodListId' => 'required|integer',
+            // 'goodListId' => 'nullable|integer',
             'beginDate' => 'required|string',
             'endDate' => 'required|string',
         ]);
 
         $shop = Shop::find($validated['shopId']);
         $report = Report::find($validated['reportId']);
-        $goodList = GoodList::find($validated['goodListId']);
 
         $begin = $validated['beginDate'];
         $end = $validated['endDate'];
 
-        $report->connectedGoodLists()->detach();
-        $report->connectedGoodLists()->attach($goodList->id);
+        switch ($report->type->id) {
+            case 1:
+                $goodList = GoodList::find($validated['goodListId']);
 
-        return Excel::download(new ReportExport($shop, $report, $goodList, $begin, $end), "test.xlsx");
+                $report->connectedGoodLists()->detach();
+                $report->connectedGoodLists()->attach($goodList->id);
+        
+                return Excel::download(new ReportExport($shop, $goodList, $begin, $end), "test.xlsx");
+                break;
+            case 2:
+                return Excel::download(new StocksAndOrdersReportExport($shop, $begin, $end), "test.xlsx");
+                break;
+        }
     }
 
     /**

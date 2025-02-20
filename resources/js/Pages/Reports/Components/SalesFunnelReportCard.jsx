@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import PrimaryButton from '@/Components/PrimaryButton';
-import { Inertia } from '@inertiajs/inertia';
 
-export default function ReportCard({ shopId, report, goodLists, handleDownload }) {
+export default function SalesFunnelReportCard({ shopId, report, goodLists, handleDownload }) {
     const [selectedGoodListId, setSelectedGoodListId] = useState(
         goodLists.length === 0 ? null : goodLists[0].id
     );
@@ -24,7 +23,7 @@ export default function ReportCard({ shopId, report, goodLists, handleDownload }
                     </select>
                     <PrimaryButton
                         className="max-w-fit"
-                        onClick={() => handleDownload(shopId, report, selectedGoodListId, selectedBeginDate, selectedEndDate)}
+                        onClick={() => handleDownload(shopId, report, selectedBeginDate, selectedEndDate, selectedGoodListId)}
                         disabled={!selectedGoodListId}>
                         Скачать
                     </PrimaryButton>
