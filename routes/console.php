@@ -12,6 +12,6 @@ Artisan::command('inspire', function () {
 
 Schedule::job(new DailyShopsGoodsUpdate)->dailyAt('22:00');
 
-Schedule::job(new DailyWbApiDataUpdate)->dailyAt('23:00');
+Schedule::job(new DailyWbApiDataUpdate(1))->dailyAt('23:00');
 
 // Schedule::job(new DailyWbAdvV1UpdUpdate, 'api')->everyMinute();
