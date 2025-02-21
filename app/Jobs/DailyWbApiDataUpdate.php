@@ -32,7 +32,7 @@ class DailyWbApiDataUpdate implements ShouldQueue
 
     public function handle(): void
     {
-        $shops = Shop::without(['owner', 'customers'])->with('goods')->take(2)->get();
+        $shops = Shop::without(['owner', 'customers'])->with('goods')->get();
 
         $shops->each(function ($shop, int $key) {
             $shopGoods = $shop->goods();
