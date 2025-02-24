@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Models\Shop;
 use App\Jobs\AddWbNmReportDetailHistory;
-use App\Jobs\DailyShopsGoodsUpdate;
 use App\Jobs\AddWbAdvV1Upd;
 use App\Jobs\AddWbV1SupplierOrders;
 use App\Jobs\UpdateWbV1SupplierOrdersHistory;
