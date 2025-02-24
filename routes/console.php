@@ -1,7 +1,7 @@
 <?php
 
 use App\Jobs\DailyWbApiDataUpdate;
-use App\Jobs\DailyShopsGoodsUpdate;
+use App\Jobs\DailyShopsDataUpdate;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;

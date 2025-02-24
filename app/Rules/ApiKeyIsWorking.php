@@ -26,7 +26,7 @@ class ApiKeyIsWorking implements DataAwareRule, ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $apiKey = $this->data['key'];;
+        $apiKey = $this->data['key'];
         $api = new WbApiService($apiKey);
 
         if (!$api->makeDiscountsPricesApiPing()) {

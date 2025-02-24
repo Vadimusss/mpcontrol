@@ -9,12 +9,17 @@ class ApiKey extends Model
 {
     protected $fillable = [
         'key',
-        'shop_id'
+        'shop_id',
+        'is_active',
+        'expires_at'
     ];
 
     protected $attributes = [
         'is_busy' => false,
+        'is_active' => true
     ];
+
+    // protected $with = ['is_active', 'updated_at'];
 
     public function connectedShop(): BelongsTo
     {
@@ -25,5 +30,4 @@ class ApiKey extends Model
     {
         return $this->belongsTo(User::class);
     }
-
 }

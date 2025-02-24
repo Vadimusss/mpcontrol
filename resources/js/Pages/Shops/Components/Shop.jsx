@@ -7,6 +7,7 @@ import DeleteShopConfirmModal from '@/Pages/Shops/Components/Modals/DeleteShopCo
 import Customers from '@/Pages/Shops/Components/Customers';
 import { usePage } from '@inertiajs/react';
 import { Inertia } from '@inertiajs/inertia';
+import moment from 'moment';
 
 export default function Shop({ shop }) {
     const { auth } = usePage().props;
@@ -40,10 +41,14 @@ export default function Shop({ shop }) {
         setModalIState({ deleteShopConfirmModalIsOpen: true });
     });
 
+    const isKeyOk = shop.api_key.is_active;
+    const lastKeyCheckTime = moment(shop.api_key.updated_at).format('YYYY-MM-DD HH:mm:ss');
+
     return (
         <div className="border border-gray-300 rounded-md shadow-sm bg-white mb-2 p-2">
-            <p>ID: {shop.id}</p>
-            <p>{shop.name}</p>
+            <p className='font-semibold'>{shop.name}</p>
+            <p>Ключ действует до: {shop.api_key.expires_at}</p>
+            <p>Последняя проверка ключа: {lastKeyCheckTime} / {isKeyOk ? 'OK' : 'ERROR'}</p>
             <p>Владелец: {shop.owner.name}</p>
             {(shop.customers.length !== 0 && shop.owner.id === auth.user.id) &&
                 <Customers shopId={shop.id} customers={shop.customers} />

@@ -23,8 +23,12 @@ class ShopController extends Controller
     public function index(Request $request): Response
     {
         return Inertia::render('Shops/Index', [
-            'ownShops' => $request->user()->ownShops,
-            'availableShops' => $request->user()->availableShops,
+            'ownShops' => $request->user()->ownShops()->with(['apiKey' => function ($query) {
+                $query->select('expires_at', 'is_active', 'updated_at', 'shop_id');
+            }])->get(),
+            'availableShops' => $request->user()->availableShops()->with(['apiKey' => function ($query) {
+                $query->select('expires_at', 'is_active', 'updated_at', 'shop_id');
+            }])->get(),
         ]);
     }
 
