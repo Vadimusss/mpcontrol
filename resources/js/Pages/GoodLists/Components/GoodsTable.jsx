@@ -90,7 +90,7 @@ export default function GoodsTable({ goods, selectedGoodsId, setSelectedGoodsId 
 
   return (
     <div>
-      <div className='flex gap-x-8 mb-2'>
+      <div className='flex gap-x-[40px] mb-2'>
         <input
           placeholder="Фильтр по nm_id"
           className='border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2'
@@ -107,7 +107,15 @@ export default function GoodsTable({ goods, selectedGoodsId, setSelectedGoodsId 
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <th className="px-6 py-3 cursor-pointer" key={header.id} colSpan={header.colSpan}>
+                <th
+                  className="px-6 py-3 cursor-pointer"
+                  key={header.id}
+                  colSpan={header.colSpan}
+                  style={{
+                    width:
+                      header.column.id === 'nm_id' ? '190px' :
+                      header.column.id === 'vendor_code' ? '380px' : 'auto', // Задаем ширину для каждой колонки
+                  }}>
                   <div
                     {...{
                       onClick: header.column.getToggleSortingHandler(),
