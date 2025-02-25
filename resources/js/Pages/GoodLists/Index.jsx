@@ -5,10 +5,9 @@ import AddGoodListForm from '@/Pages/GoodLists/Components/Forms/AddGoodListForm'
 import GoodsTable from '@/Pages/GoodLists/Components/GoodsTable';
 import GoodListCard from '@/Pages/GoodLists/Components/GoodListCard';
 import Modal from '@/Components/Modal';
-import { Head, usePage } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 
 export default function GoodLists({ shop, ownGoodLists, goodLists, goods }) {
-    const { auth } = usePage().props;
     const [addGoodListModalIsOpen, setAddGoodListModalIsOpen] = useState(false);
     const [selectedGoodsId, setSelectedGoodsId] = useState([]);
 
@@ -19,7 +18,7 @@ export default function GoodLists({ shop, ownGoodLists, goodLists, goods }) {
     const closeAddGoodListModal = (() => {
         setAddGoodListModalIsOpen(false);
     });
-    // console.log(goodLists);
+
     return (
         <AuthenticatedLayout
             navigation={true}

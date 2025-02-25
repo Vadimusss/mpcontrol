@@ -42,7 +42,7 @@ class GoodListController extends Controller
             'shop' => $shop,
             'ownGoodLists' => $ownGoodLists,
             'goodLists' => $goodLists,
-            'goods' => $shop->goods,
+            'goods' => $shop->goods()->select(['id', 'nm_id', 'vendor_code'])->get(),
         ]);
     }
 
@@ -119,6 +119,7 @@ class GoodListController extends Controller
         Gate::authorize('delete', $goodlist);
 
         $goodlist->goods()->detach();
+        $goodlist->connectedWorkSpaces()->detach();
         $goodlist->delete();
 
         return redirect(route('shops.goodlists.index', $shop->id));

@@ -1,60 +1,141 @@
-import { useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  flexRender,
+} from '@tanstack/react-table';
 
 export default function GoodsTable({ goods, selectedGoodsId, setSelectedGoodsId }) {
-    const [checkState, setCheckState] = useState(
-        goods.reduce((acc, good) => {
-            acc[good.id] = false;
-            return acc;
-        }, {})
+  // console.log(goods);
+
+  const [rowSelection, setRowSelection] = useState({});
+  const [sorting, setSorting] = useState([]);
+  const [columnFilters, setColumnFilters] = useState([]);
+
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: 'nm_id',
+        header: 'nm_id',
+        filterFn: (row, columnId, filterValue) => {
+          const rowValue = row.getValue(columnId);
+          return String(rowValue).includes(String(filterValue));
+        },
+      },
+      {
+        accessorKey: 'vendor_code',
+        header: 'vendor_code',
+      },
+      {
+        id: 'selection',
+        header: ({ table }) => (
+          <input
+            type="checkbox"
+            className="rounded text-gray-900"
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            className="rounded text-gray-900"
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+          />
+        ),
+      }
+    ], []);
+
+  const table = useReactTable({
+    data: goods,
+    columns,
+    state: {
+      sorting,
+      columnFilters,
+      rowSelection,
+    },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onRowSelectionChange: setRowSelection,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    enableRowSelection: true,
+  });
+
+  const handleNmIdFilterChange = (e) => {
+    const value = e.target.value || '';
+    setColumnFilters((prev) =>
+      prev.filter((filter) => filter.id !== 'nm_id').concat({ id: 'nm_id', value })
     );
+  };
 
-    // console.log(selectedGoodsId);
-
-    const handleOnChange = (id) => {
-        if (!checkState[id]) {
-            setSelectedGoodsId([...selectedGoodsId, id]);
-        } else {
-            setSelectedGoodsId(selectedGoodsId.filter((goodId) => goodId !== id));
-        }
-
-        setCheckState({...checkState, [id]: !checkState[id]  });
-    };
-
-    return (
-        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                    <th scope="col" className="px-6 py-3">
-                        nm_id
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                        vendor_code
-                    </th>
-                    <th scope="col" className="px-4 py-3 text-center">
-                        выбрать
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                {goods && goods.map((good) =>
-                    <tr key={good.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <th scope="row" className="px-6 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {good.nm_id}
-                        </th>
-                        <td className="px-6 py-2">
-                            {good.vendor_code}
-                        </td>
-                        <td className="px-4 py-2 text-center">
-                            <input
-                                type="checkbox"
-                                className="rounded text-gray-900"
-                                checked={checkState[good.id]}
-                                onChange={() => handleOnChange(good.id)}
-                            />
-                        </td>
-                    </tr>
-                )}
-            </tbody>
-        </table>
+  const handleVendorCodeFilterChange = (e) => {
+    const value = e.target.value || '';
+    setColumnFilters((prev) =>
+      prev.filter((filter) => filter.id !== 'vendor_code').concat({ id: 'vendor_code', value })
     );
+  };
+
+  useEffect(() => {
+    const selectedIds = Object.keys(rowSelection)
+      .filter((key) => rowSelection[key])
+      .map((key) => goods[key].id);
+
+    setSelectedGoodsId(selectedIds);
+  }, [rowSelection, goods, setSelectedGoodsId]);
+
+  return (
+    <div>
+      <div className='flex gap-x-8 mb-2'>
+        <input
+          placeholder="Фильтр по nm_id"
+          className='border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2'
+          onChange={handleNmIdFilterChange}
+        />
+        <input
+          placeholder="Фильтр по vendor_code"
+          className='border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2'
+          onChange={handleVendorCodeFilterChange}
+        />
+      </div>
+      <table className="w-full text-sm text-left text-gray-500">
+        <thead className="text-xs text-gray-700 uppercase bg-gray-200">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <th className="px-6 py-3" key={header.id} colSpan={header.colSpan}>
+                  <div
+                    {...{
+                      onClick: header.column.getToggleSortingHandler(),
+                    }}
+                  >
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {{
+                      asc: ' 🔼',
+                      desc: ' 🔽',
+                    }[header.column.getIsSorted()] ?? null}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id} className="bg-white border-b ">
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id} className="px-6 py-2 text-gray-700">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
 }
