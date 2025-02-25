@@ -107,7 +107,7 @@ export default function GoodsTable({ goods, selectedGoodsId, setSelectedGoodsId 
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <th className="px-6 py-3" key={header.id} colSpan={header.colSpan}>
+                <th className="px-6 py-3 cursor-pointer" key={header.id} colSpan={header.colSpan}>
                   <div
                     {...{
                       onClick: header.column.getToggleSortingHandler(),
