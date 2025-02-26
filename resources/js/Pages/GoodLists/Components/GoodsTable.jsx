@@ -7,6 +7,12 @@ import {
   flexRender,
 } from '@tanstack/react-table';
 
+import {
+  ArrowsUpDownIcon,
+  BarsArrowUpIcon,
+  BarsArrowDownIcon,
+} from '@heroicons/react/24/solid';
+
 export default function GoodsTable({ goods, selectedGoodsId, setSelectedGoodsId }) {
   // console.log(goods);
 
@@ -117,15 +123,22 @@ export default function GoodsTable({ goods, selectedGoodsId, setSelectedGoodsId 
                       header.column.id === 'vendor_code' ? '380px' : 'auto', // Задаем ширину для каждой колонки
                   }}>
                   <div
+                    className='flex gap-x-2'
                     {...{
                       onClick: header.column.getToggleSortingHandler(),
                     }}
                   >
                     {flexRender(header.column.columnDef.header, header.getContext())}
-                    {{
-                      asc: ' 🔼',
-                      desc: ' 🔽',
-                    }[header.column.getIsSorted()] ?? null}
+                    {header.column.getCanSort() && (
+                      <span className="ml-1">
+                        {{
+                          asc: <BarsArrowUpIcon className="w-4 h-4" />,
+                          desc: <BarsArrowDownIcon className="w-4 h-4" />,
+                        }[header.column.getIsSorted()] ?? (
+                          <ArrowsUpDownIcon className="w-4 h-4" />
+                        )}
+                      </span>
+                    )}
                   </div>
                 </th>
               ))}
