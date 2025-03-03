@@ -49,13 +49,13 @@ class GenerateSalesFunnelReport implements ShouldQueue
             where('dt', '=', $this->day)->get();
 
         $WbAdvV1Upd = $this->shop->WbAdvV1Upd()->
-            select('good_id', 'upd_sum', 'advert_type')->where('upd_time', 'like', "%{$this->day}%")->get();
+            select('good_id', 'upd_sum')->where('upd_time', 'like', "%{$this->day}%")->get();
         
         $WbV1SupplierOrders = $this->shop->WbV1SupplierOrders()->
             select('nm_id', 'finished_price', 'price_with_disc')->where('date', 'like', "%{$this->day}%")->get();
 
-        $advCostsSumByNmId = $WbAdvV1Upd->groupBy('nm_id')->reduce(function ($carry, $day, $nmId) {
-            $carry[$nmId] = $day->sum('upd_sum');
+        $advCostsSumByGoodId = $WbAdvV1Upd->groupBy('good_id')->reduce(function ($carry, $day, $goodId) {
+            $carry[$goodId] = $day->sum('upd_sum');
             return $carry;
         }, []);
 
@@ -65,8 +65,8 @@ class GenerateSalesFunnelReport implements ShouldQueue
             return $carry;
         }, []);
 
-        $report = $WbNmReportDetailHistory->map(function ($row) use ($advCostsSumByNmId, $avgPricesByDay) {
-            $row->advertising_costs = array_key_exists($row->nm_id, $advCostsSumByNmId) ? $advCostsSumByNmId[$row->nm_id] : 0;
+        $report = $WbNmReportDetailHistory->map(function ($row) use ($advCostsSumByGoodId, $avgPricesByDay) {
+            $row->advertising_costs = array_key_exists($row->good_id, $advCostsSumByGoodId) ? $advCostsSumByGoodId[$row->good_id] : 0;
             $row->finished_price = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['finished_price'] : 0;
             $row->price_with_disc = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['price_with_disc'] : 0;
             return $row;

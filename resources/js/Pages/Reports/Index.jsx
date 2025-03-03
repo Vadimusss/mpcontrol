@@ -4,7 +4,6 @@ import StocksAndOrdersReportCard from '@/Pages/Reports/Components/StocksAndOrder
 import { Head } from '@inertiajs/react';
 
 export default function Report({ shop, reports, goodLists }) {
-  console.log(reports);
   const handleDownload = (shopId, report, beginDate, endDate, goodListId = null) => {
 
     const params = new URLSearchParams({

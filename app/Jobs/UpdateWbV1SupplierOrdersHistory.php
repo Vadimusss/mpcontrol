@@ -32,7 +32,7 @@ class UpdateWbV1SupplierOrdersHistory implements ShouldQueue
      */
     public function handle(): void
     {
-        $startDate = date('Y-m-d',strtotime("-31 days"));
+        $startDate = date('Y-m-d', strtotime("-31 days"));
         $endDate = date('Y-m-d', time());
 
         $period = CarbonPeriod::create($startDate, $endDate)->toArray();

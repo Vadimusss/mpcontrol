@@ -13,7 +13,7 @@ import {
   BarsArrowDownIcon,
 } from '@heroicons/react/24/solid';
 
-export default function GoodsTable({ goods, selectedGoodsId, setSelectedGoodsId }) {
+export default function GoodsTable({ goods, setSelectedGoodsId }) {
   // console.log(goods);
 
   const [rowSelection, setRowSelection] = useState({});
