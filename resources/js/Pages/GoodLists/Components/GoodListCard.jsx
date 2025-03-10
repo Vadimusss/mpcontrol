@@ -13,7 +13,10 @@ export default function GoodListCard({ shopId, goodList, selectedGoodsId,  }) {
 
     const handleAddGoodsToListButtonClick = (e) => {
         e.preventDefault();
-        Inertia.patch(route('shops.goodlists.update', { shop: shopId, goodlist: goodList.id, selectedGoodsId, type: 'add' }), {
+        Inertia.patch(route('shops.goodlists.update', { shop: shopId, goodlist: goodList.id }), {
+            selectedGoodsId: selectedGoodsId,
+            type: 'add',
+        }, {
             preserveScroll: true,
             onSuccess: () => setSelectedGoodsId([]),
         });

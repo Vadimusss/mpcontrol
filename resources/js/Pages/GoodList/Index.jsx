@@ -11,12 +11,15 @@ export default function GoodLists({ shop, goodList, goods }) {
 
     const handleDeleteGoodsFromListButtonClick = (e) => {
         e.preventDefault();
-        Inertia.patch(route('shops.goodlists.update', { shop: shop.id, goodlist: goodList.id, selectedGoodsId, type: 'delete' }), {
+        Inertia.patch(route('shops.goodlists.update', { shop: shop.id, goodlist: goodList.id }), {
+            selectedGoodsId: selectedGoodsId,
+            type: 'delete',
+        }, {
             preserveScroll: true,
             onSuccess: () => setSelectedGoodsId([]),
         });
     };
-    // console.log(goodList);
+
     return (
         <AuthenticatedLayout
             navigation={true}
