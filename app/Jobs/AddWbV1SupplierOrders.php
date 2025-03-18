@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Models\Good;
 use App\Models\Shop;
 use App\Services\WbApiService;
 use Illuminate\Support\Str;

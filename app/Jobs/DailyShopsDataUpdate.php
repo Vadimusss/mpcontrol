@@ -9,15 +9,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use App\Events\JobFailed;
+use App\Events\JobSucceeded;
 use Throwable;
 
 class DailyShopsDataUpdate implements ShouldQueue
 {
     use Batchable, Queueable;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct()
     {
         //
@@ -25,12 +23,18 @@ class DailyShopsDataUpdate implements ShouldQueue
 
     public function handle(): void
     {
+        $startTime = microtime(true);
+        
         $shops = Shop::without(['owner', 'customers'])->get();
 
         $shops->each(function ($shop) {
             СheckApiKey::dispatch($shop->apiKey);
             AddShopWbListGoods::dispatch($shop);
         });
+
+        $duration = microtime(true) - $startTime;
+        
+        JobSucceeded::dispatch('DailyShopsDataUpdate', $duration);
     }
 
     public function failed(?Throwable $exception): void

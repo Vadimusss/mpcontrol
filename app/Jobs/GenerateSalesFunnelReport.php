@@ -8,6 +8,7 @@ use Illuminate\Bus\Batchable;
 use App\Models\Good;
 use App\Models\Shop;
 use App\Events\JobFailed;
+use App\Events\JobSucceeded;
 use Throwable;
 
 class GenerateSalesFunnelReport implements ShouldQueue
@@ -26,6 +27,8 @@ class GenerateSalesFunnelReport implements ShouldQueue
 
     public function handle(): void
     {
+        $startTime = microtime(true);
+
         $this->shop->salesFunnel()->where('date', '=', $this->day)->delete();
 
         $WbNmReportDetailHistory = $this->shop->WbNmReportDetailHistory()->
@@ -79,6 +82,10 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'finished_price' => $row->finished_price,
             ]);
         });
+
+        $message = $message = "Воронка продаж магазина {$this->shop->name} за {$this->day} обновлена!";
+        $duration = microtime(true) - $startTime;
+        JobSucceeded::dispatch('GenerateSalesFunnelReport', $duration, $message);
     }
 
     public function failed(?Throwable $exception): void
