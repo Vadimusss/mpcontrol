@@ -15,14 +15,13 @@ use Illuminate\Bus\Batch;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
+use App\Events\JobFailed;
+use Throwable;
 
 class ReloadDailyWbApiData implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(public int $daysAgo = 0)
     {
         $this->daysAgo = $daysAgo;
@@ -53,5 +52,10 @@ class ReloadDailyWbApiData implements ShouldQueue
                 [new AddWbAdvV1Upd($shop, $period)],
             ])->dispatch();
         });
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        JobFailed::dispatch('ReloadDailyWbApiData', $exception);
     }
 }

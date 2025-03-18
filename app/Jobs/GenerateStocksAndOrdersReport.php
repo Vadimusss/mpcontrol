@@ -7,14 +7,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use Illuminate\Support\Facades\DB;
+use App\Events\JobFailed;
+use Throwable;
 
 class GenerateStocksAndOrdersReport implements ShouldQueue
 {
     use Batchable, Queueable;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(
         public Shop $shop,
         public $day = null,
@@ -25,9 +24,6 @@ class GenerateStocksAndOrdersReport implements ShouldQueue
         $this->shop = $shop;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
         $this->shop->stocksAndOrders()->where('date', '=', $this->day)->delete();
@@ -48,7 +44,10 @@ class GenerateStocksAndOrdersReport implements ShouldQueue
         each(function ($chunk) {
             DB::table('stocks_and_orders')->insert($chunk->toArray());
         });
+    }
 
-        // $this->shop->stocksAndOrders()->createMany($shopStocks);
+    public function failed(?Throwable $exception): void
+    {
+        JobFailed::dispatch('GenerateStocksAndOrdersReport', $exception);
     }
 }

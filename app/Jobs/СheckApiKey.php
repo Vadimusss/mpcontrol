@@ -8,22 +8,18 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use Illuminate\Support\Carbon;
+use App\Events\JobFailed;
+use Throwable;
 
 class СheckApiKey implements ShouldQueue
 {
     use Batchable, Queueable;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(public ApiKey $apiKey)
     {
         $this->apiKey = $apiKey;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
         $api = new WbApiService($this->apiKey->key);
@@ -36,5 +32,10 @@ class СheckApiKey implements ShouldQueue
         $this->apiKey->expires_at = $date->format('Y-m-d H:i:s');
 
         $this->apiKey->save();
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        JobFailed::dispatch('СheckApiKey', $exception);
     }
 }

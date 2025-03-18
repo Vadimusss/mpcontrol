@@ -7,22 +7,18 @@ use App\Models\Good;
 use App\Services\WbApiService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use App\Events\JobFailed;
+use Throwable;
 
 class AddShopWbListGoods implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(public Shop $shop, public $timeout = 600)
     {
         $this->shop = $shop->withoutRelations();
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
         $shop = $this->shop;
@@ -32,17 +28,15 @@ class AddShopWbListGoods implements ShouldQueue
         $wbGoodListData = $api->getFullApiV2ListGoods();
 
         $wbGoodListData->each(function ($goodFromApi) use ($shop) {
-            Good::where('shop_id', '=', $shop->id)->
-                where('nm_id', '=', $goodFromApi['nmID'])->
-                firstOr(function () use ($goodFromApi, $shop) {
-                
+            Good::where('shop_id', '=', $shop->id)->where('nm_id', '=', $goodFromApi['nmID'])->firstOr(function () use ($goodFromApi, $shop) {
+
                 $good = $shop->goods()->create([
                     'shop_id' => $shop->id,
                     'nm_id' => $goodFromApi['nmID'],
                     'vendor_code' => $goodFromApi['vendorCode'],
                 ]);
-    
-                $wbListGood = $good->wbListGoodRow()->create([
+
+                $good->wbListGoodRow()->create([
                     'good_id' => $good->id,
                     'nm_id' => $goodFromApi['nmID'],
                     'vendor_code' => $goodFromApi['vendorCode'],
@@ -51,7 +45,7 @@ class AddShopWbListGoods implements ShouldQueue
                     'club_discount' => $goodFromApi['clubDiscount'],
                     'editable_size_price' => $goodFromApi['editableSizePrice'],
                 ]);
-    
+
                 collect($goodFromApi['sizes'])->each(function ($size) use ($good) {
                     $good->sizes()->create([
                         'good_id' => $good->id,
@@ -64,5 +58,10 @@ class AddShopWbListGoods implements ShouldQueue
                 });
             });
         });
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        JobFailed::dispatch('AddShopWbListGoods', $exception);
     }
 }

@@ -6,24 +6,20 @@ use App\Models\Shop;
 use App\Jobs\AddWbNmReportDetailHistory;
 use App\Jobs\AddWbAdvV1Upd;
 use App\Jobs\AddWbV1SupplierOrders;
-use App\Jobs\UpdateWbV1SupplierOrdersHistory;
 use App\Jobs\GenerateSalesFunnelReport;
 use App\Jobs\GenerateStocksAndOrdersReport;
 use App\Jobs\UpdateWbV1SupplierStocks;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Bus\Batch;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\DB;
+use App\Events\JobFailed;
+use Throwable;
 
 class DailyWbApiDataUpdate implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(public int $daysAgo = 0)
     {
         $this->daysAgo = $daysAgo;
@@ -60,8 +56,12 @@ class DailyWbApiDataUpdate implements ShouldQueue
                     new GenerateStocksAndOrdersReport($shop, $date),
                     new UpdateStocksAndOrdersReport($shop, $date),
                 ])->dispatch();
-                // UpdateWbV1SupplierOrdersHistory::dispatch($shop);
             })->allowFailures()->dispatch();
         });
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        JobFailed::dispatch('DailyWbApiDataUpdate', $exception);
     }
 }

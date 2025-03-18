@@ -9,29 +9,23 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
+use App\Events\JobFailed;
 use Throwable;
 
 class AddWbNmReportDetailHistory implements ShouldQueue
 {
     use Batchable, Queueable;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(
         public Shop $shop,
         public array $nmIds,
         public array $period
-    )
-    {
+    ) {
         $this->shop = $shop;
         $this->nmIds = $nmIds;
         $this->period = $period;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
         $api = new WbApiService($this->shop->apiKey->key);
@@ -58,13 +52,12 @@ class AddWbNmReportDetailHistory implements ShouldQueue
                 ]);
             });
         });
-
-        // dump($wbGoodListData);
     }
 
     public function failed(?Throwable $exception): void
     {
         $this->dispatchNextJobInChain();
+        JobFailed::dispatch('AddWbNmReportDetailHistory', $exception);
         try {
             Log::error($exception->getMessage());
         } catch (Throwable $exception) {

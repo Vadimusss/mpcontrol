@@ -8,6 +8,8 @@ use App\Services\WbApiService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
+use App\Events\JobFailed;
+use Throwable;
 
 class AddWbAdvV1Upd implements ShouldQueue
 {
@@ -17,20 +19,16 @@ class AddWbAdvV1Upd implements ShouldQueue
         public Shop $shop,
         public array $period,
         public $timeout = 600,
-    )
-    {
+    ) {
         $this->shop = $shop;
         $this->period = $period;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
         $day = $this->period['begin'];
         $this->shop->WbAdvV1Upd()->where('upd_time', 'like', "%{$day}%")->delete();
-    
+
         $api = new WbApiService($this->shop->apiKey->key);
         $WbAdvV1UpdData = $api->getAdvV1Upd($this->period);
 
@@ -50,5 +48,10 @@ class AddWbAdvV1Upd implements ShouldQueue
                 ]);
             }
         });
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        JobFailed::dispatch('AddWbAdvV1Upd', $exception);
     }
 }

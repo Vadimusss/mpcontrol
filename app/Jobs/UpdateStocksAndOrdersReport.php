@@ -7,23 +7,19 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use Illuminate\Support\Facades\DB;
+use App\Events\JobFailed;
+use Throwable;
 
 class UpdateStocksAndOrdersReport implements ShouldQueue
 {
     use Queueable, Batchable;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(public Shop $shop, public $date = null)
     {
         $this->date = $date ?? date('Y-m-d', time());
         $this->shop = $shop;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
         $stocksAndOrdersReport = $this->shop->stocksAndOrders()->
@@ -52,5 +48,10 @@ class UpdateStocksAndOrdersReport implements ShouldQueue
         each(function ($chunk) {
             DB::table('stocks_and_orders')->insert($chunk->toArray());
         });
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        JobFailed::dispatch('UpdateStocksAndOrdersReport', $exception);
     }
 }

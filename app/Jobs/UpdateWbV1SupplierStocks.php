@@ -8,14 +8,13 @@ use App\Services\WbApiService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
+use App\Events\JobFailed;
+use Throwable;
 
 class UpdateWbV1SupplierStocks implements ShouldQueue
 {
     use Batchable, Queueable;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(
         public Shop $shop,
         public string $dateFrom = '2023-06-01',
@@ -26,9 +25,6 @@ class UpdateWbV1SupplierStocks implements ShouldQueue
         $this->dateFrom = $dateFrom;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
         $this->shop->stocks()->delete();
@@ -38,6 +34,11 @@ class UpdateWbV1SupplierStocks implements ShouldQueue
         $transformed = array_map([$this, 'camelToSnakeKeys'], $WbV1SupplierStocks);
 
         $this->shop->stocks()->createMany($transformed);
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        JobFailed::dispatch('UpdateWbV1SupplierStocks', $exception);
     }
 
     protected function camelToSnakeKeys($array): array

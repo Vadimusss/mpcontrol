@@ -6,9 +6,10 @@ use App\Models\Shop;
 use App\Jobs\AddShopWbListGoods;
 use App\Jobs\СheckApiKey;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
+use App\Events\JobFailed;
+use Throwable;
 
 class DailyShopsDataUpdate implements ShouldQueue
 {
@@ -28,7 +29,12 @@ class DailyShopsDataUpdate implements ShouldQueue
 
         $shops->each(function ($shop) {
             СheckApiKey::dispatch($shop->apiKey);
-            AddShopWbListGoods::dispatch($shop);           
+            AddShopWbListGoods::dispatch($shop);
         });
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        JobFailed::dispatch('DailyShopsDataUpdate', $exception);
     }
 }

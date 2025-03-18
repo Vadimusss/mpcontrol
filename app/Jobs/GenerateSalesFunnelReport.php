@@ -7,15 +7,13 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use App\Models\Good;
 use App\Models\Shop;
-use Illuminate\Support\Facades\DB;
+use App\Events\JobFailed;
+use Throwable;
 
 class GenerateSalesFunnelReport implements ShouldQueue
 {
     use Batchable, Queueable;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(
         public Shop $shop,
         public string $day,
@@ -26,14 +24,8 @@ class GenerateSalesFunnelReport implements ShouldQueue
         $this->shop = $shop;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
-        // $shop = Shop::find(117);
-        // $day = '2025-01-28';
-
         $this->shop->salesFunnel()->where('date', '=', $this->day)->delete();
 
         $WbNmReportDetailHistory = $this->shop->WbNmReportDetailHistory()->
@@ -87,5 +79,10 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'finished_price' => $row->finished_price,
             ]);
         });
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        JobFailed::dispatch('GenerateSalesFunnelReport', $exception);
     }
 }
