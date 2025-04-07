@@ -34,7 +34,10 @@ class AddWbAdvV1Upd implements ShouldQueue
 
         $WbAdvV1UpdData->each(function ($row) {
             $vendorCode = explode(' ', $row['campName'])[0];
-            $good = Good::firstWhere('vendor_code', $vendorCode);
+            $good = Good::firstWhere([
+                'vendor_code' => $vendorCode,
+                'shop_id' => $this->shop->id,
+            ]);
             if ($good !== null) {
                 $good->WbAdvV1Upd()->create([
                     'upd_num' => $row['updNum'],
