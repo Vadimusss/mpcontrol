@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use App\Events\JobFailed;
 use Throwable;
+use Illuminate\Support\Facades\Log;
 
 class AddShopWbListGoods implements ShouldQueue
 {
@@ -28,8 +29,30 @@ class AddShopWbListGoods implements ShouldQueue
         $wbGoodListData = $api->getFullApiV2ListGoods();
 
         $wbGoodListData->each(function ($goodFromApi) use ($shop) {
-            Good::where('shop_id', '=', $shop->id)->where('nm_id', '=', $goodFromApi['nmID'])->firstOr(function () use ($goodFromApi, $shop) {
+            $existingByNmId = Good::with('wbListGoodRow')
+                ->where('shop_id', $shop->id)
+                ->where('nm_id', $goodFromApi['nmID'])
+                ->first();
 
+            $existingByVendorCode = Good::with('wbListGoodRow')
+                ->where('shop_id', $shop->id)
+                ->where('vendor_code', $goodFromApi['vendorCode'])
+                ->where('nm_id', '!=', $goodFromApi['nmID'])
+                ->first();
+
+            if ($existingByVendorCode) {
+                $existingByVendorCode->update([
+                    'vendor_code' => $existingByVendorCode->vendor_code . ' archived (' . now()->format('d.m.Y') . ')'
+                ]);
+                $existingByVendorCode->wbListGoodRow()->update([
+                    'vendor_code' => $goodFromApi['vendorCode']
+                ]);
+            } elseif ($existingByNmId) {
+                $existingByNmId->update(['vendor_code' => $goodFromApi['vendorCode']]);
+                $existingByNmId->wbListGoodRow()->update([
+                    'vendor_code' => $goodFromApi['vendorCode']
+                ]);
+            } else {
                 $good = $shop->goods()->create([
                     'shop_id' => $shop->id,
                     'nm_id' => $goodFromApi['nmID'],
@@ -56,7 +79,7 @@ class AddShopWbListGoods implements ShouldQueue
                         'tech_size_name' => $size['techSizeName'],
                     ]);
                 });
-            });
+            }
         });
     }
 
