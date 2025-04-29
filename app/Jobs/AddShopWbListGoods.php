@@ -7,12 +7,13 @@ use App\Models\Good;
 use App\Services\WbApiService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Bus\Batchable;
 use App\Events\JobFailed;
 use Throwable;
 
 class AddShopWbListGoods implements ShouldQueue
 {
-    use Queueable;
+    use Batchable, Queueable;
 
     private WbApiService $api;
 

@@ -31,6 +31,7 @@ class DeleteShopData
         });
         $event->shop->goodLists()->delete();
         $event->shop->WbListGood()->delete();
+        $event->shop->reports()->delete();
         $event->shop->sizes()->delete();
         $event->shop->goods()->delete();
         $event->shop->customers()->detach();

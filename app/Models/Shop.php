@@ -92,4 +92,14 @@ class Shop extends Model
     {
         return $this->hasMany(StocksAndOrders::class);
     }
+
+    public function wbAdvV1PromotionCounts(): HasMany
+    {
+        return $this->hasMany(WbAdvV1PromotionCount::class);
+    }
+
+    public function wbAdvV2FullstatsWbAdverts(): HasMany
+    {
+        return $this->hasMany(WbAdvV2FullstatsWbAdvert::class);
+    }
 }

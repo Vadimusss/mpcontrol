@@ -23,7 +23,7 @@ class Good extends Model
 
     public function lists(): BelongsToMany
     {
-        return $this->hasMany(GoodList::class);
+        return $this->belongsToMany(GoodList::class);
     }
 
     public function wbListGoodRow(): HasOne
@@ -49,5 +49,10 @@ class Good extends Model
     public function salesFunnel(): HasMany
     {
         return $this->hasMany(SalesFunnel::class);
+    }
+
+    public function wbAdvV2FullstatsProducts(): HasMany
+    {
+        return $this->hasMany(WbAdvV2FullstatsProduct::class);
     }
 }

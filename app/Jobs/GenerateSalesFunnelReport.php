@@ -19,8 +19,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
         public Shop $shop,
         public string $day,
         public $timeout = 1200,
-    )
-    {
+    ) {
         $this->day = $day;
         $this->shop = $shop;
     }
@@ -31,8 +30,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
 
         $this->shop->salesFunnel()->where('date', '=', $this->day)->delete();
 
-        $WbNmReportDetailHistory = $this->shop->WbNmReportDetailHistory()->
-            select(
+        $WbNmReportDetailHistory = $this->shop->WbNmReportDetailHistory()->select(
                 'good_id',
                 'wb_nm_report_detail_histories.vendor_code',
                 'wb_nm_report_detail_histories.nm_id',
@@ -40,19 +38,24 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'dt',
                 'open_card_count',
                 'add_to_cart_count',
-                'orders_count', 'orders_sum_rub')->
-            where('dt', '=', $this->day)->get();
+                'orders_count',
+                'orders_sum_rub'
+            )->where('dt', '=', $this->day)->get();
 
-        $WbAdvV1Upd = $this->shop->WbAdvV1Upd()->
-            select('good_id', 'upd_sum')->where('upd_time', 'like', "%{$this->day}%")->get();
-        
-        $WbV1SupplierOrders = $this->shop->WbV1SupplierOrders()->
-            select('nm_id', 'finished_price', 'price_with_disc')->where('date', 'like', "%{$this->day}%")->get();
+        $advCostsSumByGoodId = $this->shop->wbAdvV2FullstatsWbAdverts()
+            ->with(['wbAdvV2FullstatsDays.wbAdvV2FullstatsApps.wbAdvV2FullstatsProducts' => function ($query) {
+                $query->where('date', $this->day)
+                    ->select('wb_adv_fs_app_id', 'good_id', 'sum');
+            }])->get()
+            ->pluck('wbAdvV2FullstatsDays')->collapse()
+            ->pluck('wbAdvV2FullstatsApps')->collapse()
+            ->pluck('wbAdvV2FullstatsProducts')->collapse()->groupBy('good_id')
+            ->map(function ($products) {
+                return round($products->sum('sum'));
+            })
+            ->toArray();
 
-        $advCostsSumByGoodId = $WbAdvV1Upd->groupBy('good_id')->reduce(function ($carry, $day, $goodId) {
-            $carry[$goodId] = $day->sum('upd_sum');
-            return $carry;
-        }, []);
+        $WbV1SupplierOrders = $this->shop->WbV1SupplierOrders()->select('nm_id', 'finished_price', 'price_with_disc')->where('date', 'like', "%{$this->day}%")->get();
 
         $avgPricesByDay = $WbV1SupplierOrders->groupBy('nm_id')->reduce(function ($carry, $day, $nmId) {
             $carry[$nmId]['finished_price'] = round($day->avg('finished_price'), 2);
