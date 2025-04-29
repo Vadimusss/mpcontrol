@@ -32,6 +32,7 @@ class AddWbV1SupplierOrders implements ShouldQueue
         $api = new WbApiService($this->shop->apiKey->key);
         $api->getApiV1SupplierOrders($this->date)->map(function ($row) {
                 $row['shop_id'] = $this->shop->id;
+                $row['order_type'] = 'Устарел';
                 return $row;
             })->chunk(1000)->each(function ($chunk) {
                 $transformed = array_map([$this, 'camelToSnakeKeys'], $chunk->toArray());
