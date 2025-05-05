@@ -65,7 +65,6 @@ class DailyWbApiDataUpdate implements ShouldQueue
             });
             $fullstatsJobs = Arr::prepend($fullstatsJobs, new AddWbAdvV1PromotionCount($shop));
 
-
             $shop->WbNmReportDetailHistory()->where('dt', '=', $date)->delete();
             $shopGoods = $shop->goods();
             $shopNmIds = $shopGoods->pluck('nm_id')->toArray();
@@ -73,7 +72,6 @@ class DailyWbApiDataUpdate implements ShouldQueue
             $nmReportDetailHistoryJobs = array_map(function ($chunk) use ($shop, $period) {
                 return (new AddWbNmReportDetailHistory($shop, $chunk, $period))->delay(20);
             }, $chunks);
-            // $nmReportDetailHistoryJobs = Arr::prepend($nmReportDetailHistoryJobs, new AddShopWbListGoods($shop));
 
             Bus::batch([
                 $fullstatsJobs,

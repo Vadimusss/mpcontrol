@@ -31,16 +31,16 @@ class GenerateSalesFunnelReport implements ShouldQueue
         $this->shop->salesFunnel()->where('date', '=', $this->day)->delete();
 
         $WbNmReportDetailHistory = $this->shop->WbNmReportDetailHistory()->select(
-                'good_id',
-                'wb_nm_report_detail_histories.vendor_code',
-                'wb_nm_report_detail_histories.nm_id',
-                'imt_name',
-                'dt',
-                'open_card_count',
-                'add_to_cart_count',
-                'orders_count',
-                'orders_sum_rub'
-            )->where('dt', '=', $this->day)->get();
+            'good_id',
+            'wb_nm_report_detail_histories.vendor_code',
+            'wb_nm_report_detail_histories.nm_id',
+            'imt_name',
+            'dt',
+            'open_card_count',
+            'add_to_cart_count',
+            'orders_count',
+            'orders_sum_rub'
+        )->where('dt', '=', $this->day)->get();
 
         $advCostsSumByGoodId = $this->shop->wbAdvV2FullstatsWbAdverts()
             ->with(['wbAdvV2FullstatsDays.wbAdvV2FullstatsApps.wbAdvV2FullstatsProducts' => function ($query) {
@@ -55,6 +55,43 @@ class GenerateSalesFunnelReport implements ShouldQueue
             })
             ->toArray();
 
+        $advDataByType = $this->shop->wbAdvV1PromotionCounts()
+            ->whereIn('type', [8, 9])
+            ->with(['wbAdvV2FullstatsWbAdverts.wbAdvV2FullstatsDays.wbAdvV2FullstatsApps.wbAdvV2FullstatsProducts' => function ($query) {
+                $query->where('date', $this->day)
+                    ->select('wb_adv_fs_app_id', 'good_id', 'sum', 'views', 'clicks', 'orders');
+            }])->get()
+            ->groupBy('type')
+            ->map(function ($typeGroup, $type) {
+                return $typeGroup->flatMap(function ($item) {
+                    return $item->wbAdvV2FullstatsWbAdverts;
+                })
+                    ->flatMap(function ($advert) {
+                        return $advert->wbAdvV2FullstatsDays;
+                    })
+                    ->flatMap(function ($day) {
+                        return $day->wbAdvV2FullstatsApps;
+                    })
+                    ->flatMap(function ($app) {
+                        return $app->wbAdvV2FullstatsProducts;
+                    })
+                    ->groupBy('good_id')
+                    ->map(function ($products) use ($type) {
+                        $sum = $products->sum('sum');
+                        $views = $products->sum('views');
+                        return [
+                            'sum' => round($sum),
+                            'views' => $views,
+                            'clicks' => $products->sum('clicks'),
+                            'orders' => $products->sum('orders'),
+                            'cpm' => $views > 0 ? round(($sum / $views) * 1000, 2) : 0
+                        ];
+                    });
+            });
+
+        $aacData = $advDataByType->get(8, collect())->toArray();
+        $aucData = $advDataByType->get(9, collect())->toArray();
+
         $WbV1SupplierOrders = $this->shop->WbV1SupplierOrders()->select('nm_id', 'finished_price', 'price_with_disc')->where('date', 'like', "%{$this->day}%")->get();
 
         $avgPricesByDay = $WbV1SupplierOrders->groupBy('nm_id')->reduce(function ($carry, $day, $nmId) {
@@ -63,10 +100,23 @@ class GenerateSalesFunnelReport implements ShouldQueue
             return $carry;
         }, []);
 
-        $report = $WbNmReportDetailHistory->map(function ($row) use ($advCostsSumByGoodId, $avgPricesByDay) {
+        $report = $WbNmReportDetailHistory->map(function ($row) use ($advCostsSumByGoodId, $aacData, $aucData, $avgPricesByDay) {
             $row->advertising_costs = array_key_exists($row->good_id, $advCostsSumByGoodId) ? $advCostsSumByGoodId[$row->good_id] : 0;
             $row->finished_price = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['finished_price'] : 0;
             $row->price_with_disc = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['price_with_disc'] : 0;
+
+            $row->aac_cpm = array_key_exists($row->good_id, $aacData) ? $aacData[$row->good_id]['cpm'] : 0;
+            $row->aac_views = array_key_exists($row->good_id, $aacData) ? $aacData[$row->good_id]['views'] : 0;
+            $row->aac_clicks = array_key_exists($row->good_id, $aacData) ? $aacData[$row->good_id]['clicks'] : 0;
+            $row->aac_orders = array_key_exists($row->good_id, $aacData) ? $aacData[$row->good_id]['orders'] : 0;
+            $row->aac_sum = array_key_exists($row->good_id, $aacData) ? $aacData[$row->good_id]['sum'] : 0;
+
+            $row->auc_cpm = array_key_exists($row->good_id, $aucData) ? $aucData[$row->good_id]['cpm'] : 0;
+            $row->auc_views = array_key_exists($row->good_id, $aucData) ? $aucData[$row->good_id]['views'] : 0;
+            $row->auc_clicks = array_key_exists($row->good_id, $aucData) ? $aucData[$row->good_id]['clicks'] : 0;
+            $row->auc_orders = array_key_exists($row->good_id, $aucData) ? $aucData[$row->good_id]['orders'] : 0;
+            $row->auc_sum = array_key_exists($row->good_id, $aucData) ? $aucData[$row->good_id]['sum'] : 0;
+
             return $row;
         });
 
@@ -83,6 +133,16 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'advertising_costs' => $row->advertising_costs,
                 'price_with_disc' => $row->price_with_disc,
                 'finished_price' => $row->finished_price,
+                'aac_cpm' => $row->aac_cpm,
+                'aac_views' => $row->aac_views,
+                'aac_clicks' => $row->aac_clicks,
+                'aac_orders' => $row->aac_orders,
+                'aac_sum' => $row->aac_sum,
+                'auc_cpm' => $row->auc_cpm,
+                'auc_views' => $row->auc_views,
+                'auc_clicks' => $row->auc_clicks,
+                'auc_orders' => $row->auc_orders,
+                'auc_sum' => $row->auc_sum,
             ]);
         });
 

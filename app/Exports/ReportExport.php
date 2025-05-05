@@ -45,7 +45,17 @@ class ReportExport implements FromCollection, WithHeadings, WithStrictNullCompar
             'orders_sum_rub',
             'advertising_costs',
             'price_with_disc',
-            'finished_price')->whereBetween('date', [$this->begin, $this->end])->whereIn('sales_funnels.nm_id', $goodListNmIds)->get();
+            'finished_price',
+            'aac_cpm',
+            'aac_views',
+            'aac_clicks',
+            'aac_orders',
+            'aac_sum',
+            'auc_cpm',
+            'auc_views',
+            'auc_clicks',
+            'auc_orders',
+            'auc_sum')->whereBetween('date', [$this->begin, $this->end])->whereIn('sales_funnels.nm_id', $goodListNmIds)->get();
 
         return $selectedData;
     }
@@ -64,6 +74,16 @@ class ReportExport implements FromCollection, WithHeadings, WithStrictNullCompar
             'advertising_costs',
             'price_with_disc',
             'finished_price',
+            'aac_cpm',
+            'aac_views',
+            'aac_clicks',
+            'aac_orders',
+            'aac_sum',
+            'auc_cpm',
+            'auc_views',
+            'auc_clicks',
+            'auc_orders',
+            'auc_sum',
         ];
     }
 }

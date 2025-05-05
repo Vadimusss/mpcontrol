@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SalesFunnel extends Model
 {
@@ -19,6 +20,16 @@ class SalesFunnel extends Model
         'advertising_costs',
         'price_with_disc',
         'finished_price',
+        'aac_cpm',
+        'aac_views',
+        'aac_clicks',
+        'aac_orders',
+        'aac_sum',
+        'auc_cpm',
+        'auc_views',
+        'auc_clicks',
+        'auc_orders',
+        'auc_sum',
     ];
 
     protected $hidden = [
