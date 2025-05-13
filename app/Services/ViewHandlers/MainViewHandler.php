@@ -89,7 +89,12 @@ class MainViewHandler implements ViewHandler
             $discount = $good->wbListGoodRow?->discount ?? 0;
             $discountedPrice = $price * (1 - $discount / 100);
 
-            $mainRowProfit = $discountedPrice - ($discountedPrice * ($commission / 100)) - $logistics - $good->nsi->cost_with_taxes;
+            $mainRowProfit = $this->calculateMainRowProfit(
+                $discountedPrice,
+                $commission,
+                $logistics,
+                $good->nsi->cost_with_taxes ?? null
+            );
             $percent = ($mainRowProfit == 0 || $discountedPrice == 0) ? '?' : round(($mainRowProfit / $discountedPrice) * 100);
             $ddr = ($totals['advertising_costs'] == 0 || $totals['orders_sum_rub'] == 0) ? 0 :
                 $totals['advertising_costs'] / $totals['orders_sum_rub'];
@@ -173,6 +178,20 @@ class MainViewHandler implements ViewHandler
             return $dailySalesEstimate > 0 ? 
                    round($totalStock / $dailySalesEstimate) : 
                    '?';
+        } catch (\Exception $e) {
+            return '?';
+        }
+    }
+
+    private function calculateMainRowProfit(float $discountedPrice, ?float $commission, ?float $logistics, ?float $costWithTaxes): string
+    {
+        try {
+            if ($commission === null || $logistics === null || $costWithTaxes === null) {
+                return '?';
+            }
+
+            $profit = $discountedPrice - ($discountedPrice * ($commission / 100)) - $logistics - $costWithTaxes;
+            return round($profit) == 0 ? '0' : round($profit);
         } catch (\Exception $e) {
             return '?';
         }
