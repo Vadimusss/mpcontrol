@@ -2,8 +2,7 @@ import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import GoodsTable from '../GoodLists/Components/GoodsTable';
 import PrimaryButton from '@/Components/PrimaryButton';
-import { Head, usePage } from '@inertiajs/react';
-import { Inertia } from '@inertiajs/inertia';
+import { Head, usePage, router } from '@inertiajs/react';
 
 export default function GoodLists({ shop, goodList, goods }) {
     const { auth } = usePage().props;
@@ -11,7 +10,7 @@ export default function GoodLists({ shop, goodList, goods }) {
 
     const handleDeleteGoodsFromListButtonClick = (e) => {
         e.preventDefault();
-        Inertia.patch(route('shops.goodlists.update', { shop: shop.id, goodlist: goodList.id }), {
+        router.patch(route('shops.goodlists.update', { shop: shop.id, goodlist: goodList.id }), {
             selectedGoodsId: selectedGoodsId,
             type: 'delete',
         }, {

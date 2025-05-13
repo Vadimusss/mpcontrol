@@ -36,14 +36,14 @@ export default function GoodLists({ shop, ownGoodLists, goodLists, goods }) {
                         <>
                             <h2 className="text-xl font-bold mb-3">Списки товаров магазина</h2>
                             {goodLists.map((goodList) =>
-                                <GoodListCard shopId={shop.id} goodList={goodList} key={goodList.id} selectedGoodsId={selectedGoodsId} />)}
+                                <GoodListCard shopId={shop.id} goodList={goodList} key={goodList.id} selectedGoodsId={selectedGoodsId} setSelectedGoodsId={setSelectedGoodsId} />)}
                         </>
                     }
                     {ownGoodLists.length !== 0 &&
                         <>
                             <h2 className="text-xl font-bold mb-3">Мои списки товаров</h2>
                             {ownGoodLists.map((goodList) =>
-                                <GoodListCard shopId={shop.id} goodList={goodList} key={goodList.id} selectedGoodsId={selectedGoodsId}/>)}
+                                <GoodListCard shopId={shop.id} goodList={goodList} key={goodList.id} selectedGoodsId={selectedGoodsId} setSelectedGoodsId={setSelectedGoodsId}/>)}
                         </>
                     }
                     <PrimaryButton

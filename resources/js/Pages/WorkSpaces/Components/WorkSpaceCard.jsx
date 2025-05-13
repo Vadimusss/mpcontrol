@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import DeleteWorkSpaceConfirmModal from '@/Pages/WorkSpaces/Components/Modals/DeleteWorkSpaceConfirmModal';
 import SetWorkSpaceSettingModal from '@/Pages/WorkSpaces/Components/Modals/SetWorkSpaceSettingModal';
-import { Inertia } from '@inertiajs/inertia';
+import { router } from '@inertiajs/react';
 
-export default function WorkSpaceCard({ auth, shopId, workSpace, goodLists }) {
+export default function WorkSpaceCard({ auth, shopId, workSpace, goodLists, views }) {
     const [modalState, setModalIState] = useState({
         changeSettingModalIsOpen: false,
         deleteConfirmModalIsOpen: false,
@@ -25,26 +25,30 @@ export default function WorkSpaceCard({ auth, shopId, workSpace, goodLists }) {
     const closeDeleteModal = (() => {
         setModalIState({ deleteConfirmModalIsOpen: false });
     });
-// console.log(workSpace);
+
+    const isGoodListsExists = goodLists.length !== 0;
+    const isGoodListsConnected = workSpace.connected_good_lists.length !== 0;
+
     return (
         <div className="border border-gray-300 rounded-md shadow-sm bg-white mb-2 p-2">
-            <p><span className='font-semibold text-gray-900'>ID:</span> {workSpace.id}</p>
             <p><span className='font-semibold text-gray-900'>Название:</span> {workSpace.name}</p>
             <p><span className='font-semibold text-gray-900'>Создатель:</span> {workSpace.creator.name}</p>
             {workSpace.connected_good_lists.length !== 0 &&
                 <>
                     <p><span className='font-semibold text-gray-900'>Подключенные списки:</span>
-                    {workSpace.connected_good_lists.map((list) => <React.Fragment key={list.id}> {list.name}</React.Fragment> )}
+                        {workSpace.connected_good_lists.map((list) => <React.Fragment key={list.id}> {list.name}</React.Fragment>)}
                     </p>
                 </>
             }
+            <p><span className='font-semibold text-gray-900'>Представление:</span> {workSpace.view_settings.view.name}</p>
             <div className="flex flex-col">
                 {(workSpace.creator.id === auth.user.id) &&
                     <>
                         <div className="flex gap-x-2">
                             <PrimaryButton
                                 className="mt-4 max-w-fit"
-                                onClick={(e) => openChangeSettingModal(e)}>
+                                onClick={(e) => openChangeSettingModal(e)}
+                                disabled={!isGoodListsExists}>
                                 Настройки
                             </PrimaryButton>
                             <PrimaryButton
@@ -53,25 +57,27 @@ export default function WorkSpaceCard({ auth, shopId, workSpace, goodLists }) {
                                 Удалить
                             </PrimaryButton>
                         </div>
-                        <SetWorkSpaceSettingModal
+                        {isGoodListsExists && <SetWorkSpaceSettingModal
                             shopId={shopId}
                             workSpace={workSpace}
                             goodLists={goodLists}
+                            views={views}
                             maxWidth={'xl'}
-                            IsOpen={modalState.changeSettingModalIsOpen}
+                            isOpen={modalState.changeSettingModalIsOpen}
                             closeModal={closeChangeSettingModal}
-                        />
+                        />}
                         <DeleteWorkSpaceConfirmModal
                             shopId={shopId}
                             workSpace={workSpace}
                             maxWidth={'xl'}
-                            IsOpen={modalState.deleteConfirmModalIsOpen}
+                            isOpen={modalState.deleteConfirmModalIsOpen}
                             closeModal={closeDeleteModal} />
                     </>
                 }
                 <PrimaryButton
                     className="mt-4 max-w-fit"
-                    onClick={(e) => Inertia.get(route('shops.workspaces.show', { shop: shopId, workspace: workSpace.id }))}>
+                    disabled={!isGoodListsExists || !isGoodListsConnected}
+                    onClick={(e) => router.get(route('shops.workspaces.show', { shop: shopId, workspace: workSpace.id }))}>
                     Открыть
                 </PrimaryButton>
             </div>

@@ -1,9 +1,5 @@
-import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import SimpleTable from './Widgets/SimpleTable';
-import PrimaryButton from '@/Components/PrimaryButton';
-import { Head, usePage } from '@inertiajs/react';
-import { Inertia } from '@inertiajs/inertia';
+import { Head } from '@inertiajs/react';
 
 export default function WorkSpace({ shop, workSpace, goods }) {
 /*     console.log(shop);

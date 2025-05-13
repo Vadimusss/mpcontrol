@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import DeletegoodListConfirmModal from '@/Pages/GoodLists/Components/Modals/DeleteGoodListConfirmModal';
-import { usePage } from '@inertiajs/react';
-import { Inertia } from '@inertiajs/inertia';
+import { usePage, router } from '@inertiajs/react';
 
-export default function GoodListCard({ shopId, goodList, selectedGoodsId,  }) {
+export default function GoodListCard({ shopId, goodList, selectedGoodsId, setSelectedGoodsId }) {
     const { auth } = usePage().props;
     const [modalState, setModalIState] = useState({
         changeSettingModalIsOpen: false,
@@ -13,12 +12,15 @@ export default function GoodListCard({ shopId, goodList, selectedGoodsId,  }) {
 
     const handleAddGoodsToListButtonClick = (e) => {
         e.preventDefault();
-        Inertia.patch(route('shops.goodlists.update', { shop: shopId, goodlist: goodList.id }), {
+        router.patch(route('shops.goodlists.update', { shop: shopId, goodlist: goodList.id }), {
             selectedGoodsId: selectedGoodsId,
             type: 'add',
         }, {
             preserveScroll: true,
-            onSuccess: () => setSelectedGoodsId([]),
+            onSuccess: () => {
+                setSelectedGoodsId([]);
+                window.location.reload();
+            },
         });
     };
 
@@ -41,7 +43,7 @@ export default function GoodListCard({ shopId, goodList, selectedGoodsId,  }) {
                 <div className="flex gap-x-2">
                     <PrimaryButton
                         className="mt-4 max-w-fit"
-                        onClick={(e) => Inertia.get(route('shops.goodlists.show', [shopId, goodList.id]))}>
+                        onClick={(e) => router.get(route('shops.goodlists.show', [shopId, goodList.id]))}>
                         {userIsCreator ? 'Редактировать' : 'Посмотреть'}
                     </PrimaryButton>
                     {(goodList.creator.id === auth.user.id) &&

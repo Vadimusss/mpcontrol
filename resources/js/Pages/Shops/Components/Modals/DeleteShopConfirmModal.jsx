@@ -2,13 +2,13 @@
 import SecondaryButton from '@/Components/SecondaryButton';
 import Modal from '@/Components/Modal';
 import DangerButton from '@/Components/DangerButton';
-import { Inertia } from '@inertiajs/inertia';
+import { router } from '@inertiajs/react';
 
 export default function DeleteShopConfirmModal({ shop: { id, name }, maxWidth, IsOpen, closeModal }) {
 
     const handleDelete = (e) => {
         e.preventDefault();
-        Inertia.delete(route('shops.destroy', id), {
+        router.delete(route('shops.destroy', id), {
             preserveScroll: true,
             onSuccess: () => closeModal(),
         })
