@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ViewHandlers\ViewHandlerFactory;
 use App\Models\WorkSpace;
 use App\Models\Shop;
-use App\Models\Good;
+use App\Models\View;
+use App\Models\ViewState;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -14,61 +16,90 @@ use App\Events\WorkSpaceDeleted;
 
 class WorkSpaceController extends Controller
 {
-    public function index(Request $request, Shop $shop): Response
+    public function index(Shop $shop): Response
     {
         return Inertia::render('WorkSpaces/Index', [
             'shop' => $shop,
             'workSpaces' => $shop->workSpaces,
             'goodLists' => $shop->goodLists,
+            'views' => View::all(),
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request, Shop $shop): RedirectResponse
     {
+        Gate::authorize('update', $shop);
+
         $validated = $request->validate([
             'name' => 'required|unique:work_spaces,name|string|max:255',
+            'goodListId' => 'required|integer',
+            'view_id' => 'required|integer',
+            'settings' => 'required|array',
         ]);
 
-        $shop->workSpaces()->create(['name' => $validated['name'], 'user_id' => $request->user()->id]);
+        $workSpace = $shop->workSpaces()->create([
+            'name' => $validated['name'],
+            'user_id' => $request->user()->id,
+            'view_id' => $request['view_id'],
+        ]);
 
-        return redirect(route('shops.workspaces.index', $request['shopId']));
+        $workSpace->connectedGoodLists()->attach($validated['goodListId']);
+
+        $workSpace->viewSettings()->create([
+            'view_id' => $request['view_id'],
+            'settings' => json_encode($request['settings']),
+        ]);
+
+        return redirect(route('shops.workspaces.index', $shop->id));
     }
 
-    public function show(Shop $shop, WorkSpace $workspace)
+    public function show(Request $request, Shop $shop, WorkSpace $workspace)
     {
-        $goods = $workspace->connectedGoodLists->load(['goods'])->flatMap(function ($list) {
-            return Good::find($list->goods)->load('wbListGoodRow', 'sizes');
-        });
+        $handler = ViewHandlerFactory::make($workspace->viewSettings->view->type);
 
-        return Inertia::render('WorkSpace/Index', [
+        $viewState = ViewState::firstOrCreate(
+            [
+                'user_id' => $request->user()->id,
+                'workspace_id' => $workspace->id,
+                'view_id' => $workspace->viewSettings->view_id,
+            ],
+            [
+                'view_state' => $handler->getDefaultViewState(),
+            ]
+        );
+
+        return Inertia::render("WorkSpace/{$handler->getComponent()}/index", [
             'shop' => $shop,
             'workSpace' => $workspace,
-            'goods' => $goods,
+            'goods' => $handler->prepareData($workspace),
+            'initialViewState' => $viewState->view_state ?? [
+                'expandedRows' => [],
+                'selectedItems' => [],
+                'showOnlySelected' => false,
+            ],
         ]);
     }
 
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Shop $shop, WorkSpace $workspace)
     {
         Gate::authorize('update', $workspace);
 
         $validated = $request->validate([
             'goodListId' => 'required|integer',
+            'view_id' => 'required|integer',
+            'settings' => 'required|array',
         ]);
 
         $workspace->connectedGoodLists()->detach();
         $workspace->connectedGoodLists()->attach($validated['goodListId']);
+
+        $workspace->viewSettings()->delete();
+        $workspace->viewSettings()->create([
+            'view_id' => $request['view_id'],
+            'settings' => json_encode($request['settings']),
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Shop $shop, WorkSpace $workspace): RedirectResponse
     {
         Gate::authorize('delete', $workspace);

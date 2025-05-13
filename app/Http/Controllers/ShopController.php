@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use Closure;
 use App\Models\User;
 use App\Models\Shop;
-use App\Models\ApiKey;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Rules\UniqueCustomer;
@@ -17,6 +15,7 @@ use App\Rules\NotOwner;
 use Illuminate\Support\Facades\Gate;
 use App\Events\ShopDeleted;
 use App\Events\ShopCreated;
+use App\Jobs\UpdateNsiFromGoogleSheets;
 
 class ShopController extends Controller
 {
@@ -42,9 +41,23 @@ class ShopController extends Controller
                 'max:500',
                 new ApiKeyIsWorking,
             ],
+            'settings' => 'required|nullable|array',
+            'settings.commission' => 'required|nullable|integer',
+            'settings.logistics' => 'required|nullable|integer',
+            'settings.percentile_coefficient' => 'required|nullable|numeric',
+            'settings.weight_coefficient' => 'required|nullable|numeric',
+            'settings.gsheet_url' => 'required|string|max:255',
         ]);
 
-        $shop = $request->user()->ownShops()->create(['name' => $validated['name']]);
+        $shop = $request->user()->ownShops()->create([
+            'name' => $validated['name'],
+            'settings' => $validated['settings'],
+        ]);
+
+        $shop->reports()->createMany([
+            ['type_id' => 1],
+            ['type_id' => 2],
+        ]);
 
         $request->user()->ownApiKeys()->create([
             'key' => $validated['key'],
@@ -52,7 +65,7 @@ class ShopController extends Controller
         ]);
 
         ShopCreated::dispatch($shop);
- 
+
         return redirect(route('shops.index'));
     }
 
@@ -71,7 +84,7 @@ class ShopController extends Controller
                         new NotOwner,
                     ],
                 ]);
-    
+
                 $user = User::firstWhere('email', $validated['email']);
                 $shop->customers()->attach($user->id);
                 break;
@@ -82,20 +95,46 @@ class ShopController extends Controller
                         'integer',
                     ],
                 ]);
-    
+
                 $shop->customers()->detach($validated['customerId']);
                 break;
-            case 'changeApiKey':
-                $validated = $request->validate([
-                    'key' => [
+            case 'update_nsi':
+                UpdateNsiFromGoogleSheets::dispatch($shop->id);
+            case 'changeSettings':
+                $rules = [
+                    'name' => 'required|string|max:255',
+                    'settings' => 'nullable|array',
+                    'settings.commission' => 'nullable|integer',
+                    'settings.logistics' => 'nullable|integer',
+                    'settings.percentile_coefficient' => 'nullable|numeric',
+                    'settings.weight_coefficient' => 'nullable|numeric',
+                    'settings.gsheet_url' => 'required|string|max:255',
+                ];
+
+                if ($request['key']) {
+                    $rules['key'] = [
                         'required',
-                        'unique:api_keys,key',
+                        'unique:api_keys',
                         'max:500',
                         new ApiKeyIsWorking,
-                    ],
-                ]);
+                    ];
+                }
 
-                $shop->apiKey()->update($validated);
+                $validated = $request->validate($rules);
+
+                $updateData = [
+                    'name' => $validated['name'],
+                    'settings' => array_merge(
+                        $shop->settings ?? [],
+                        $validated['settings'] ?? []
+                    )
+                ];
+
+                $shop->update($updateData);
+
+                if (!empty($validated['key'])) {
+                    $shop->apiKey()->update($validated['key']);
+                }
                 break;
         }
 
