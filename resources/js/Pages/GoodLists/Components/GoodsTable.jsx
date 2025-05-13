@@ -14,8 +14,6 @@ import {
 } from '@heroicons/react/24/solid';
 
 export default function GoodsTable({ goods, setSelectedGoodsId }) {
-  // console.log(goods);
-
   const [rowSelection, setRowSelection] = useState({});
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);

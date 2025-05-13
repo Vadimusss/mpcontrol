@@ -38,7 +38,6 @@ export default React.memo(function MainView({ shop, workSpace, goods, initialVie
   });
   const [allExpanded, setAllExpanded] = useState(false);
   const workSpaceSettings = JSON.parse(workSpace.view_settings.settings);
-  console.log(goods);
   useEffect(() => {
     const allExpanded = Object.keys(viewState.expandedRows).length === goods.length;
     setAllExpanded(allExpanded);
@@ -97,7 +96,6 @@ export default React.memo(function MainView({ shop, workSpace, goods, initialVie
     apiClient.post(`/${workSpace.id}/${workSpace.view_settings.view.id}`,
       { viewState: stateToSave }
     ).then(response => {
-      console.log(response.data.message);
     }).catch(error => {
       console.error('Error saving state:', error);
     });

@@ -14,8 +14,6 @@ export default function Report({ shop, reports, goodLists }) {
       'goodListId': goodListId,
     });
 
-    console.log(goodListId);
-
     const fileName = goodListId ?
       `${report.type.name} ${goodLists.filter((goodList) => goodList.id === Number(goodListId))[0].name} ${beginDate} - ${endDate}.xlsx` :
       `${report.type.name} ${beginDate} - ${endDate}.xlsx`;

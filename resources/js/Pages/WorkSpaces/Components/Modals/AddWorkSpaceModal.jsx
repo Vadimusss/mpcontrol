@@ -39,7 +39,6 @@ export default function AddWorkSpaceModal({ shopId, goodLists, views, maxWidth, 
   };
 
   const isGoodListsExists = goodLists.length !== 0;
-  console.log(data.settings);
   return (
     <Modal maxWidth={maxWidth} show={isOpen} onClose={closeModal}>
       <div className="p-8">

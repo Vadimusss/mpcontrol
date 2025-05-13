@@ -8,7 +8,6 @@ import { Head } from '@inertiajs/react';
 
 export default function Index({ ownShops, availableShops }) {
     const [addShopModalIsOpen, setAddShopModalIsOpen] = useState(false);
-    console.log(ownShops);
 
     const handleAddShopButtonClick = () => {
         setAddShopModalIsOpen(true);

@@ -2,9 +2,6 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 
 export default function WorkSpace({ shop, workSpace, goods }) {
-/*     console.log(shop);
-    console.log(workSpace);
-    console.log(goods); */
     return (
         <AuthenticatedLayout
             navigation={true}

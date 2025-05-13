@@ -15,7 +15,6 @@ export default function SizesViewSetting({ data, errors, processing, handleSetti
                             onChange={(e) => {
                                 const columns = data.settings.columns || [];
                                 if (e.target.checked) {
-                                    console.log(columns);
                                     handleSettingChange('columns', [...columns, column]);
                                 } else {
                                     handleSettingChange('columns', columns.filter(col => col !== column));
