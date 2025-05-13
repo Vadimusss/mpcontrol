@@ -26,8 +26,6 @@ class AddWbAdvV2Fullstats implements ShouldQueue
         $this->payload = $payload;
     }
 
-    public $tries = 1;
-
     public function handle(): void
     {
         $api = new WbApiService($this->shop->apiKey->key);

@@ -10,6 +10,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use App\Events\JobFailed;
 use App\Events\JobSucceeded;
+use Illuminate\Support\Facades\Bus;
 use Throwable;
 
 class DailyShopsDataUpdate implements ShouldQueue
@@ -24,16 +25,21 @@ class DailyShopsDataUpdate implements ShouldQueue
     public function handle(): void
     {
         $startTime = microtime(true);
-        
+
         $shops = Shop::without(['owner', 'customers'])->get();
 
         $shops->each(function ($shop) {
             СheckApiKey::dispatch($shop->apiKey);
-            AddShopWbListGoods::dispatch($shop);
+            Bus::chain([
+                new AddShopWbListGoods($shop),
+                new UpdateNsiFromGoogleSheets($shop->id),
+            ])->dispatch();
         });
 
+
+
         $duration = microtime(true) - $startTime;
-        
+
         JobSucceeded::dispatch('DailyShopsDataUpdate', $duration);
     }
 
