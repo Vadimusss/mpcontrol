@@ -138,7 +138,7 @@ class MainViewHandler implements ViewHandler
                     'profit' => $totals['profit'] == 0 ? '' : $totals['profit']
                 ],
                 'salesData' => $salesData,
-                'mainRowProfit' => round($mainRowProfit),
+                'mainRowProfit' => $mainRowProfit == '?' ? $mainRowProfit : round($mainRowProfit),
                 'percent' => $percent,
                 'ddr' => $ddr == 0 ? '' : round($ddr, 2),
             ];
