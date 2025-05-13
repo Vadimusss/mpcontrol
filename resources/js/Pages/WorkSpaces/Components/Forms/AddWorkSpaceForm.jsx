@@ -3,7 +3,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import React from 'react';
 import { useForm } from '@inertiajs/react';
 
-export default function AddWorkSpaceForm({ shopId, closeModal }) {
+export default function AddWorkSpaceForm({ shopId, closeModal, goodLists, views }) {
     const { data, setData, post, processing, errors } = useForm({
         type: 'addWorkSpace',
         name: '',

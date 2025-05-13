@@ -1,4 +1,3 @@
-import SecondaryButton from '@/Components/SecondaryButton';
 import PrimaryButton from '@/Components/PrimaryButton';
 import InputError from '@/Components/InputError';
 import MainViewSetting from '@/Pages/WorkSpaces/Components/ViewsSettings/MainViewSetting';
@@ -6,11 +5,13 @@ import SizeViewSetting from '@/Pages/WorkSpaces/Components/ViewsSettings/SizesVi
 import Modal from '@/Components/Modal';
 import { useForm } from '@inertiajs/react';
 
-export default function SetWorkSpaceSettingModal({ shopId, workSpace, goodLists, views, maxWidth, isOpen, closeModal }) {
-  const { data, setData, patch, processing, errors } = useForm({
-    goodListId: goodLists[0].id,
-    view_id: workSpace.view_settings.view_id,
-    settings: JSON.parse(workSpace.view_settings.settings),
+export default function AddWorkSpaceModal({ shopId, goodLists, views, maxWidth, isOpen, closeModal }) {
+  const { data, setData, post, processing, errors } = useForm({
+    name: '',
+    shopId: shopId,
+    goodListId: goodLists[0]?.id,
+    view_id: '',
+    settings: {},
   });
 
   const selectedView = views.find(view => view.id === data.view_id);
@@ -27,27 +28,43 @@ export default function SetWorkSpaceSettingModal({ shopId, workSpace, goodLists,
     setData('settings', { ...data.settings, [key]: value });
   };
 
-  const submitSetWorkSpaceSetting = (e) => {
+  const submitWorkSpace = (e) => {
     e.preventDefault();
-    patch(route('shops.workspaces.update', { shop: shopId, workspace: workSpace.id }), {
+    post(route('shops.workspaces.store', shopId), {
       preserveScroll: true,
-      onSuccess: () => closeModal(),
+      onSuccess: () => {
+        closeModal();
+      }
     });
   };
 
+  const isGoodListsExists = goodLists.length !== 0;
+  console.log(data.settings);
   return (
     <Modal maxWidth={maxWidth} show={isOpen} onClose={closeModal}>
       <div className="p-8">
-        <h2 className="text-lg font-bold text-gray-800 mb-6">
-          Настройки рабочей области {workSpace.name}
-        </h2>
-        <form onSubmit={submitSetWorkSpaceSetting} className="space-y-6">
+        <h2 className="text-lg font-bold text-gray-800 mb-6">Добавить рабочую область</h2>
+        <form onSubmit={submitWorkSpace} className="space-y-6">
           <div>
-            <label htmlFor="goodLists" className="block text-sm font-medium text-gray-700 mb-2">
-              Выберите список товаров
+            <input
+              value={data.name}
+              type="text"
+              placeholder="Название рабочей области"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition duration-200"
+              onChange={e => setData('name', e.target.value)}
+            />
+            <InputError message={errors.name} className="mt-2" />
+          </div>
+
+          <div>
+            <label
+              htmlFor="goodLists"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              {isGoodListsExists ? 'Выберите список товаров' : 'Создайте список товаров'}
             </label>
             <select
-              onChange={(e) => setData('goodListId', e.target.value)}
+              onChange={e => setData('goodListId', e.target.value)}
               id="goodLists"
               className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition duration-200"
             >
@@ -79,36 +96,21 @@ export default function SetWorkSpaceSettingModal({ shopId, workSpace, goodLists,
 
           {selectedView && (
             <div className="space-y-4">
-              <h3 className="text-md font-semibold text-gray-700">
-                Настройки для {selectedView.name}
-              </h3>
+              <h3 className="text-md font-semibold text-gray-700">Настройки для {selectedView.name}</h3>
 
-              {selectedView.type === 'main' && (
-                <MainViewSetting
-                  data={data}
-                  errors={errors}
-                  processing={processing}
-                  handleSettingChange={handleSettingChange}
-                />
-              )}
+              {selectedView.type === 'main' && 
+                <MainViewSetting data={data} errors={errors} processing={processing} handleSettingChange={handleSettingChange} />
+              }
 
               {selectedView.type === 'sizes' && (
-                <SizeViewSetting
-                  data={data}
-                  errors={errors}
-                  processing={processing}
-                  handleSettingChange={handleSettingChange}
-                />
+                <SizeViewSetting data={data} errors={errors} processing={processing} handleSettingChange={handleSettingChange} />
               )}
             </div>
           )}
 
-          <div className="flex justify-end space-x-4">
-            <SecondaryButton onClick={closeModal}>
-              Отмена
-            </SecondaryButton>
-            <PrimaryButton disabled={processing}>
-              Сохранить настройки
+          <div className="flex justify-end">
+            <PrimaryButton className="mt-4" disabled={processing}>
+              Добавить
             </PrimaryButton>
           </div>
         </form>

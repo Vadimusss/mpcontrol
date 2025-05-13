@@ -4,44 +4,43 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import React from 'react';
 import { useForm } from '@inertiajs/react';
 
-export default function AddShopForm({ closeModal }) {
-    const { data, setData, post, reset, processing, errors } = useForm({
-        name: '',
+export default function ChangeShopSettingForm({ shop, closeModal }) {
+    const { data, setData, patch, processing, errors } = useForm({
+        type: 'changeSettings',
+        name: shop.name,
         key: '',
         settings: {
-            commission: 0,
-            logistics: 0,
-            percentile_coefficient: 0,
-            weight_coefficient: 0,
-            gsheet_url: ''
+            commission: shop.settings?.commission || 0,
+            logistics: shop.settings?.logistics || 0,
+            percentile_coefficient: shop.settings?.percentile_coefficient || 0,
+            weight_coefficient: shop.settings?.weight_coefficient || 0,
+            gsheet_url: shop.settings?.gsheet_url || ''
         }
     });
 
-    const submitAddShopData = (e) => {
+    const submitChangeSettings = (e) => {
         e.preventDefault();
-        post(route('shops.store'), {
+        patch(route('shops.update', shop.id), {
             preserveScroll: true,
-            onSuccess: () => {
-                reset();
-                closeModal();
-            }
+            onSuccess: () => closeModal()
         });
     };
 
     return (
         <div className="p-8">
-            <h2 className="text-l font-bold mb-3">Добавить магазин</h2>
-            <form onSubmit={submitAddShopData}>
+            <h2 className="text-l font-bold mb-3">Настройки магазина</h2>
+            <form onSubmit={submitChangeSettings}>
                 <div className="mb-4">
                     <input
                         value={data.name}
-                        type="text"
                         placeholder="Имя магазина"
+                        type="text"
                         className="block w-full border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm"
                         onChange={e => setData('name', e.target.value)}
                     />
                     <InputError message={errors.name} className="mt-2" />
                 </div>
+
                 <div className="mb-4">
                     <input
                         value={data.key}
@@ -56,7 +55,7 @@ export default function AddShopForm({ closeModal }) {
                         id="gsheet_url"
                         type="url"
                         className="block w-full border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm"
-                        value={data.settings?.gsheet_url || ''}
+                        value={data.settings?.gsheet_url || shop.settings?.gsheet_url || ''}
                         placeholder="Ссылка на Google таблицу с НСИ"
                         onChange={e => setData('settings', {
                             ...data.settings,
@@ -65,6 +64,7 @@ export default function AddShopForm({ closeModal }) {
                     />
                     <InputError message={errors.settings?.gsheet_url} className="mt-2" />
                 </div>
+
                 <div className="grid grid-cols-2 gap-4 mt-4 w-64">
                     <div>
                         <InputLabel value="Комиссия (%)" />
@@ -109,7 +109,7 @@ export default function AddShopForm({ closeModal }) {
                         <InputError message={errors.weight_coefficient} className="mt-2" />
                     </div>
                 </div>
-                <PrimaryButton className="mt-4" disabled={processing}>Добавить</PrimaryButton>
+                <PrimaryButton className="mt-4" disabled={processing}>Сохранить</PrimaryButton>
             </form>
         </div>
     );
