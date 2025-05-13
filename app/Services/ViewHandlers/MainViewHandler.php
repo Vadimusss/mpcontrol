@@ -95,7 +95,7 @@ class MainViewHandler implements ViewHandler
                 $logistics,
                 $good->nsi->cost_with_taxes ?? null
             );
-            $percent = ($mainRowProfit == 0 || $discountedPrice == 0) ? '?' : round(($mainRowProfit / $discountedPrice) * 100);
+            $percent = ($mainRowProfit == '?' || $discountedPrice == 0) ? '?' : round(($mainRowProfit / $discountedPrice) * 100);
             $ddr = ($totals['advertising_costs'] == 0 || $totals['orders_sum_rub'] == 0) ? 0 :
                 $totals['advertising_costs'] / $totals['orders_sum_rub'];
 
