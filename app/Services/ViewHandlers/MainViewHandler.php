@@ -115,7 +115,7 @@ class MainViewHandler implements ViewHandler
                     'discountedPrice' => round($discountedPrice, 2),
                     'price' => $price,
                     'discount' => $discount,
-                    'costWithTaxes' => $good->nsi->cost_with_taxes,
+                    'costWithTaxes' => ($good->nsi) == null ? null : $good->nsi->cost_with_taxes,
                 ],
                 'name' => $good->nsi->name ?? '-',
                 'variant' => $good->nsi->variant ?? '-',
