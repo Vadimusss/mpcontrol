@@ -14,6 +14,12 @@ class Shop extends Model
     protected $fillable = [
         'api_key_id',
         'name',
+        'settings',
+        'last_nsi_update',
+    ];
+
+    protected $casts = [
+        'settings' => 'array',
     ];
 
     protected $with = ['owner', 'customers'];
@@ -101,5 +107,10 @@ class Shop extends Model
     public function wbAdvV2FullstatsWbAdverts(): HasMany
     {
         return $this->hasMany(WbAdvV2FullstatsWbAdvert::class);
+    }
+
+    public function nsis(): HasManyThrough
+    {
+        return $this->hasManyThrough(Nsi::class, Good::class);
     }
 }

@@ -55,4 +55,9 @@ class Good extends Model
     {
         return $this->hasMany(WbAdvV2FullstatsProduct::class);
     }
+
+    public function nsi(): HasOne
+    {
+        return $this->HasOne(Nsi::class);
+    }
 }

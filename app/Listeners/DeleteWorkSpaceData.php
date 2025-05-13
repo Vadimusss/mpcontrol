@@ -22,6 +22,8 @@ class DeleteWorkSpaceData
     public function handle(WorkSpaceDeleted $event): void
     {
         $event->workspace->connectedGoodLists()->detach();
+        $event->workspace->viewStates()->delete();
+        $event->workspace->viewSettings()->delete();
         $event->workspace->delete();
     }
 }

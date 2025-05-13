@@ -4,10 +4,10 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\WorkSpaceController;
 use App\Http\Controllers\GoodListController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ViewStatesController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -41,4 +41,8 @@ Route::resource('shops.reports', ReportController::class)
 
 Route::get('reports/export', [ReportController::class, 'export'])->name('reports.export');
 
-require __DIR__.'/auth.php';
+Route::post('/api/{workspaceId}/{viewId}', [ViewStatesController::class, 'saveState'])
+    ->middleware('auth')
+    ->withoutMiddleware(['inertia']);;
+
+require __DIR__ . '/auth.php';

@@ -58,9 +58,9 @@ class User extends Authenticatable
         return $this->hasMany(WorkSpace::class);
     }
 
-    public function ownProductLists(): HasMany
+    public function ownGoodLists(): HasMany
     {
-        return $this->hasMany(ProductList::class);
+        return $this->hasMany(GoodList::class);
     }
 
     public function ownApiKeys(): HasMany
@@ -71,5 +71,10 @@ class User extends Authenticatable
     public function availableShops(): BelongsToMany
     {
         return $this->belongsToMany(Shop::class);
+    }
+
+    public function viewStates(): HasMany
+    {
+        return $this->hasMany(ViewState::class);
     }
 }
