@@ -21,16 +21,15 @@ export const SubRow = React.memo(({ item, metadata, dates }) => {
         {item.totals[type]}
       </td>
       <td className={tableClasses.cell}>
-        {type === 'orders_count' ? item.prices.discount : type === 'sum_price' ? item.prices.price : ''}
+        {type === 'orders_sum_rub' ? item.prices.discount : type === 'advertising_costs' ? item.prices.price : ''}
       </td>
       <td className={tableClasses.cell}>
-        {type === 'orders_count' ? '?' : ''}
       </td>
       {Array.from({ length: 2 }).map((_, index) => (
         <td key={`empty-${index}`} className={tableClasses.cell}></td>
       ))}
       <td className={tableClasses.cell}>
-        {type === 'orders_count' ? item.ddr : ''}
+        {type === 'orders_sum_rub' ? item.ddr : ''}
       </td>
       {Array.from({ length: 7 }).map((_, index) => (
         <td key={`empty-${index}`} className={tableClasses.cell}></td>
