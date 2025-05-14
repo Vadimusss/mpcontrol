@@ -97,7 +97,15 @@ export default function Shop({ shop }) {
                             IsOpen={modalState.deleteShopConfirmModalIsOpen}
                             closeModal={closeDeleteModal} />
                     </>}
+                {(shop.owner.id !== auth.user.id) &&
+                    <div className="flex gap-x-2">
+                        <PrimaryButton
+                            className="mt-4 max-w-fit"
+                            onClick={(e) => router.get(route('shops.workspaces.index', shop.id))}>
+                            Вход
+                        </PrimaryButton>
+                    </div>}
             </div>
-        </div >
+        </div>
     );
 }

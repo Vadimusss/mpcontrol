@@ -51,6 +51,7 @@ export default function WorkSpaces({ auth, shop, workSpaces, goodLists, views })
                     auth={auth}
                     shopId={shop.id}
                     workSpace={workSpace}
+                    goodLists={goodLists}
                     key={workSpace.id}
                   />
                 ))}
