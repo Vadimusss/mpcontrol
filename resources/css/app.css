@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+@layer components {
+  .table-head-with-gaps::after {
+    @apply content-[''] absolute -top-px -left-px -right-px -bottom-px bg-gray-300 -z-[1];
+  }
+}

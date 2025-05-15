@@ -5,6 +5,7 @@ import { TableHeader } from './components/TableHeader';
 import { ProductRow } from './components/ProductRow';
 import { SubRow } from './components/SubRow';
 import { useApiClient } from './hooks/useApiClient';
+import { tableClasses } from './styles';
 
 const getExpandedIds = (rows) =>
   Object.entries(rows)
@@ -129,9 +130,9 @@ export default React.memo(function MainView({ shop, workSpace, goods, initialVie
       }>
       <Head title={`Магазин ${shop.name}`} />
 
-      <div className="overflow-x-auto">
-        <table className="border-collapse w-auto">
-          <TableHeader 
+      <div>
+        <table className={tableClasses.table}>
+          <TableHeader
             shop={shop}
             workSpaceSettings={workSpaceSettings}
             dates={dates}
@@ -140,7 +141,7 @@ export default React.memo(function MainView({ shop, workSpace, goods, initialVie
             onToggleAllRows={toggleAllRows}
             onToggleShowOnlySelected={toggleShowOnlySelected}
           />
-          <tbody className="bg-white">
+          <tbody className={tableClasses.tbody}>
             {filteredGoods.map((item) => (
               <React.Fragment key={`${item.id}-0`}>
                 <ProductRow
@@ -165,5 +166,4 @@ export default React.memo(function MainView({ shop, workSpace, goods, initialVie
       </div>
     </AuthenticatedLayout>
   );
-}
-)
+})

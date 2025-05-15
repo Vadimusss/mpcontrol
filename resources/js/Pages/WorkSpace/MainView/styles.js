@@ -1,16 +1,16 @@
 export const tableClasses = {
   // Основные стили таблицы
-  table: 'border-collapse w-auto',
-  thead: 'bg-gray-50',
-  tbody: 'bg-white',
+  table: 'w-full border-separate border-spacing-[1px] bg-gray-300',
+  thead: 'z-40 top-0 sticky table-head-with-gaps',
+  tbody: '',
 
   // Заголовки
-  mainHeader: 'px-1 py-0.5 text-xs font-medium text-center whitespace-nowrap border border-gray-300',
-  subHeader: 'px-1 py-0.5 text-xs font-medium text-left whitespace-nowrap border border-gray-300 min-w-fit',
+  mainHeader: 'bg-gray-50 px-1 py-0.5 text-xs font-medium text-center whitespace-nowrap',
+  subHeader: 'bg-gray-50 px-1 py-0.5 text-xs font-medium text-left whitespace-nowrap',
   
   // Ячейки
-  cell: 'px-1 py-0.5 text-xs whitespace-nowrap border border-gray-300 min-w-fit',
-  textCell: 'max-w-3xs text-wrap',
+  cell: 'px-1 py-0.5 text-xs whitespace-nowrap bg-white',
+  textCell: 'max-w-3xs',
   linkCell: 'text-blue-600 hover:underline',
 
   // Элементы управления
@@ -20,10 +20,11 @@ export const tableClasses = {
 };
 
 export const columnWidths = {
-  article: 'min-w-[120px]',
-  name: 'min-w-[200px] max-w-sm',
-  variant: 'min-w-[80px]',
-  wbArticle: 'min-w-[100px]',
-  fg1: 'min-w-[50px]',
-  empty: 'min-w-[40px]'
+  control: 'max-w-min',
+  article: 'w-[80px] text-wrap',
+  name: 'min-w-fit',
+  variant: 'min-w-fit',
+  wbArticle: 'min-w-[80px]',
+  fg1: 'min-w-fit',
+  empty: 'min-w-[90px]'
 };

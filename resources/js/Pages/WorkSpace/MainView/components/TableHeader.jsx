@@ -1,7 +1,7 @@
 import React from 'react';
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { tableClasses, columnWidths } from '../styles';
-
+console.log(columnWidths);
 export const TableHeader = React.memo(({ 
   shop, 
   workSpaceSettings, 
@@ -29,7 +29,7 @@ export const TableHeader = React.memo(({
         </th>
       </tr>
       <tr>
-        <th className={`${tableClasses.subHeader} ${columnWidths.empty}`}>
+        <th className={`${tableClasses.subHeader} ${columnWidths.control}`}>
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -71,12 +71,12 @@ export const TableHeader = React.memo(({
         <th className={tableClasses.subHeader}>Казань</th>
       </tr>
       <tr>
-        <th colSpan={7} className={tableClasses.cell}></th>
+        <th colSpan={7} className={tableClasses.subHeader}></th>
         {Array.from({ length: workSpaceSettings.days }, (_, index) => -index).reverse().map((number, index) => (
-          <td key={index} className={tableClasses.cell}>{number}</td>
+          <td key={index} className={tableClasses.subHeader}>{number}</td>
         ))}
         {Array.from({ length: 13 }).map((_, index) => (
-          <th key={`empty-${index}`} className={tableClasses.cell}></th>
+          <th key={`empty-${index}`} className={tableClasses.subHeader}></th>
         ))}
       </tr>
     </thead>
