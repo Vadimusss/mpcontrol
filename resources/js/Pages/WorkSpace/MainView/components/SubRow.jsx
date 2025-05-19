@@ -52,7 +52,7 @@ export const SubRow = React.memo(({ item, metadata, dates }) => {
             {item.salesByWarehouse.kazan}
           </td>
         </> :
-        Array.from({ length: 7 }).map((_, index) => (
+        Array.from({ length: 5 }).map((_, index) => (
           <td key={`empty-${index}`} className={tableClasses.cell}></td>
         ))}
     </tr>
