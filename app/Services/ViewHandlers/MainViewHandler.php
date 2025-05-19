@@ -14,11 +14,21 @@ class MainViewHandler implements ViewHandler
         $commission = $shop->settings['commission'] ?? null;
         $logistics = $shop->settings['logistics'] ?? null;
 
-        $stocks = $this->calculateStocks($shop);
-
         $viewSettings = json_decode($workSpace->viewSettings->settings);
+
+        $warehouses = [
+            'elektrostal' => 'Электросталь',
+            'tula' => 'Тула',
+            'nevinnomyssk' => 'Невинномысск',
+            'krasnodar' => 'Краснодар',
+            'kazan' => 'Казань'
+        ];
+
         $salesDataStartDate = Carbon::now()->subDays($viewSettings->days)->format('Y-m-d');
         $totalsStartDate = Carbon::now()->subDays(30)->format('Y-m-d');
+
+        $stocks = $this->calculateStocks($shop, $warehouses);
+        $salesByWarehouse = $this->calculateSalesByWarehouse($shop, $totalsStartDate, $warehouses);
 
         $goods = $workSpace->connectedGoodLists()
             ->with([
@@ -40,7 +50,7 @@ class MainViewHandler implements ViewHandler
                 return $list->goods;
             });
 
-        return $goods->map(function ($good) use ($commission, $logistics, $salesDataStartDate, $stocks) {
+        return $goods->map(function ($good) use ($commission, $logistics, $salesDataStartDate, $stocks, $salesByWarehouse) {
             $salesData = [];
             $totals = [
                 'orders_count' => 0,
@@ -67,7 +77,6 @@ class MainViewHandler implements ViewHandler
                 }
 
                 // Считаем totals для всех дней за 30 дней
-
                 if (is_numeric($row->orders_count)) $totals['orders_count'] += $row->orders_count;
                 if (is_numeric($row->orders_sum_rub)) $totals['orders_sum_rub'] += $row->orders_sum_rub;
                 if (is_numeric($row->advertising_costs)) $totals['advertising_costs'] += $row->advertising_costs;
@@ -95,7 +104,7 @@ class MainViewHandler implements ViewHandler
             $ddr = ($totals['advertising_costs'] == 0 || $totals['orders_sum_rub'] == 0) ? 0 :
                 $totals['advertising_costs'] / $totals['orders_sum_rub'];
 
-                $daysOfStock = $this->calculateDaysOfStock(
+            $daysOfStock = $this->calculateDaysOfStock(
                 $salesData,
                 $stocks['totals']->get($good->nm_id, 0),
                 $shop->settings['percentile_coefficient'] ?? 0.8,
@@ -140,6 +149,13 @@ class MainViewHandler implements ViewHandler
                         round($totals['finished_price'] / $totals['orders_count']),
                     'profit' => $totals['profit'] == 0 ? '' : round($totals['profit']),
                 ],
+                'salesByWarehouse' => [
+                    'elektrostal' => $salesByWarehouse['elektrostal']->get($good->nm_id)['orders_count'] ?? 0,
+                    'kazan' => $salesByWarehouse['kazan']->get($good->nm_id)['orders_count'] ?? 0,
+                    'krasnodar' => $salesByWarehouse['krasnodar']->get($good->nm_id)['orders_count'] ?? 0,
+                    'nevinnomyssk' => $salesByWarehouse['nevinnomyssk']->get($good->nm_id)['orders_count'] ?? 0,
+                    'tula' => $salesByWarehouse['tula']->get($good->nm_id)['orders_count'] ?? 0,
+                ],
                 'salesData' => $salesData,
                 'mainRowProfit' => $mainRowProfit == '?' ? $mainRowProfit : round($mainRowProfit),
                 'percent' => $percent,
@@ -152,7 +168,7 @@ class MainViewHandler implements ViewHandler
     {
         try {
             $salesByDay = array_filter(array_column($salesData, 'orders_count'), 'is_numeric');
-            
+
             if (count($salesByDay) < 3) {
                 throw new \Exception('Not enough data');
             }
@@ -160,27 +176,27 @@ class MainViewHandler implements ViewHandler
             $recentSales = array_slice($salesByDay, 0, 3);
             $olderSales = array_slice($salesByDay, 3, 7);
 
-            $percentile = function($values, $percentile) {
+            $percentile = function ($values, $percentile) {
                 if (empty($values)) return 0;
                 sort($values);
-                $index = ($percentile/100) * (count($values)-1);
+                $index = ($percentile / 100) * (count($values) - 1);
                 if (floor($index) == $index) {
                     return $values[$index];
                 }
-                return $values[floor($index)] + 
-                       ($values[ceil($index)] - $values[floor($index)]) * 
-                       ($index - floor($index));
+                return $values[floor($index)] +
+                    ($values[ceil($index)] - $values[floor($index)]) *
+                    ($index - floor($index));
             };
 
             $recentPercentile = $percentile($recentSales, $percentileCoefficient * 100);
             $olderPercentile = $percentile($olderSales, $percentileCoefficient * 100);
 
-            $dailySalesEstimate = ($recentPercentile * $weightCoefficient) + 
-                                 ($olderPercentile * (1 - $weightCoefficient));
+            $dailySalesEstimate = ($recentPercentile * $weightCoefficient) +
+                ($olderPercentile * (1 - $weightCoefficient));
 
-            return $dailySalesEstimate > 0 ? 
-                   round($totalStock / $dailySalesEstimate) : 
-                   '?';
+            return $dailySalesEstimate > 0 ?
+                round($totalStock / $dailySalesEstimate) :
+                '?';
         } catch (\Exception $e) {
             return '?';
         }
@@ -242,16 +258,8 @@ class MainViewHandler implements ViewHandler
         return 'MainView';
     }
 
-    private function calculateStocks($shop): array
+    private function calculateStocks($shop, $warehouses): array
     {
-        $warehouses = [
-            'elektrostal' => 'Электросталь',
-            'tula' => 'Тула',
-            'nevinnomyssk' => 'Невинномысск', 
-            'krasnodar' => 'Краснодар',
-            'kazan' => 'Казань'
-        ];
-
         // Общие остатки
         $totals = $shop->stocks()
             ->selectRaw('nm_id, sum(quantity) as total')
@@ -274,6 +282,35 @@ class MainViewHandler implements ViewHandler
             $result[$key] = $warehouseStocks->map(function ($items) use ($name) {
                 return $items->firstWhere('warehouse_name', $name)?->quantity ?? 0;
             });
+        }
+
+        return $result;
+    }
+
+    private function calculateSalesByWarehouse($shop, $startDate, $warehouses): array
+    {
+        // Продажи по складам (количество записей за последние 30 дней)
+        $warehouseSales = $shop->WbV1SupplierOrders()
+            ->where('date', '>=', $startDate)
+            ->whereIn('warehouse_name', array_values($warehouses))
+            ->selectRaw('nm_id, warehouse_name, count(*) as order_count')
+            ->groupBy('nm_id', 'warehouse_name')
+            ->get()
+            ->groupBy('nm_id');
+
+        // Формируем результат
+        foreach ($warehouses as $key => $name) {
+            $result[$key] = collect();
+            if ($warehouseSales->isNotEmpty()) {
+                $result[$key] = $warehouseSales->map(function ($items) use ($name) {
+                    $item = $items->firstWhere('warehouse_name', $name);
+                    return $item ? [
+                        'orders_count' => $item->order_count
+                    ] : [
+                        'orders_count' => 0
+                    ];
+                });
+            }
         }
 
         return $result;

@@ -31,9 +31,30 @@ export const SubRow = React.memo(({ item, metadata, dates }) => {
       <td className={tableClasses.cell}>
         {type === 'orders_sum_rub' ? item.ddr : ''}
       </td>
-      {Array.from({ length: 7 }).map((_, index) => (
+      {Array.from({ length: 2 }).map((_, index) => (
         <td key={`empty-${index}`} className={tableClasses.cell}></td>
       ))}
+      {type === 'orders_sum_rub' ?
+        <>
+          <td className={tableClasses.cell}>
+            {item.salesByWarehouse.elektrostal}
+          </td>
+          <td className={tableClasses.cell}>
+            {item.salesByWarehouse.tula}
+          </td>
+          <td className={tableClasses.cell}>
+            {item.salesByWarehouse.nevinnomyssk}
+          </td>
+          <td className={tableClasses.cell}>
+            {item.salesByWarehouse.krasnodar}
+          </td>
+          <td className={tableClasses.cell}>
+            {item.salesByWarehouse.kazan}
+          </td>
+        </> :
+        Array.from({ length: 7 }).map((_, index) => (
+          <td key={`empty-${index}`} className={tableClasses.cell}></td>
+        ))}
     </tr>
   );
 });
