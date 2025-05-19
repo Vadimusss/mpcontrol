@@ -11,7 +11,7 @@ export const ProductRow = React.memo(({
   onToggleRow
 }) => {
   return (
-    <tr className={tableClasses.cell}>
+    <tr className={tableClasses.row}>
       <td className={tableClasses.cell}>
         <TableControls
           showOnlySelected={viewState.selectedItems.includes(item.id)}

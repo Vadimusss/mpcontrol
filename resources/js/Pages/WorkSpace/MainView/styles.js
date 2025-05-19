@@ -7,9 +7,12 @@ export const tableClasses = {
   // Заголовки
   mainHeader: 'bg-gray-50 px-1 py-0.5 text-xs font-medium text-center whitespace-nowrap',
   subHeader: 'bg-gray-50 px-1 py-0.5 text-xs font-medium text-left whitespace-nowrap',
+
+  // строки
+  row: 'hover:bg-gray-100 transition-colors duration-200 bg-white',
   
   // Ячейки
-  cell: 'px-1 py-0.5 text-xs whitespace-nowrap bg-white',
+  cell: 'px-1 py-0.5 text-xs whitespace-nowrap',
   textCell: 'max-w-3xs',
   linkCell: 'text-blue-600 hover:underline',
 

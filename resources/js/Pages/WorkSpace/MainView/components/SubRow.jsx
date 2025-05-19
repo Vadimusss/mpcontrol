@@ -5,7 +5,7 @@ export const SubRow = React.memo(({ item, metadata, dates }) => {
   const { name, type } = metadata;
 
   return (
-    <tr className={tableClasses.cell}>
+    <tr className={tableClasses.row}>
       {Array.from({ length: 6 }).map((_, index) => (
         <th key={`empty-${index}`} className={tableClasses.cell}></th>
       ))}
