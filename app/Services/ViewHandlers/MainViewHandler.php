@@ -135,7 +135,7 @@ class MainViewHandler implements ViewHandler
                     'advertising_costs' => $totals['advertising_costs'] == 0 ? '' : $totals['advertising_costs'],
                     'finished_price' => ($totals['finished_price'] == 0 || $totals['orders_count'] == 0) ? '' :
                         round($totals['finished_price'] / $totals['orders_count']),
-                    'profit' => $totals['profit'] == 0 ? '' : $totals['profit']
+                    'profit' => $totals['profit'] == 0 ? '' : round($totals['profit']),
                 ],
                 'salesData' => $salesData,
                 'mainRowProfit' => $mainRowProfit == '?' ? $mainRowProfit : round($mainRowProfit),
@@ -218,7 +218,7 @@ class MainViewHandler implements ViewHandler
                 - $row->advertising_costs
                 - ($row->orders_count * $costWithTaxes);
 
-            return round($profit, 1) == 0 ? '' : round($profit, 1);
+            return round($profit, 1) == 0 ? '' : round($profit);
         } catch (\Exception $e) {
             return '-';
         }
