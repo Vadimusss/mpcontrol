@@ -58,11 +58,13 @@ export const ProductRow = React.memo(({
       <td className={tableClasses.cell}>
         {item.percent === '?' ? '?' : `${item.percent}%`}
       </td>
-      <td className={tableClasses.cell}>{item.total_stock}</td>
+      <td className={tableClasses.cell}>{item.stocks.totals}</td>
       <td className={tableClasses.cell}>{item.days_of_stock}</td>
-      {Array.from({ length: 5 }).map((_, index) => (
-        <td key={`empty-${index}`} className={tableClasses.cell}>-</td>
-      ))}
+      <td className={tableClasses.cell}>{item.stocks.elektrostal}</td>
+      <td className={tableClasses.cell}>{item.stocks.tula}</td>
+      <td className={tableClasses.cell}>{item.stocks.nevinnomyssk}</td>
+      <td className={tableClasses.cell}>{item.stocks.krasnodar}</td>
+      <td className={tableClasses.cell}>{item.stocks.kazan}</td>
     </tr>
   );
 });

@@ -67,7 +67,7 @@ export const TableHeader = React.memo(({
         <th className={tableClasses.subHeader}>Сталь</th>
         <th className={tableClasses.subHeader}>Тула</th>
         <th className={tableClasses.subHeader}>Нмысск</th>
-        <th className={tableClasses.subHeader}>Краснодар</th>
+        <th className={tableClasses.subHeader}>Красн</th>
         <th className={tableClasses.subHeader}>Казань</th>
       </tr>
       <tr>

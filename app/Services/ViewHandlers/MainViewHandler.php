@@ -14,11 +14,7 @@ class MainViewHandler implements ViewHandler
         $commission = $shop->settings['commission'] ?? null;
         $logistics = $shop->settings['logistics'] ?? null;
 
-        // Получаем общие остатки по товарам
-        $stockTotals = $shop->stocks()
-            ->selectRaw('nm_id, sum(quantity) as total')
-            ->groupBy('nm_id')
-            ->pluck('total', 'nm_id');
+        $stocks = $this->calculateStocks($shop);
 
         $viewSettings = json_decode($workSpace->viewSettings->settings);
         $salesDataStartDate = Carbon::now()->subDays($viewSettings->days)->format('Y-m-d');
@@ -44,7 +40,7 @@ class MainViewHandler implements ViewHandler
                 return $list->goods;
             });
 
-        return $goods->map(function ($good) use ($commission, $logistics, $salesDataStartDate, $stockTotals) {
+        return $goods->map(function ($good) use ($commission, $logistics, $salesDataStartDate, $stocks) {
             $salesData = [];
             $totals = [
                 'orders_count' => 0,
@@ -99,18 +95,25 @@ class MainViewHandler implements ViewHandler
             $ddr = ($totals['advertising_costs'] == 0 || $totals['orders_sum_rub'] == 0) ? 0 :
                 $totals['advertising_costs'] / $totals['orders_sum_rub'];
 
-            $daysOfStock = $this->calculateDaysOfStock(
+                $daysOfStock = $this->calculateDaysOfStock(
                 $salesData,
-                $stockTotals->get($good->nm_id, 0),
+                $stocks['totals']->get($good->nm_id, 0),
                 $shop->settings['percentile_coefficient'] ?? 0.8,
                 $shop->settings['weight_coefficient'] ?? 0.7
             );
 
             return [
                 'id' => $good->id,
+                'stocks' => [
+                    'totals' => $stocks['totals']->get($good->nm_id, 0),
+                    'elektrostal' => $stocks['elektrostal']->get($good->nm_id, 0),
+                    'kazan' => $stocks['kazan']->get($good->nm_id, 0),
+                    'krasnodar' => $stocks['krasnodar']->get($good->nm_id, 0),
+                    'nevinnomyssk' => $stocks['nevinnomyssk']->get($good->nm_id, 0),
+                    'tula' => $stocks['tula']->get($good->nm_id, 0),
+                ],
                 'days_of_stock' => $daysOfStock,
                 'article' => $good->vendor_code,
-                'total_stock' => $stockTotals->get($good->nm_id, 0),
                 'prices' => [
                     'discountedPrice' => round($discountedPrice, 2),
                     'price' => $price,
@@ -237,5 +240,42 @@ class MainViewHandler implements ViewHandler
     public function getComponent(): string
     {
         return 'MainView';
+    }
+
+    private function calculateStocks($shop): array
+    {
+        $warehouses = [
+            'elektrostal' => 'Электросталь',
+            'tula' => 'Тула',
+            'nevinnomyssk' => 'Невинномысск', 
+            'krasnodar' => 'Краснодар',
+            'kazan' => 'Казань'
+        ];
+
+        // Общие остатки
+        $totals = $shop->stocks()
+            ->selectRaw('nm_id, sum(quantity) as total')
+            ->groupBy('nm_id')
+            ->pluck('total', 'nm_id');
+
+        // Остатки по складам
+        $warehouseStocks = $shop->stocks()
+            ->whereIn('warehouse_name', array_values($warehouses))
+            ->selectRaw('nm_id, warehouse_name, sum(quantity) as quantity')
+            ->groupBy('nm_id', 'warehouse_name')
+            ->get()
+            ->mapToGroups(function ($item) {
+                return [$item->nm_id => $item];
+            });
+
+        // Формируем результат
+        $result = ['totals' => $totals];
+        foreach ($warehouses as $key => $name) {
+            $result[$key] = $warehouseStocks->map(function ($items) use ($name) {
+                return $items->firstWhere('warehouse_name', $name)?->quantity ?? 0;
+            });
+        }
+
+        return $result;
     }
 }

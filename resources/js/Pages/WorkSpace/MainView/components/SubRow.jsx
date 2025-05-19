@@ -13,7 +13,7 @@ export const SubRow = React.memo(({ item, metadata, dates }) => {
         {name}
       </td>
       {dates.map((date, i) => (
-        <td key={`date-${i}`} className={tableClasses.cell}>
+        <td key={`date-${i}`} className={`${tableClasses.cell}`}>
           {item.salesData.hasOwnProperty(date) ? item.salesData[date][type] : ''}
         </td>
       ))}
