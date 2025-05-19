@@ -115,16 +115,12 @@ class WbApiService
     {
         $response = Http::withToken($this->apiKey)->retry(3, 1000, throw: false)->get('https://discounts-prices-api.wildberries.ru/ping');
 
-        $response->throw();
-
         return $response->successful();
     }
 
     public function makeAdvertApiPing()
     {
         $response = Http::withToken($this->apiKey)->retry(3, 1000, throw: false)->get('https://advert-api.wildberries.ru/ping');
-
-        $response->throw();
 
         return $response->successful();
     }
