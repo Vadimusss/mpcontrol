@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\ViewState;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class ViewStatesController extends Controller
 {
