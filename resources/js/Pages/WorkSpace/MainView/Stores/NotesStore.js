@@ -52,6 +52,7 @@ class NotesStore {
         ...this.currentNoteKey,
         text
       });
+      await this.fetchNotes(this.currentNoteKey);
       return { success: true };
     } catch (error) {
       return {
