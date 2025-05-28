@@ -52,12 +52,6 @@ class NotesStore {
         ...this.currentNoteKey,
         text
       });
-      await this.fetchNotes(this.currentNoteKey);
-      this.setNoteExists(
-        this.currentNoteKey.goodId,
-        this.currentNoteKey.date,
-        true
-      );
       return { success: true };
     } catch (error) {
       return {
