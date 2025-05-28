@@ -6,6 +6,7 @@ use App\Http\Controllers\GoodListController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ViewStatesController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\NoteController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -43,6 +44,13 @@ Route::get('reports/export', [ReportController::class, 'export'])->name('reports
 
 Route::post('/api/{workspaceId}/{viewId}', [ViewStatesController::class, 'saveState'])
     ->middleware('auth')
-    ->withoutMiddleware(['inertia']);;
+    ->withoutMiddleware(['inertia']);
+
+Route::prefix('api')->group(function () {
+    Route::get('notes/', [NoteController::class, 'index']);    // GET /api/notes
+    Route::post('notes/', [NoteController::class, 'store']);   // POST /api/notes
+    Route::put('notes/{note}', [NoteController::class, 'update']);    // PUT /api/notes/1
+    Route::delete('notes/{note}', [NoteController::class, 'destroy']); // DELETE /api/notes/1
+})->middleware(['auth']);;
 
 require __DIR__ . '/auth.php';

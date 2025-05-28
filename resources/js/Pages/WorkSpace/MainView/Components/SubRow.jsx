@@ -12,11 +12,13 @@ export const SubRow = React.memo(({ item, metadata, dates }) => {
       <td className={`${tableClasses.cell} text-gray-500`}>
         {name}
       </td>
-      {dates.map((date, i) => (
-        <td key={`date-${i}`} className={`${tableClasses.cell}`}>
-          {item.salesData.hasOwnProperty(date) ? item.salesData[date][type] : ''}
-        </td>
-      ))}
+      {dates.map((date, i) => item.salesData.hasOwnProperty(date) ?
+        <td key={`date-${i}`} className={`${tableClasses.cell} ${item.salesData[date].isHighlighted && type === 'advertising_costs' ?
+            tableClasses.cellBgYellow : ''
+          }`}>
+          {item.salesData[date][type]}
+        </td> : <td key={`date-${i}`} className={`${tableClasses.cell}`}></td>
+      )}
       <td className={tableClasses.cell}>
         {item.totals[type]}
       </td>

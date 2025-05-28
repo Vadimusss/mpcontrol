@@ -60,4 +60,9 @@ class Good extends Model
     {
         return $this->HasOne(Nsi::class);
     }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(Note::class);
+    }
 }

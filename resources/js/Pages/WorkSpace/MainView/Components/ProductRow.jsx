@@ -45,11 +45,11 @@ export const ProductRow = React.memo(({
       <td className={`${tableClasses.cell} ${columnWidths.empty}`}>
         {item.mainRowMetadata.name}
       </td>
-      {dates.map((date, i) => (
-        <td key={`date-${i}`} className={tableClasses.cell}>
-          {item.salesData.hasOwnProperty(date) ? item.salesData[date][item.mainRowMetadata.type] : ''}
-        </td>
-      ))}
+      {dates.map((date, i) => item.salesData.hasOwnProperty(date) ?
+        <td key={`date-${i}`} className={`${tableClasses.cell} ${item.salesData[date].isHighlighted ? tableClasses.cellBgYellow : ''}`}>
+          {item.salesData[date][item.mainRowMetadata.type]}
+        </td> : <td key={`date-${i}`} className={`${tableClasses.cell}`}></td>
+      )}
       <td className={tableClasses.cell}>{item.totals.orders_count}</td>
       <td className={tableClasses.cell}>{item.prices.discountedPrice}</td>
       <td className={tableClasses.cell}>?</td>

@@ -77,4 +77,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(ViewState::class);
     }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(Note::class);
+    }
 }

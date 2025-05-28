@@ -1,7 +1,7 @@
 import React from 'react';
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { tableClasses, columnWidths } from '../styles';
-console.log(columnWidths);
+
 export const TableHeader = React.memo(({ 
   shop, 
   workSpaceSettings, 

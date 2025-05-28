@@ -3,7 +3,6 @@
 namespace App\Services\ViewHandlers;
 
 use App\Models\WorkSpace;
-use App\Models\Good;
 use Carbon\Carbon;
 
 class MainViewHandler implements ViewHandler
@@ -15,6 +14,11 @@ class MainViewHandler implements ViewHandler
         $logistics = $shop->settings['logistics'] ?? null;
 
         $viewSettings = json_decode($workSpace->viewSettings->settings);
+        $viewId = $workSpace->viewSettings->view_id;
+
+        $dates = collect(range(0, $viewSettings->days))->map(function ($day) {
+            return Carbon::now()->subDays($day)->format('Y-m-d');
+        })->all();
 
         $warehouses = [
             'elektrostal' => 'Электросталь',
@@ -32,7 +36,7 @@ class MainViewHandler implements ViewHandler
 
         $goods = $workSpace->connectedGoodLists()
             ->with([
-                'goods' => function ($query) use ($totalsStartDate) {
+                'goods' => function ($query) use ($totalsStartDate, $viewId, $dates) {
                     $query->with([
                         'WbNmReportDetailHistory:good_id,imt_name',
                         'nsi:good_id,name,variant,fg_1,cost_with_taxes',
@@ -41,6 +45,11 @@ class MainViewHandler implements ViewHandler
                         'salesFunnel' => function ($q) use ($totalsStartDate) {
                             $q->where('date', '>=', $totalsStartDate)
                                 ->orderBy('date');
+                        },
+                        'notes' => function ($q) use ($viewId, $dates) {
+                            $q->select('good_id', 'date')
+                                ->where('view_id', $viewId)
+                                ->whereIn('date', $dates);
                         }
                     ]);
                 }
@@ -50,7 +59,14 @@ class MainViewHandler implements ViewHandler
                 return $list->goods;
             });
 
-        return $goods->map(function ($good) use ($commission, $logistics, $salesDataStartDate, $stocks, $salesByWarehouse) {
+        return $goods->map(function ($good) use (
+            $commission,
+            $logistics,
+            $salesDataStartDate,
+            $stocks,
+            $salesByWarehouse,
+            $dates,
+        ) {
             $salesData = [];
             $totals = [
                 'orders_count' => 0,
@@ -64,15 +80,24 @@ class MainViewHandler implements ViewHandler
             foreach ($good->salesFunnel as $row) {
                 $profit = $this->calculateProfit($row, $good->nsi, $commission, $logistics);
 
+                $noteDates = $good->notes
+                    ->map(fn($note) => Carbon::parse($note->date)->format('Y-m-d'))
+                    ->toArray();
+
+                $isNotesExists = collect($dates)
+                    ->mapWithKeys(fn($date) => [$date => in_array($date, $noteDates)])
+                    ->all();
+
                 // Формируем salesData только для дней из viewSettings
                 $rowDate = Carbon::parse($row->date);
                 if ($rowDate >= Carbon::parse($salesDataStartDate)) {
                     $salesData[$row->date] = [
                         'orders_count' => $row->orders_count === 0 ? '' : $row->orders_count,
                         'orders_sum_rub' => $row->orders_sum_rub === 0 ? '' : round($row->orders_sum_rub / 1000),
-                        'advertising_costs' => $row->advertising_costs === 0 ? '' : round($row->advertising_costs / 1000),
+                        'advertising_costs' => $row->advertising_costs === 0 ? '' : round($row->advertising_costs / 1000, 1),
                         'finished_price' => $row->finished_price == 0 ? '' : round($row->finished_price),
                         'profit' => $profit,
+                        'isHighlighted' => $row->advertising_costs != 0 && $row->advertising_costs > 100,
                     ];
                 }
 
@@ -139,8 +164,8 @@ class MainViewHandler implements ViewHandler
                     ['name' => 'Реклама', 'type' => 'advertising_costs'],
                     ['name' => 'Цена СПП', 'type' => 'finished_price'],
                     ['name' => 'Прибыль', 'type' => 'profit'],
-                    ['name' => 'Заметка', 'type' => ''],
                 ],
+                'isNotesExists' => $isNotesExists ?? [],
                 'totals' => [
                     'orders_count' => $totals['orders_count'] == 0 ? '' : $totals['orders_count'],
                     'orders_sum_rub' => $totals['orders_sum_rub'] == 0 ? '' : $totals['orders_sum_rub'],

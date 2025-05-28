@@ -13,6 +13,9 @@ export const tableClasses = {
   
   // Ячейки
   cell: 'px-1 py-0.5 text-xs whitespace-nowrap',
+  notesCell: 'bg-lime-200',
+  cellBgGreen: 'bg-lime-200',
+  cellBgYellow: 'bg-yellow-200',
   textCell: 'max-w-3xs',
   linkCell: 'text-blue-600 hover:underline',
 

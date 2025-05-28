@@ -1,10 +1,14 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { TableHeader } from './components/TableHeader';
-import { ProductRow } from './components/ProductRow';
-import { SubRow } from './components/SubRow';
-import { useApiClient } from './hooks/useApiClient';
+import { TableHeader } from './Components/TableHeader';
+import { ProductRow } from './Components/ProductRow';
+import { SubRow } from './Components/SubRow';
+import { NotesRow } from './Components/NotesRow';
+import NotesModal from './Modals/NotesModal';
+import { useApiClient } from './Hooks/useApiClient';
+import { observer } from 'mobx-react-lite';
+import notesStore from './Stores/NotesStore';
 import { tableClasses } from './styles';
 
 const getExpandedIds = (rows) =>
@@ -31,7 +35,7 @@ const generateDateHeaders = (days) => {
   return result.reverse();
 };
 
-export default React.memo(function MainView({ shop, workSpace, goods, initialViewState }) {
+export default observer(function MainView({ shop, workSpace, goods, initialViewState }) {
   const apiClient = useApiClient();
   const [viewState, setViewState] = useState({
     ...initialViewState,
@@ -159,10 +163,23 @@ export default React.memo(function MainView({ shop, workSpace, goods, initialVie
                     dates={dates}
                   />
                 ))}
+                {viewState.expandedRows[item.id] &&
+                  <NotesRow
+                    isNotesExists={item.isNotesExists}
+                    goodId={item.id}
+                    dates={dates}
+                    onOpenNotes={(date, goodId) => notesStore.openModal({
+                      date,
+                      goodId,
+                      viewId: workSpace.view_settings.view.id
+                    })}
+                  />
+                }
               </React.Fragment>
             ))}
           </tbody>
         </table>
+        <NotesModal maxWidth={'xl'} />
       </div>
     </AuthenticatedLayout>
   );
