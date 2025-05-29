@@ -20,8 +20,8 @@ class NoteController extends Controller
             'good_id' => $request->goodId,
             'view_id' => $request->viewId
         ])
-        ->orderBy('created_at', 'desc')
-        ->get();
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 
     public function store(Request $request)
@@ -59,5 +59,19 @@ class NoteController extends Controller
         $note->delete();
 
         return response()->noContent();
+    }
+
+    public function isNotesExists(Request $request)
+    {
+        $validated = $request->validate([
+            'date' => 'required|date',
+            'goodId' => 'required|integer',
+            'viewId' => 'required|integer',
+        ]);
+
+        return Note::where('date', $validated['date'])
+            ->where('good_id', $validated['goodId'])
+            ->where('view_id', $validated['viewId'])
+            ->exists();
     }
 }

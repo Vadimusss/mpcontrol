@@ -12,8 +12,6 @@ const NotesModal = observer(() => {
   const [editingNoteId, setEditingNoteId] = useState(null);
 
   const handleSubmit = async () => {
-    if (!notesStore.isOpen) return null;
-    
     if (editingNoteId) {
       const { success, error } = await notesStore.updateNote(editingNoteId, noteText);
       if (success) {
@@ -31,6 +29,8 @@ const NotesModal = observer(() => {
       }
     }
   };
+
+  if (!notesStore.isOpen) return null;
 
   const { date, goodId, viewId } = notesStore.currentNoteKey || {};
 

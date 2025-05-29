@@ -88,6 +88,20 @@ class NotesStore {
     }
   }
 
+  async isNotesExists(noteKey) {
+    try {
+      const { data } = await apiClient.get('/notes/isNotesExists', {
+        params: noteKey,
+      });
+      return data !== '';
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed isNotesExists method'
+      };
+    }
+  };
+
   openModal(noteKey) {
     this.isOpen = true;
     this.currentNoteKey = noteKey;

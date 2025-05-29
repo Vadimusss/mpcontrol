@@ -9,6 +9,7 @@ import NotesModal from './Modals/NotesModal';
 import { useApiClient } from './Hooks/useApiClient';
 import { observer } from 'mobx-react-lite';
 import notesStore from './Stores/NotesStore';
+import { goodsStore } from './Stores/GoodsStore'
 import { tableClasses } from './styles';
 
 const getExpandedIds = (rows) =>
@@ -35,18 +36,24 @@ const generateDateHeaders = (days) => {
   return result.reverse();
 };
 
-export default observer(function MainView({ shop, workSpace, goods, initialViewState }) {
+export default observer(function MainView({ shop, workSpace, goods: initialGoods, initialViewState }) {
   const apiClient = useApiClient();
+  const workSpaceSettings = JSON.parse(workSpace.view_settings.settings);
+  const viewId = workSpace.view_settings.view.id;
+
   const [viewState, setViewState] = useState({
     ...initialViewState,
     expandedRows: getExpandedRows(initialViewState.expandedRows || [])
   });
   const [allExpanded, setAllExpanded] = useState(false);
-  const workSpaceSettings = JSON.parse(workSpace.view_settings.settings);
+  
   useEffect(() => {
-    const allExpanded = Object.keys(viewState.expandedRows).length === goods.length;
+    goodsStore.setGoods(initialGoods);
+  }, [initialGoods]);
+  useEffect(() => {
+    const allExpanded = Object.keys(viewState.expandedRows).length === goodsStore.goods.length;
     setAllExpanded(allExpanded);
-  }, [viewState.expandedRows, goods.length]);
+  }, [viewState.expandedRows, goodsStore.goods.length]);
 
   const toggleItemSelection = (id) => {
     setViewState(prev => {
@@ -69,7 +76,7 @@ export default observer(function MainView({ shop, workSpace, goods, initialViewS
       const newState = {
         ...prev,
         expandedRows: newExpanded
-          ? goods.reduce((acc, item) => ({ ...acc, [item.id]: true }), {})
+          ? goodsStore.goods.reduce((acc, item) => ({ ...acc, [item.id]: true }), {})
           : {}
       };
       saveViewState(newState);
@@ -98,13 +105,13 @@ export default observer(function MainView({ shop, workSpace, goods, initialViewS
       ...state,
       expandedRows: getExpandedIds(state.expandedRows)
     };
-    apiClient.post(`/${workSpace.id}/${workSpace.view_settings.view.id}`,
+    apiClient.post(`/${workSpace.id}/${viewId}`,
       { viewState: stateToSave }
     ).then(response => {
     }).catch(error => {
       console.error('Error saving state:', error);
     });
-  }, [workSpace.id, workSpace.view_settings.view.id]);
+  }, [workSpace.id, viewId]);
 
   const toggleShowOnlySelected = () => {
     setViewState(prev => {
@@ -117,11 +124,18 @@ export default observer(function MainView({ shop, workSpace, goods, initialViewS
     });
   };
 
+  const handleOpenNotes = useCallback((date, goodId) => {
+    notesStore.openModal({ date, goodId, viewId });
+    notesStore.setRefreshCallback(() => {
+      goodsStore.updateNoteExists(date, goodId, viewId);
+    });
+  }, [viewId]);
+
   const filteredGoods = useMemo(() => {
     return viewState.showOnlySelected
-      ? goods.filter(item => viewState.selectedItems.includes(item.id))
-      : goods;
-  }, [viewState.showOnlySelected, viewState.selectedItems, goods]);
+      ? goodsStore.goods.filter(item => viewState.selectedItems.includes(item.id))
+      : goodsStore.goods;
+  }, [viewState.showOnlySelected, viewState.selectedItems, goodsStore.goods]);
 
   return (
     <AuthenticatedLayout
@@ -146,7 +160,7 @@ export default observer(function MainView({ shop, workSpace, goods, initialViewS
             onToggleShowOnlySelected={toggleShowOnlySelected}
           />
           <tbody className={tableClasses.tbody}>
-            {filteredGoods.map((item) => (
+            {filteredGoods?.map((item) => (
               <React.Fragment key={`${item.id}-0`}>
                 <ProductRow
                   item={item}
@@ -165,14 +179,10 @@ export default observer(function MainView({ shop, workSpace, goods, initialViewS
                 ))}
                 {viewState.expandedRows[item.id] &&
                   <NotesRow
-                    isNotesExists={item.isNotesExists}
+                    isNotesExists={item.isNotesExists || {}}
                     goodId={item.id}
                     dates={dates}
-                    onOpenNotes={(date, goodId) => notesStore.openModal({
-                      date,
-                      goodId,
-                      viewId: workSpace.view_settings.view.id
-                    })}
+                    onOpenNotes={handleOpenNotes}
                   />
                 }
               </React.Fragment>

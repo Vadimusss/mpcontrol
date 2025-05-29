@@ -47,10 +47,11 @@ Route::post('/api/{workspaceId}/{viewId}', [ViewStatesController::class, 'saveSt
     ->withoutMiddleware(['inertia']);
 
 Route::prefix('api')->group(function () {
-    Route::get('notes/', [NoteController::class, 'index']);    // GET /api/notes
-    Route::post('notes/', [NoteController::class, 'store']);   // POST /api/notes
-    Route::put('notes/{note}', [NoteController::class, 'update']);    // PUT /api/notes/1
-    Route::delete('notes/{note}', [NoteController::class, 'destroy']); // DELETE /api/notes/1
-})->middleware(['auth']);;
+    Route::get('notes/', [NoteController::class, 'index']);
+    Route::post('notes/', [NoteController::class, 'store']);
+    Route::put('notes/{note}', [NoteController::class, 'update']);
+    Route::delete('notes/{note}', [NoteController::class, 'destroy']);
+    Route::get('notes/isNotesExists', [NoteController::class, 'isNotesExists']);
+})->middleware(['auth']);
 
 require __DIR__ . '/auth.php';
