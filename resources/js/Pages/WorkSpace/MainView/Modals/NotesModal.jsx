@@ -102,7 +102,7 @@ const NotesModal = observer(() => {
           <textarea
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
-            placeholder={editingNoteId ? "Edit note..." : "Add new note..."}
+            placeholder={editingNoteId ? "Редактировать..." : "Текст"}
             className="w-full border rounded px-3 py-2 mb-2"
             rows={3}
           />
