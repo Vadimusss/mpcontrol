@@ -57,9 +57,9 @@ const NotesModal = observer(() => {
 
         <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
           {notesStore.isLoading ? (
-            <div>Loading notes...</div>
+            <div>Загружаем заметки...</div>
           ) : notesStore.notes.length === 0 ? (
-            <div>No notes yet</div>
+            <div>Пока заметок нет</div>
           ) : (
             notesStore.notes.map(note => (
               <div key={note.id} className="border-b pb-2">
