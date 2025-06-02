@@ -1,23 +1,22 @@
 import React from 'react';
+import { observer } from 'mobx-react-lite';
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { tableClasses, columnWidths } from '../styles';
 import { TableControls } from './TableControls';
+import { viewStore } from '../Stores/ViewStore';
 
-export const ProductRow = React.memo(({
+export const ProductRow = observer(({
   item,
-  dates,
-  viewState,
-  onToggleItemSelection,
-  onToggleRow
+  dates
 }) => {
   return (
     <tr className={tableClasses.row}>
       <td className={tableClasses.cell}>
         <TableControls
-          showOnlySelected={viewState.selectedItems.includes(item.id)}
-          allExpanded={!!viewState.expandedRows[item.id]}
-          onToggleShowOnlySelected={() => onToggleItemSelection(item.id)}
-          onToggleAllRows={() => onToggleRow(item.id)}
+          showOnlySelected={viewStore.selectedItems.includes(item.id)}
+          allExpanded={!!viewStore.expandedRows[item.id]}
+          onToggleShowOnlySelected={() => viewStore.toggleItemSelection(item.id)}
+          onToggleAllRows={() => viewStore.toggleRow(item.id)}
         />
       </td>
       <td className={`${tableClasses.cell} ${columnWidths.article} ${tableClasses.textCell}`}>

@@ -1,17 +1,5 @@
-import { makeAutoObservable, runInAction, observable } from 'mobx';
-import axios from 'axios';
-import Cookies from 'js-cookie';
-
-const apiClient = axios.create({
-  baseURL: '/api',
-  headers: {
-    'X-Requested-With': 'XMLHttpRequest',
-    'X-XSRF-TOKEN': Cookies.get('XSRF-TOKEN'),
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  },
-  withCredentials: true
-});
+import { makeAutoObservable, runInAction } from 'mobx';
+import { apiClient } from '../Utils';
 
 class NotesStore {
   isOpen = false;

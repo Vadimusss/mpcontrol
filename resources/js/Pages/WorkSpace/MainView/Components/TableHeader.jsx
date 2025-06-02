@@ -1,15 +1,13 @@
 import React from 'react';
+import { observer } from 'mobx-react-lite';
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { tableClasses, columnWidths } from '../styles';
+import { viewStore } from '../Stores/ViewStore';
 
-export const TableHeader = React.memo(({ 
+export const TableHeader = observer(({ 
   shop, 
   workSpaceSettings, 
-  dates,
-  allExpanded,
-  showOnlySelected,
-  onToggleAllRows,
-  onToggleShowOnlySelected
+  dates
 }) => {
   return (
     <thead className={tableClasses.thead}>
@@ -33,15 +31,15 @@ export const TableHeader = React.memo(({
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={showOnlySelected}
-              onChange={onToggleShowOnlySelected}
+              checked={viewStore.showOnlySelected}
+              onChange={() => viewStore.toggleShowOnlySelected()}
               className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
             <button
-              onClick={onToggleAllRows}
+              onClick={() => viewStore.toggleAllRows()}
               className="p-1 rounded hover:bg-gray-100"
             >
-              {allExpanded ? <MinusIcon className="w-4 h-4" /> : <PlusIcon className="w-4 h-4" />}
+              {viewStore.allExpanded ? <MinusIcon className="w-4 h-4" /> : <PlusIcon className="w-4 h-4" />}
             </button>
           </div>
         </th>
