@@ -100,6 +100,7 @@ class ShopController extends Controller
                 break;
             case 'update_nsi':
                 UpdateNsiFromGoogleSheets::dispatch($shop->id);
+                break;
             case 'changeSettings':
                 $rules = [
                     'name' => 'required|string|max:255',

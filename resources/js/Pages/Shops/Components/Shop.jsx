@@ -53,7 +53,7 @@ export default function Shop({ shop }) {
                     &nbsp;{expiresAt.format('DD.MM.YYYY HH:mm')}
                 </span>
             </p>
-            <p>Последняя проверка ключа: {moment(shop.api_key.updated_at).format('DD.MM.YYYY HH:mm')} / 
+            <p>Последняя проверка ключа: {moment(shop.api_key.updated_at).format('DD.MM.YYYY HH:mm')} /
                 <span className={`font-bold ${isKeyOk ? 'text-lime-400' : 'text-rose-400'}`}>
                     &nbsp;{isKeyOk ? 'OK' : 'ERROR'}
                 </span>
@@ -73,7 +73,11 @@ export default function Shop({ shop }) {
                             </PrimaryButton>
                             <PrimaryButton
                                 className="mt-4 max-w-fit"
-                                onClick={() => router.put(route('shops.update', shop.id), { type: 'update_nsi' })}
+                                onClick={() => router.put(
+                                    route('shops.update', shop.id),
+                                    { type: 'update_nsi' },
+                                    { preserveScroll: true }
+                                )}
                             >
                                 Обновить НСИ
                             </PrimaryButton>
