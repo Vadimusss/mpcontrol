@@ -133,7 +133,7 @@ class ShopController extends Controller
                 $shop->update($updateData);
 
                 if (!empty($validated['key'])) {
-                    $shop->apiKey()->update($validated['key']);
+                    $shop->apiKey()->update(['key' => $validated['key']]);
                 }
                 break;
         }
