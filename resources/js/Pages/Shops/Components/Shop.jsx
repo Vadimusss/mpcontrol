@@ -41,14 +41,23 @@ export default function Shop({ shop }) {
     });
 
     const isKeyOk = shop.api_key.is_active;
-    const lastKeyCheckTime = moment(shop.api_key.updated_at).format('YYYY-MM-DD HH:mm:ss');
+    const expiresAt = moment(shop.api_key.expires_at);
 
     return (
         <div className="border border-gray-300 rounded-md shadow-sm bg-white mb-2 p-2">
             <p className='font-semibold'>{shop.name}</p>
             <p>Владелец: {shop.owner.name}</p>
-            <p>Ключ действует до: {moment(shop.api_key.expires_at).format('DD.MM.YYYY HH:mm')}</p>
-            <p>Последняя проверка ключа: {moment(shop.api_key.updated_at).format('DD.MM.YYYY HH:mm')} / {isKeyOk ? 'OK' : 'ERROR'}</p>
+            <p>
+                Ключ действует до:
+                <span className={`font-bold ${expiresAt.diff(moment(), 'days') < 7 ? 'text-rose-400' : 'text-lime-400'}`}>
+                    &nbsp;{expiresAt.format('DD.MM.YYYY HH:mm')}
+                </span>
+            </p>
+            <p>Последняя проверка ключа: {moment(shop.api_key.updated_at).format('DD.MM.YYYY HH:mm')} / 
+                <span className={`font-bold ${isKeyOk ? 'text-lime-400' : 'text-rose-400'}`}>
+                    &nbsp;{isKeyOk ? 'OK' : 'ERROR'}
+                </span>
+            </p>
             <p>Последнее обновление НСИ: {shop.last_nsi_update ? moment(shop.last_nsi_update).format('DD.MM.YYYY HH:mm') : 'Никогда'}</p>
             {(shop.customers.length !== 0 && shop.owner.id === auth.user.id) &&
                 <Customers shopId={shop.id} customers={shop.customers} />
