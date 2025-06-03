@@ -63,7 +63,7 @@ export default function AddShopForm({ closeModal }) {
                             gsheet_url: e.target.value
                         })}
                     />
-                    <InputError message={errors.settings?.gsheet_url} className="mt-2" />
+                    <InputError message={errors['settings.gsheet_url'] || errors.settings?.gsheet_url} className="mt-2" />
                 </div>
                 <div className="grid grid-cols-2 gap-4 mt-4 w-64">
                     <div>

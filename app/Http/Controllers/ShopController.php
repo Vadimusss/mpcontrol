@@ -46,7 +46,7 @@ class ShopController extends Controller
             'settings.logistics' => 'required|nullable|integer',
             'settings.percentile_coefficient' => 'required|nullable|numeric',
             'settings.weight_coefficient' => 'required|nullable|numeric',
-            'settings.gsheet_url' => 'required|string|max:255',
+            'settings.gsheet_url' => 'required|string|max:255|url',
         ]);
 
         $shop = $request->user()->ownShops()->create([
@@ -109,7 +109,8 @@ class ShopController extends Controller
                     'settings.logistics' => 'nullable|integer',
                     'settings.percentile_coefficient' => 'nullable|numeric',
                     'settings.weight_coefficient' => 'nullable|numeric',
-                    'settings.gsheet_url' => 'required|string|max:255',
+                    'settings' => ['required', 'array'],
+            'settings.gsheet_url' => ['required', 'string', 'max:255'],
                 ];
 
                 if ($request['key']) {
