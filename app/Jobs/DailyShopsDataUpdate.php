@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Shop;
 use App\Jobs\AddShopWbListGoods;
 use App\Jobs\СheckApiKey;
+use App\Jobs\UpdateNsiFromGoogleSheets;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;

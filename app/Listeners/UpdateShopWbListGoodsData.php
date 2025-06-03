@@ -5,25 +5,35 @@ namespace App\Listeners;
 use App\Events\ShopCreated;
 use App\Jobs\AddShopWbListGoods;
 use App\Jobs\СheckApiKey;
+use App\Jobs\UpdateNsiFromGoogleSheets;
+use App\Events\JobFailed;
+use App\Events\JobSucceeded;
+use Illuminate\Support\Facades\Bus;
+use Throwable;
 
 class UpdateShopWbListGoodsData
 {
-    /**
-     * Create the event listener.
-     */
-    public function __construct()
-    {
-        //
-    }
+    public function __construct() {}
 
-    /**
-     * Handle the event.
-     */
     public function handle(ShopCreated $event): void
     {
+        $startTime = microtime(true);
         $shop = $event->shop;
 
-        AddShopWbListGoods::dispatch($shop);
         СheckApiKey::dispatch($shop->apiKey);
+
+        Bus::chain([
+            new AddShopWbListGoods($shop),
+            new UpdateNsiFromGoogleSheets($shop->id),
+        ])->dispatch();
+
+        $duration = microtime(true) - $startTime;
+
+        JobSucceeded::dispatch('NewShopsDataUpdate', $duration);
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        JobFailed::dispatch('NewShopsDataUpdate', $exception);
     }
 }
