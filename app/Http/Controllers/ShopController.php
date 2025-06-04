@@ -105,12 +105,11 @@ class ShopController extends Controller
                 $rules = [
                     'name' => 'required|string|max:255',
                     'settings' => 'nullable|array',
-                    'settings.commission' => 'nullable|integer',
-                    'settings.logistics' => 'nullable|integer',
+                    'settings.commission' => 'nullable|numeric',
+                    'settings.logistics' => 'nullable|numeric',
                     'settings.percentile_coefficient' => 'nullable|numeric',
                     'settings.weight_coefficient' => 'nullable|numeric',
-                    'settings' => ['required', 'array'],
-            'settings.gsheet_url' => ['required', 'string', 'max:255'],
+                    'settings.gsheet_url' => 'required|string|max:255|url',
                 ];
 
                 if ($request['key']) {

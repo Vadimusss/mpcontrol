@@ -44,7 +44,7 @@ export default function ChangeShopSettingForm({ shop, closeModal }) {
                 <div className="mb-4">
                     <input
                         value={data.key}
-                        placeholder="Ключ API WB"
+                        placeholder="Новый ключ API WB"
                         className="block w-full border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm"
                         onChange={e => setData('key', e.target.value)}
                     ></input>
@@ -55,14 +55,14 @@ export default function ChangeShopSettingForm({ shop, closeModal }) {
                         id="gsheet_url"
                         type="url"
                         className="block w-full border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm"
-                        value={data.settings?.gsheet_url || shop.settings?.gsheet_url || ''}
+                        value={data.settings?.gsheet_url || ''}
                         placeholder="Ссылка на Google таблицу с НСИ"
                         onChange={e => setData('settings', {
                             ...data.settings,
                             gsheet_url: e.target.value
                         })}
                     />
-                    <InputError message={errors.settings?.gsheet_url} className="mt-2" />
+                    <InputError message={errors['settings.gsheet_url']} className="mt-2" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mt-4 w-64">
@@ -74,7 +74,7 @@ export default function ChangeShopSettingForm({ shop, closeModal }) {
                             className="block w-24 border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm"
                             onChange={e => setData('settings', { ...data.settings, commission: parseInt(e.target.value) })}
                         />
-                        <InputError message={errors.commission} className="mt-2" />
+                        <InputError message={errors['settings.commission']} className="mt-2" />
                     </div>
                     <div>
                         <InputLabel value="Логистика" />
@@ -84,7 +84,7 @@ export default function ChangeShopSettingForm({ shop, closeModal }) {
                             className="block w-24 border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm"
                             onChange={e => setData('settings', { ...data.settings, logistics: parseInt(e.target.value) })}
                         />
-                        <InputError message={errors.logistics} className="mt-2" />
+                        <InputError message={errors['settings.logistics']} className="mt-2" />
                     </div>
                     <div>
                         <InputLabel value="Коэф. процентиля" />
@@ -95,7 +95,7 @@ export default function ChangeShopSettingForm({ shop, closeModal }) {
                             className="block w-24 border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm"
                             onChange={e => setData('settings', { ...data.settings, percentile_coefficient: parseFloat(e.target.value) })}
                         />
-                        <InputError message={errors.percentile_coefficient} className="mt-2" />
+                        <InputError message={errors['settings.percentile_coefficient']} className="mt-2" />
                     </div>
                     <div>
                         <InputLabel value="Коэф. веса" />
@@ -106,7 +106,7 @@ export default function ChangeShopSettingForm({ shop, closeModal }) {
                             className="block w-24 border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm"
                             onChange={e => setData('settings', { ...data.settings, weight_coefficient: parseFloat(e.target.value) })}
                         />
-                        <InputError message={errors.weight_coefficient} className="mt-2" />
+                        <InputError message={errors['settings.weight_coefficient']} className="mt-2" />
                     </div>
                 </div>
                 <PrimaryButton className="mt-4" disabled={processing}>Сохранить</PrimaryButton>
