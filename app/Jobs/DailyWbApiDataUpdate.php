@@ -12,13 +12,11 @@ use App\Jobs\AddWbV1SupplierOrders;
 use App\Jobs\GenerateSalesFunnelReport;
 use App\Jobs\GenerateStocksAndOrdersReport;
 use App\Jobs\UpdateWbV1SupplierStocks;
-use App\Jobs\AddShopWbListGoods;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Bus\Batch;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Bus;
 use App\Events\JobFailed;
-use Illuminate\Support\Collection;
 use Throwable;
 
 class DailyWbApiDataUpdate implements ShouldQueue
