@@ -38,7 +38,6 @@ class MainViewHandler implements ViewHandler
             ->with([
                 'goods' => function ($query) use ($totalsStartDate, $viewId, $dates) {
                     $query->with([
-                        'WbNmReportDetailHistory:good_id,imt_name',
                         'nsi:good_id,name,variant,fg_1,cost_with_taxes',
                         'sizes:good_id,price',
                         'wbListGoodRow:good_id,discount',
