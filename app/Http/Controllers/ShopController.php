@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Gate;
 use App\Events\ShopDeleted;
 use App\Events\ShopCreated;
 use App\Jobs\UpdateNsiFromGoogleSheets;
+use App\Jobs\AddShopWbListGoods;
+use App\Jobs\СheckApiKey;
 
 class ShopController extends Controller
 {
@@ -100,6 +102,10 @@ class ShopController extends Controller
                 break;
             case 'update_nsi':
                 UpdateNsiFromGoogleSheets::dispatch($shop->id);
+                break;
+            case 'update_shop_data':
+                СheckApiKey::dispatch($shop->apiKey);
+                AddShopWbListGoods::dispatch($shop);
                 break;
             case 'changeSettings':
                 $rules = [

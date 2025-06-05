@@ -71,6 +71,8 @@ export default function Shop({ shop }) {
                                 onClick={(e) => handleAddCustomer(e)}>
                                 Добавить пользователя
                             </PrimaryButton>
+                        </div>
+                        <div className="flex gap-x-2">
                             <PrimaryButton
                                 className="mt-4 max-w-fit"
                                 onClick={() => router.put(
@@ -80,6 +82,16 @@ export default function Shop({ shop }) {
                                 )}
                             >
                                 Обновить НСИ
+                            </PrimaryButton>
+                            <PrimaryButton
+                                className="mt-4 max-w-fit"
+                                onClick={() => router.put(
+                                    route('shops.update', shop.id),
+                                    { type: 'update_shop_data' },
+                                    { preserveScroll: true }
+                                )}
+                            >
+                                Обновить товары и цены
                             </PrimaryButton>
                         </div>
                         <div className="flex gap-x-2">
