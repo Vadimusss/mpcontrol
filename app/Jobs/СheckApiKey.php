@@ -6,6 +6,7 @@ use App\Models\ApiKey;
 use App\Services\WbApiService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Bus\Batchable;
 use Illuminate\Support\Carbon;
 use App\Events\JobFailed;
@@ -37,5 +38,10 @@ class СheckApiKey implements ShouldQueue
     public function failed(?Throwable $exception): void
     {
         JobFailed::dispatch('СheckApiKey', $exception);
+    }
+
+    public function middleware(): array
+    {
+        return [(new WithoutOverlapping($this->apiKey))->dontRelease()];
     }
 }

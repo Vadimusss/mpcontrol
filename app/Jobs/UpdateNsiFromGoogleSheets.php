@@ -4,8 +4,8 @@ namespace App\Jobs;
 
 use App\Models\Shop;
 use App\Models\Good;
-use App\Models\Nsi;
 use App\Services\GoogleSheetsService;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -29,7 +29,7 @@ class UpdateNsiFromGoogleSheets implements ShouldQueue
         $shop = Shop::find($this->shopId);
 
         $shop->nsis()->delete();
-        
+
         if (!$shop || !isset($shop->settings['gsheet_url'])) {
             Log::error("Shop not found or gsheet_url missing", ['shop_id' => $this->shopId]);
             return;
@@ -37,17 +37,17 @@ class UpdateNsiFromGoogleSheets implements ShouldQueue
 
         try {
             $data = $sheets->getData($shop->settings['gsheet_url'], 'A:Q');
-            
+
             foreach ($data as $row) {
                 if (empty($row[12] ?? null)) continue; // Пропускаем если нет nm_id (столбец M)
-                
+
                 $good = Good::where('shop_id', $shop->id)
                     ->where('nm_id', $row[12])
                     ->first();
-                
+
                 if ($good) {
-                    $cost = !empty($row[10]) && is_numeric(str_replace(',', '.', $row[10])) 
-                        ? str_replace(',', '.', $row[10]) 
+                    $cost = !empty($row[10]) && is_numeric(str_replace(',', '.', $row[10]))
+                        ? str_replace(',', '.', $row[10])
                         : null;
 
                     $volume = !empty($row[14]) && is_numeric(str_replace(',', '.', $row[14]))
@@ -86,5 +86,10 @@ class UpdateNsiFromGoogleSheets implements ShouldQueue
                 ]);
             }
         }
+    }
+
+    public function middleware(): array
+    {
+        return [(new WithoutOverlapping($this->shopId))->dontRelease()];
     }
 }

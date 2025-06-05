@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Shop;
 use App\Models\Good;
 use App\Services\WbApiService;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
@@ -91,12 +92,17 @@ class AddShopWbListGoods implements ShouldQueue
         ]);
 
         $this->updateGoodRelations($good, $goodFromApi);
-        
+
         return $good;
     }
 
     public function failed(?Throwable $exception): void
     {
         JobFailed::dispatch('AddShopWbListGoods', $exception);
+    }
+
+    public function middleware(): array
+    {
+        return [(new WithoutOverlapping($this->shop->id))->dontRelease()];
     }
 }
