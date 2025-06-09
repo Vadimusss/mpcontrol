@@ -17,11 +17,11 @@ class AddWbNmReportDetailHistory implements ShouldQueue
     use Batchable, Queueable;
 
     public function __construct(
-        public $timeout = 40,
-        public $tries = 1,
         public Shop $shop,
         public array $nmIds,
-        public array $period
+        public array $period,
+        public $timeout = 40,
+        public $tries = 1
     ) {
         $this->shop = $shop;
         $this->nmIds = $nmIds;
