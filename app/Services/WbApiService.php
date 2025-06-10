@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Log;
 
 class WbApiService
@@ -55,7 +56,9 @@ class WbApiService
 
     public function getApiV2NmReportDetailHistory(array $nmIDs, array $period)
     {
-        $response = Http::withToken($this->apiKey)->retry(3, 20000, throw: false)->post('https://seller-analytics-api.wildberries.ru/api/v2/nm-report/detail/history', [
+        $response = Http::withToken($this->apiKey)->retry(3, function ($attempt, $e) {
+            return str_contains($e->getMessage(), 'timed out') ? 0 : 20000;
+        }, throw: false)->post('https://seller-analytics-api.wildberries.ru/api/v2/nm-report/detail/history', [
             'nmIDs' => $nmIDs,
             'period' => $period,
         ]);

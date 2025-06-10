@@ -8,7 +8,6 @@ use App\Services\WbApiService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Bus\Batchable;
 use App\Events\JobFailed;
 use Throwable;
@@ -20,9 +19,7 @@ class AddWbNmReportDetailHistory implements ShouldQueue
     public function __construct(
         public Shop $shop,
         public array $nmIds,
-        public array $period,
-        public $timeout = 40,
-        public $tries = 2
+        public array $period
     ) {
         $this->shop = $shop;
         $this->nmIds = $nmIds;
@@ -66,10 +63,5 @@ class AddWbNmReportDetailHistory implements ShouldQueue
         } catch (Throwable $exception) {
             Log::error($exception->getMessage());
         }
-    }
-
-    public function middleware(): array
-    {
-        return [(new WithoutOverlapping($this->shop->id))->releaseAfter(20)];
     }
 }
