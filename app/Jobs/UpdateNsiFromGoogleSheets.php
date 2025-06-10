@@ -11,7 +11,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use App\Events\JobFailed;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class UpdateNsiFromGoogleSheets implements ShouldQueue
 {
@@ -85,6 +87,16 @@ class UpdateNsiFromGoogleSheets implements ShouldQueue
                     'error' => $e->getMessage()
                 ]);
             }
+        }
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        JobFailed::dispatch('UpdateNsiFromGoogleSheets', $exception);
+        try {
+            Log::error($exception->getMessage());
+        } catch (Throwable $exception) {
+            Log::error($exception->getMessage());
         }
     }
 
