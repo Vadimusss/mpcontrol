@@ -15,6 +15,7 @@ class Shop extends Model
         'api_key_id',
         'name',
         'settings',
+        'last_goods_data_update',
         'last_nsi_update',
     ];
 
