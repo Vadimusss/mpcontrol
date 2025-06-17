@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import Modal from '@/Components/Modal';
 import AddCustomerForm from '@/Pages/Shops/Components/Forms/AddCustomerForm';
@@ -7,6 +7,7 @@ import DeleteShopConfirmModal from '@/Pages/Shops/Components/Modals/DeleteShopCo
 import Customers from '@/Pages/Shops/Components/Customers';
 import { usePage, router } from '@inertiajs/react';
 import moment from 'moment';
+import echo from '@/echo';
 
 export default function Shop({ shop }) {
     const { auth } = usePage().props;
@@ -15,6 +16,67 @@ export default function Shop({ shop }) {
         changeSettingsModalIsOpen: false,
         deleteShopConfirmModalIsOpen: false,
     });
+
+    const [isUpdating, setIsUpdating] = useState({
+        nsi: false,
+        goods: false,
+    });
+
+    const [lastUpdates, setLastUpdates] = useState({
+        nsi: shop.last_nsi_update ? moment(shop.last_nsi_update).format('DD.MM.YYYY HH:mm') : 'Никогда',
+        goods: shop.last_goods_data_update ? moment(shop.last_goods_data_update).format('DD.MM.YYYY HH:mm') : 'Никогда',
+        key: shop.api_key.updated_at ? moment(shop.api_key.updated_at).format('DD.MM.YYYY HH:mm') : 'Никогда',
+    });
+
+    useEffect(() => {
+        const nsiChannelName = `shop.${shop.id}.nsi-updates`;
+        const goodsChannelName = `shop.${shop.id}.goods-updates`;
+        const keyChannelName = `shop.${shop.id}.api-key-check`;
+
+        echo.channel(nsiChannelName)
+            .listen('NsiUpdateCompleted', (data) => {
+                setIsUpdating(prev => ({ ...prev, nsi: false }));
+                if (data.shopId === shop.id) {
+                    setLastUpdates(prev => ({
+                        ...prev,
+                        nsi: moment(data.lastNsiUpdate).format('DD.MM.YYYY HH:mm')
+                    }));
+                }
+            })
+            .listen('NsiUpdateFailed', () => {
+                setIsUpdating(prev => ({ ...prev, nsi: false }));
+            });
+
+        echo.channel(goodsChannelName)
+            .listen('GoodsUpdateCompleted', (data) => {
+                setIsUpdating(prev => ({ ...prev, goods: false }));
+                if (data.shopId === shop.id) {
+                    setLastUpdates(prev => ({
+                        ...prev,
+                        goods: moment(data.lastNsiUpdate).format('DD.MM.YYYY HH:mm')
+                    }));
+                }
+            })
+            .listen('GoodsUpdateFailed', () => {
+                setIsUpdating(prev => ({ ...prev, goods: false }));
+            });
+
+        echo.channel(keyChannelName)
+            .listen('СheckApiKeyCompleted', (data) => {
+                if (data.shopId === shop.id) {
+                    setLastUpdates(prev => ({
+                        ...prev,
+                        key: moment(data.lastApiKeyCheck).format('DD.MM.YYYY HH:mm')
+                    }));
+                }
+            })
+
+        return () => {
+            echo.leave(nsiChannelName);
+            echo.leave(goodsChannelName);
+            echo.leave(keyChannelName);
+        };
+    }, [shop.id]);
 
     const handleAddCustomer = (e) => {
         setModalIState({ addCustomerModalIsOpen: true });
@@ -53,12 +115,13 @@ export default function Shop({ shop }) {
                     &nbsp;{expiresAt.format('DD.MM.YYYY HH:mm')}
                 </span>
             </p>
-            <p>Последняя проверка ключа: {moment(shop.api_key.updated_at).format('DD.MM.YYYY HH:mm')} /
+            <p>Проверка ключа: {lastUpdates.key} /
                 <span className={`font-bold ${isKeyOk ? 'text-lime-400' : 'text-rose-400'}`}>
                     &nbsp;{isKeyOk ? 'OK' : 'ERROR'}
                 </span>
             </p>
-            <p>Последнее обновление НСИ: {shop.last_nsi_update ? moment(shop.last_nsi_update).format('DD.MM.YYYY HH:mm') : 'Никогда'}</p>
+            <p>Обновление НСИ: {lastUpdates.nsi}</p>
+            <p>Обновление товаров и цен: {lastUpdates.goods}</p>
             {(shop.customers.length !== 0 && shop.owner.id === auth.user.id) &&
                 <Customers shopId={shop.id} customers={shop.customers} />
             }
@@ -75,23 +138,31 @@ export default function Shop({ shop }) {
                         <div className="flex gap-x-2">
                             <PrimaryButton
                                 className="mt-4 max-w-fit"
-                                onClick={() => router.put(
-                                    route('shops.update', shop.id),
-                                    { type: 'update_nsi' },
-                                    { preserveScroll: true }
-                                )}
+                                onClick={() => {
+                                    setIsUpdating(prev => ({ ...prev, nsi: true }));
+                                    router.put(
+                                        route('shops.update', shop.id),
+                                        { type: 'update_nsi' },
+                                        { preserveScroll: true }
+                                    );
+                                }}
+                                disabled={isUpdating.nsi}
                             >
-                                Обновить НСИ
+                                {isUpdating.nsi ? 'Обновляется...' : 'Обновить НСИ'}
                             </PrimaryButton>
                             <PrimaryButton
                                 className="mt-4 max-w-fit"
-                                onClick={() => router.put(
-                                    route('shops.update', shop.id),
-                                    { type: 'update_shop_data' },
-                                    { preserveScroll: true }
-                                )}
+                                onClick={() => {
+                                    setIsUpdating(prev => ({ ...prev, goods: true }));
+                                    router.put(
+                                        route('shops.update', shop.id),
+                                        { type: 'update_shop_data' },
+                                        { preserveScroll: true }
+                                    );
+                                }}
+                                disabled={isUpdating.goods}
                             >
-                                Обновить товары и цены
+                                {isUpdating.goods ? 'Обновляется...' : 'Обновить товары и цены'}
                             </PrimaryButton>
                         </div>
                         <div className="flex gap-x-2">

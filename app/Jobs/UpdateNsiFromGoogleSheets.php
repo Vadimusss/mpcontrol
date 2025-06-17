@@ -11,8 +11,11 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use App\Events\NsiUpdateCompleted;
+use App\Events\NsiUpdateFailed;
 use App\Events\JobFailed;
 use Illuminate\Support\Facades\Log;
+use Exception;
 use Throwable;
 
 class UpdateNsiFromGoogleSheets implements ShouldQueue
@@ -80,7 +83,9 @@ class UpdateNsiFromGoogleSheets implements ShouldQueue
                     $shop->update(['last_nsi_update' => now()]);
                 }
             }
-        } catch (\Exception $e) {
+            NsiUpdateCompleted::dispatch($shop->id, $shop->last_nsi_update);
+        } catch (Exception $e) {
+            NsiUpdateFailed::dispatch($shop->id);
             if (strpos($e->getMessage(), 'Undefined array key') === false) {
                 Log::error("Failed to update NSI from Google Sheets", [
                     'shop_id' => $this->shopId,
@@ -92,6 +97,7 @@ class UpdateNsiFromGoogleSheets implements ShouldQueue
 
     public function failed(?Throwable $exception): void
     {
+        NsiUpdateFailed::dispatch($this->shopId);
         JobFailed::dispatch('UpdateNsiFromGoogleSheets', $exception);
         try {
             Log::error($exception->getMessage());

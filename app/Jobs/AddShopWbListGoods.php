@@ -9,6 +9,8 @@ use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
+use App\Events\GoodsUpdateCompleted;
+use App\Events\GoodsUpdateFailed;
 use App\Events\JobFailed;
 use Throwable;
 
@@ -55,6 +57,9 @@ class AddShopWbListGoods implements ShouldQueue
                 $this->createNewGood($this->shop, $goodFromApi);
             }
         });
+
+        $this->shop->update(['last_goods_data_update' => now()]);
+        GoodsUpdateCompleted::dispatch($this->shop->id, $this->shop->last_goods_data_update);
     }
 
     private function updateGoodRelations(Good $good, array $goodFromApi): void
@@ -98,11 +103,12 @@ class AddShopWbListGoods implements ShouldQueue
 
     public function failed(?Throwable $exception): void
     {
+        GoodsUpdateFailed::dispatch($this->shop->id);
         JobFailed::dispatch('AddShopWbListGoods', $exception);
     }
 
     public function middleware(): array
     {
-        return [(new WithoutOverlapping($this->shop->id))->dontRelease()];
+        return [(new WithoutOverlapping($this->shop->id))->releaseAfter(600)->dontRelease()];
     }
 }

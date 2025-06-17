@@ -7,6 +7,7 @@ use App\Services\WbApiService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
+use App\Events\СheckApiKeyCompleted;
 use Illuminate\Bus\Batchable;
 use Illuminate\Support\Carbon;
 use App\Events\JobFailed;
@@ -33,6 +34,8 @@ class СheckApiKey implements ShouldQueue
         $this->apiKey->expires_at = $date->format('Y-m-d H:i:s');
 
         $this->apiKey->save();
+
+        СheckApiKeyCompleted::dispatch($this->apiKey->shop_id, $this->apiKey->updated_at);
     }
 
     public function failed(?Throwable $exception): void
@@ -42,6 +45,6 @@ class СheckApiKey implements ShouldQueue
 
     public function middleware(): array
     {
-        return [(new WithoutOverlapping($this->apiKey))->dontRelease()];
+        return [(new WithoutOverlapping($this->apiKey->id))->releaseAfter(600)->dontRelease()];
     }
 }
