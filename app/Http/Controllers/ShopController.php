@@ -141,6 +141,7 @@ class ShopController extends Controller
 
                 if (!empty($validated['key'])) {
                     $shop->apiKey()->update(['key' => $validated['key']]);
+                    СheckApiKey::dispatch($shop->apiKey);
                 }
                 break;
         }

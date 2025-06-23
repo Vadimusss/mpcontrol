@@ -12,8 +12,11 @@ class СheckApiKeyCompleted implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public int $shopId, public string $lastApiKeyCheck)
-    {
+    public function __construct(
+        public int $shopId,
+        public string $lastApiKeyCheck,
+        public string $keyExpiresAt
+    ) {
         $this->shopId = $shopId;
     }
 

@@ -17,6 +17,10 @@ export default function Shop({ shop }) {
         deleteShopConfirmModalIsOpen: false,
     });
 
+    const [keyExpiresAt, setKeyExpiresAt] = useState(
+        shop.api_key.expires_at ? moment(shop.api_key.expires_at) : 'Нет данных'
+    );
+
     const [isUpdating, setIsUpdating] = useState({
         nsi: false,
         goods: false,
@@ -68,6 +72,7 @@ export default function Shop({ shop }) {
                         ...prev,
                         key: moment(data.lastApiKeyCheck).format('DD.MM.YYYY HH:mm')
                     }));
+                    setKeyExpiresAt(moment(data.keyExpiresAt));
                 }
             })
 
@@ -103,7 +108,6 @@ export default function Shop({ shop }) {
     });
 
     const isKeyOk = shop.api_key.is_active;
-    const expiresAt = moment(shop.api_key.expires_at);
 
     return (
         <div className="border border-gray-300 rounded-md shadow-sm bg-white mb-2 p-2">
@@ -111,8 +115,8 @@ export default function Shop({ shop }) {
             <p>Владелец: {shop.owner.name}</p>
             <p>
                 Ключ действует до:
-                <span className={`font-bold ${expiresAt.diff(moment(), 'days') < 7 ? 'text-rose-400' : 'text-lime-400'}`}>
-                    &nbsp;{expiresAt.format('DD.MM.YYYY HH:mm')}
+                <span className={`font-bold ${keyExpiresAt.diff(moment(), 'days') < 7 ? 'text-rose-400' : 'text-lime-400'}`}>
+                    &nbsp;{keyExpiresAt.format('DD.MM.YYYY HH:mm')}
                 </span>
             </p>
             <p>Проверка ключа: {lastUpdates.key} /

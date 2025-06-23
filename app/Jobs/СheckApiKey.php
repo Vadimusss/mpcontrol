@@ -35,7 +35,11 @@ class СheckApiKey implements ShouldQueue
 
         $this->apiKey->save();
 
-        СheckApiKeyCompleted::dispatch($this->apiKey->shop_id, $this->apiKey->updated_at);
+        СheckApiKeyCompleted::dispatch(
+            $this->apiKey->shop_id,
+            $this->apiKey->updated_at,
+            $this->apiKey->expires_at
+        );
     }
 
     public function failed(?Throwable $exception): void
