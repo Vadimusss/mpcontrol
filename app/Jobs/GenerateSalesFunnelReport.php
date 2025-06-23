@@ -7,6 +7,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use App\Models\Good;
 use App\Models\Shop;
+use App\Models\SalesFunnel;
 use App\Events\JobFailed;
 use App\Events\JobSucceeded;
 use Throwable;
@@ -120,8 +121,9 @@ class GenerateSalesFunnelReport implements ShouldQueue
             return $row;
         });
 
-        $report->each(function ($row) {
-            Good::firstWhere('id', $row->good_id)->salesFunnel()->create([
+        $data = $report->map(function ($row) {
+            return [
+                'good_id' => $row->good_id,
                 'vendor_code' => $row->vendor_code,
                 'nm_id' => $row->nm_id,
                 'imt_name' => $row->imt_name,
@@ -143,8 +145,12 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'auc_clicks' => $row->auc_clicks,
                 'auc_orders' => $row->auc_orders,
                 'auc_sum' => $row->auc_sum,
-            ]);
-        });
+                'created_at' => now(),
+                'updated_at' => now()
+            ];
+        })->toArray();
+
+        SalesFunnel::insert($data);
 
         $message = $message = "Воронка продаж магазина {$this->shop->name} за {$this->day} обновлена!";
         $duration = microtime(true) - $startTime;
