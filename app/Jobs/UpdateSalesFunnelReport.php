@@ -74,6 +74,6 @@ class UpdateSalesFunnelReport implements ShouldQueue
 
     public function failed(?Throwable $exception): void
     {
-        JobFailed::dispatch('TestJob', $exception);
+        JobFailed::dispatch('UpdateSalesFunnelReport', $exception);
     }
 }
