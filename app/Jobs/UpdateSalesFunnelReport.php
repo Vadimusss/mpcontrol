@@ -27,7 +27,7 @@ class UpdateSalesFunnelReport implements ShouldQueue
 
     public function handle()
     {
-        $dates = collect([1, 13])->map(function ($day) {
+        $dates = collect(range(1, 13))->map(function ($day) {
             return Carbon::now()->subDays($day)->format('Y-m-d');
         });
 
