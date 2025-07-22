@@ -36,6 +36,17 @@ class AddWbAdvV2Fullstats implements ShouldQueue
             return;
         }
 
+        $date = $response->first()['dates'][0] ?? '0000-00-00';
+        $advertIds = $response->pluck('advertId')->unique()->filter()->values()->all();
+
+        if (!empty($advertIds)) {
+            DB::table('wb_adv_v2_fullstats_wb_adverts')
+                ->where('shop_id', $this->shop->id)
+                ->where('date', $date)
+                ->whereIn('advert_id', $advertIds)
+                ->delete();
+        }
+
         $response->each(function ($advertData) {
             try {
                 $wbAdvert = $this->shop->wbAdvV2FullstatsWbAdverts()->create([

@@ -8,7 +8,6 @@ use Illuminate\Foundation\Queue\Queueable;
 use App\Jobs\AddWbAdvV2Fullstats;
 use App\Jobs\UpdateNsiFromGoogleSheets;
 use App\Jobs\UpdateWbAdvV2FullstatsForDate;
-use App\Jobs\ClearAddWbAdvV2FullstatsForDate;
 use App\Jobs\GenerateSalesFunnelReport;
 use Illuminate\Bus\Batchable;
 use Illuminate\Foundation\Bus\ClosureJob;
@@ -57,12 +56,11 @@ class UpdateSalesFunnelReport implements ShouldQueue
                 $fullstatsApiChunks = array_chunk($fullstatsApiPayload, 100);
 
                 $fullstatsJobs = Arr::map($fullstatsApiChunks, function (array $chunk, int $index) use ($shop) {
-                    $delay = ($index == 0) ? 1 : 60;
+                    $delay = ($index == 0) ? 1 : 59;
                     return (new AddWbAdvV2Fullstats($shop, $chunk))->delay($delay);
                 });
 
                 $shopFullUpdateJobs[] = Bus::batch([array_merge(
-                    [new ClearAddWbAdvV2FullstatsForDate($shop, $date)],
                     $fullstatsJobs,
                     [new GenerateSalesFunnelReport($shop, $date)]
                 )])->then(function (Batch $batch) {})->allowFailures();
