@@ -9,10 +9,11 @@ use App\Services\WbApiService;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Events\JobFailed;
-use Throwable;
 use Illuminate\Support\Collection;
+use Throwable;
 
 class AddWbAdvV2Fullstats implements ShouldQueue
 {
