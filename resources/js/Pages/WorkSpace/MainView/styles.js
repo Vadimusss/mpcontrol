@@ -19,7 +19,7 @@ export const tableClasses = {
   
   // Ячейки
   fixedCell: 'bg-white px-1 py-0.5 text-xs whitespace-nowrap shadow-[0_0_0_1px_rgba(209,213,219,1)]',
-  cell: 'px-1 py-0.5 text-xs whitespace-nowrap shadow-[0_0_0_1px_rgba(209,213,219,1)]',
+  cell: 'px-1 py-0.5 text-xs shadow-[0_0_0_1px_rgba(209,213,219,1)]',
   notesCell: 'shadow-[0_0_0_1px_rgba(209,213,219,1)]',
   cellBgGreen: 'bg-lime-200',
   cellBgYellow: 'bg-yellow-200',
@@ -35,9 +35,9 @@ export const tableClasses = {
 
 export const columnPropertys = {
   control: 'max-w-min sticky left-[1px]',
-  article: 'w-[80px] text-wrap sticky left-[58px]',
-  name: 'w-[200px] sticky left-[104px]',
-  variant: 'w-[156px] sticky left-[309px]',
-  wbArticle: 'w-[80px] sticky left-[453px]',
-  empty: 'w-[90px] sticky left-[515px]'
+  article: 'min-w-[60px] max-w-[60px] text-wrap sticky left-[58px]',
+  name: 'min-w-[200px] max-w-[200px] sticky left-[119px]',
+  variant: 'min-w-[150px] max-w-[150px] sticky left-[320px]',
+  wbArticle: 'min-w-[62px] max-w-[62px] sticky left-[471px]',
+  empty: 'min-w-[73px] max-w-[73px] sticky left-[534px]'
 };
