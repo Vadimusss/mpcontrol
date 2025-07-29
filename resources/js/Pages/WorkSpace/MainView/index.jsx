@@ -68,7 +68,7 @@ export default observer(function MainView({ shop, workSpace, goods: initialGoods
       }>
       <Head title={`Магазин ${shop.name}`} />
 
-      <div>
+      <div className={tableClasses.tableContainer}>
         <table className={tableClasses.table}>
           <TableHeader
             shop={shop}

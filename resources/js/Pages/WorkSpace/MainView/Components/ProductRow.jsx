@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
-import { tableClasses, columnWidths } from '../styles';
+import { tableClasses, columnPropertys } from '../styles';
 import { TableControls } from './TableControls';
 import { viewStore } from '../Stores/ViewStore';
 
@@ -11,7 +11,7 @@ export const ProductRow = observer(({
 }) => {
   return (
     <tr className={tableClasses.row}>
-      <td className={tableClasses.cell}>
+      <td className={`${tableClasses.cell} ${columnPropertys.control}`} >
         <TableControls
           showOnlySelected={viewStore.selectedItems.includes(item.id)}
           allExpanded={!!viewStore.expandedRows[item.id]}
@@ -19,16 +19,16 @@ export const ProductRow = observer(({
           onToggleAllRows={() => viewStore.toggleRow(item.id)}
         />
       </td>
-      <td className={`${tableClasses.cell} ${columnWidths.article} ${tableClasses.textCell}`}>
+      <td className={`${tableClasses.cell} ${columnPropertys.article} ${tableClasses.textCell}`}>
         {item.article}
       </td>
-      <td className={`${tableClasses.cell} ${columnWidths.name} ${tableClasses.textCell}`}>
+      <td className={`${tableClasses.cell} ${columnPropertys.name} ${tableClasses.textCell}`}>
         {item.name}
       </td>
-      <td className={`${tableClasses.cell} ${columnWidths.variant}`}>
+      <td className={`${tableClasses.cell} ${columnPropertys.variant}`}>
         {item.variant}
       </td>
-      <td className={`${tableClasses.cell} ${columnWidths.wbArticle}`}>
+      <td className={`${tableClasses.cell} ${columnPropertys.wbArticle}`}>
         <a
           href={`https://www.wildberries.ru/catalog/${item.wbArticle}/detail.aspx`}
           target="_blank"
@@ -38,10 +38,7 @@ export const ProductRow = observer(({
           {item.wbArticle}
         </a>
       </td>
-      <td className={`${tableClasses.cell} ${columnWidths.fg1}`}>
-        {item.fg1}
-      </td>
-      <td className={`${tableClasses.cell} ${columnWidths.empty}`}>
+      <td className={`${tableClasses.cell} ${columnPropertys.empty}`}>
         {item.mainRowMetadata.name}
       </td>
       {dates.map((date, i) => item.salesData.hasOwnProperty(date) ?

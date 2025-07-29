@@ -1,20 +1,22 @@
 import React from 'react';
-import { tableClasses } from '../styles';
+import { tableClasses, columnPropertys } from '../styles';
 
 export const SubRow = React.memo(({ item, metadata, dates }) => {
   const { name, type } = metadata;
 
   return (
     <tr className={tableClasses.row}>
-      {Array.from({ length: 6 }).map((_, index) => (
-        <th key={`empty-${index}`} className={tableClasses.cell}></th>
-      ))}
-      <td className={`${tableClasses.cell} text-gray-500`}>
+      <td className={`${tableClasses.cell} ${columnPropertys.control}`}></td>
+      <td className={`${tableClasses.cell} ${columnPropertys.article}`}></td>
+      <td className={`${tableClasses.cell} ${columnPropertys.name}`}></td>
+      <td className={`${tableClasses.cell} ${columnPropertys.variant}`}></td>
+      <td className={`${tableClasses.cell} ${columnPropertys.wbArticle}`}></td>
+      <td className={`${tableClasses.cell} ${columnPropertys.empty} text-gray-500`}>
         {name}
       </td>
       {dates.map((date, i) => item.salesData.hasOwnProperty(date) ?
         <td key={`date-${i}`} className={`${tableClasses.cell} ${item.salesData[date].isHighlighted && type === 'advertising_costs' ?
-            tableClasses.cellBgYellow : ''
+          tableClasses.cellBgYellow : ''
           }`}>
           {item.salesData[date][type]}
         </td> : <td key={`date-${i}`} className={`${tableClasses.cell}`}></td>

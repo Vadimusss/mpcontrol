@@ -1,5 +1,5 @@
 import React from 'react';
-import { tableClasses } from '../styles';
+import { tableClasses, columnPropertys } from '../styles';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
 export const NotesRow = React.memo(({
@@ -10,15 +10,17 @@ export const NotesRow = React.memo(({
 }) => {
   return (
     <tr className={tableClasses.row}>
-      {Array.from({ length: 6 }).map((_, index) => (
-        <th key={`empty-${index}`} className={tableClasses.cell}></th>
-      ))}
-      <td className={`${tableClasses.cell} text-gray-500`}>
+      <td className={`${tableClasses.cell} ${columnPropertys.control}`}></td>
+      <td className={`${tableClasses.cell} ${columnPropertys.article}`}></td>
+      <td className={`${tableClasses.cell} ${columnPropertys.name}`}></td>
+      <td className={`${tableClasses.cell} ${columnPropertys.variant}`}></td>
+      <td className={`${tableClasses.cell} ${columnPropertys.wbArticle}`}></td>
+      <td className={`${tableClasses.cell} ${columnPropertys.empty} text-gray-500`}>
         Заметки
       </td>
       {dates.map((date, i) => (
-        <td key={`date-${i}`} 
-          className={`${isNotesExists[date] ? tableClasses.cellBgGreen : ''}`}>
+        <td key={`date-${i}`}
+          className={`${tableClasses.notesCell} ${isNotesExists[date] ? tableClasses.cellBgGreen : ''}`}>
           <button
             onClick={() => onOpenNotes(date, goodId)}
             className="size-full flex place-content-center"
