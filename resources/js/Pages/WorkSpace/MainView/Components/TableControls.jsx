@@ -9,7 +9,7 @@ export const TableControls = React.memo(({
   onToggleAllRows
 }) => {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1">
       <input
         type="checkbox"
         checked={showOnlySelected}
