@@ -42,25 +42,25 @@ export const ProductRow = observer(({
         {item.mainRowMetadata.name}
       </td>
       {dates.map((date, i) => item.salesData.hasOwnProperty(date) ?
-        <td key={`date-${i}`} className={`${tableClasses.cell} ${item.salesData[date].isHighlighted ? tableClasses.cellBgYellow : ''}`}>
+        <td key={`date-${i}`} className={`${tableClasses.cell} ${tableClasses.numbersCell} ${item.salesData[date].isHighlighted ? tableClasses.cellBgYellow : ''}`}>
           {item.salesData[date][item.mainRowMetadata.type]}
         </td> : <td key={`date-${i}`} className={`${tableClasses.cell}`}></td>
       )}
-      <td className={tableClasses.cell}>{item.totals.orders_count}</td>
-      <td className={tableClasses.cell}>{item.prices.discountedPrice}</td>
-      <td className={tableClasses.cell}>?</td>
-      <td className={tableClasses.cell}>{item.prices.costWithTaxes}</td>
-      <td className={tableClasses.cell}>{item.mainRowProfit}</td>
-      <td className={tableClasses.cell}>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>{item.totals.orders_count}</td>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>{item.prices.discountedPrice}</td>
+      {/* <td className={tableClasses.cell}>?</td> */}
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>{item.prices.costWithTaxes}</td>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>{item.mainRowProfit}</td>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>
         {item.percent === '?' ? '?' : `${item.percent}%`}
       </td>
-      <td className={tableClasses.cell}>{item.stocks.totals}</td>
-      <td className={tableClasses.cell}>{item.days_of_stock}</td>
-      <td className={tableClasses.cell}>{item.stocks.elektrostal}</td>
-      <td className={tableClasses.cell}>{item.stocks.tula}</td>
-      <td className={tableClasses.cell}>{item.stocks.nevinnomyssk}</td>
-      <td className={tableClasses.cell}>{item.stocks.krasnodar}</td>
-      <td className={tableClasses.cell}>{item.stocks.kazan}</td>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>{item.stocks.totals}</td>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>{item.days_of_stock}</td>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>{item.stocks.elektrostal}</td>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>{item.stocks.tula}</td>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>{item.stocks.nevinnomyssk}</td>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>{item.stocks.krasnodar}</td>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>{item.stocks.kazan}</td>
     </tr>
   );
 });

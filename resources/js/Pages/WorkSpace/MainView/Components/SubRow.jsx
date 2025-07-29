@@ -15,24 +15,24 @@ export const SubRow = React.memo(({ item, metadata, dates }) => {
         {name}
       </td>
       {dates.map((date, i) => item.salesData.hasOwnProperty(date) ?
-        <td key={`date-${i}`} className={`${tableClasses.cell} ${item.salesData[date].isHighlighted && type === 'advertising_costs' ?
+        <td key={`date-${i}`} className={`${tableClasses.cell} ${tableClasses.numbersCell} ${item.salesData[date].isHighlighted && type === 'advertising_costs' ?
           tableClasses.cellBgYellow : ''
           }`}>
           {item.salesData[date][type]}
         </td> : <td key={`date-${i}`} className={`${tableClasses.cell}`}></td>
       )}
-      <td className={tableClasses.cell}>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>
         {item.totals[type]}
       </td>
-      <td className={tableClasses.cell}>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>
         {type === 'orders_sum_rub' ? item.prices.discount : type === 'advertising_costs' ? item.prices.price : ''}
       </td>
-      <td className={tableClasses.cell}>
-      </td>
+{/*       <td className={tableClasses.cell}>
+      </td> */}
       {Array.from({ length: 2 }).map((_, index) => (
         <td key={`empty-${index}`} className={tableClasses.cell}></td>
       ))}
-      <td className={tableClasses.cell}>
+      <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>
         {type === 'orders_sum_rub' ? item.ddr : ''}
       </td>
       {Array.from({ length: 2 }).map((_, index) => (
@@ -40,19 +40,19 @@ export const SubRow = React.memo(({ item, metadata, dates }) => {
       ))}
       {type === 'orders_sum_rub' ?
         <>
-          <td className={tableClasses.cell}>
+          <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>
             {item.salesByWarehouse.elektrostal}
           </td>
-          <td className={tableClasses.cell}>
+          <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>
             {item.salesByWarehouse.tula}
           </td>
-          <td className={tableClasses.cell}>
+          <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>
             {item.salesByWarehouse.nevinnomyssk}
           </td>
-          <td className={tableClasses.cell}>
+          <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>
             {item.salesByWarehouse.krasnodar}
           </td>
-          <td className={tableClasses.cell}>
+          <td className={`${tableClasses.cell} ${tableClasses.numbersCell}`}>
             {item.salesByWarehouse.kazan}
           </td>
         </> :

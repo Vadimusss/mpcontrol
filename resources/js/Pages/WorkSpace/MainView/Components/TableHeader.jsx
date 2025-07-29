@@ -55,7 +55,7 @@ export const TableHeader = observer(({
         ))}
         <th className={tableClasses.subHeader}>∑ мес.</th>
         <th className={tableClasses.subHeader}>Цена</th>
-        <th className={tableClasses.subHeader}>Цена СПП</th>
+{/*         <th className={tableClasses.subHeader}>Цена СПП</th> */}
         <th className={tableClasses.subHeader}>C/C</th>
         <th className={tableClasses.subHeader}>Приб.</th>
         <th className={tableClasses.subHeader}>%</th>

@@ -20,6 +20,7 @@ export const tableClasses = {
   cellBgGreen: 'bg-lime-200',
   cellBgYellow: 'bg-yellow-200',
   textCell: 'max-w-3xs',
+  numbersCell: 'text-right',
   linkCell: 'text-blue-600 hover:underline',
   fixedCell: 'sticky left-[0px]',
 
