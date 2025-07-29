@@ -68,11 +68,11 @@ export const TableHeader = observer(({
         <th className={tableClasses.subHeader}>Казань</th>
       </tr>
       <tr>
-        <th colSpan={5} className={`${tableClasses.subHeader} ${tableClasses.headerFixedCell}`}></th>
+        <th colSpan={6} className={`${tableClasses.subHeader} ${tableClasses.headerFixedCell}`}></th>
         {Array.from({ length: workSpaceSettings.days }, (_, index) => -index).reverse().map((number, index) => (
           <td key={index} className={tableClasses.subHeaderDaysAgo}>{number}</td>
         ))}
-        {Array.from({ length: 13 }).map((_, index) => (
+        {Array.from({ length: 12 }).map((_, index) => (
           <th key={`empty-${index}`} className={tableClasses.subHeader}></th>
         ))}
       </tr>
