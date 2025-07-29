@@ -1,5 +1,6 @@
 import '../css/app.css';
 import './bootstrap';
+import '@fontsource/roboto-condensed/400.css';
 
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';

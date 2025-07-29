@@ -14,6 +14,7 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                'roboto-condensed': ['"Roboto Condensed"', ...defaultTheme.fontFamily.sans]
             },
         },
     },
