@@ -12,13 +12,13 @@ export const TableHeader = observer(({
   return (
     <thead className={tableClasses.thead}>
       <tr>
-        <th colSpan={6} className={`${tableClasses.mainHeader} ${tableClasses.fixedCell}`}>
+        <th colSpan={6} className={`${tableClasses.mainHeader} ${tableClasses.headerFixedCell}`}>
           {`Комиссия: ${shop.settings?.commission}%,
             Логистика: ${shop.settings?.logistics},
             Коэф. процентиля: ${shop.settings?.percentile_coefficient},
             Коэф. веса: ${shop.settings?.weight_coefficient}`}
         </th>
-        <th colSpan={6 + workSpaceSettings.days} className={tableClasses.mainHeader}></th>
+        <th colSpan={5 + workSpaceSettings.days} className={tableClasses.mainHeader}></th>
         <th colSpan={2} className={tableClasses.mainHeader}>
           Остаток
         </th>
@@ -27,7 +27,7 @@ export const TableHeader = observer(({
         </th>
       </tr>
       <tr>
-        <th className={`${tableClasses.subHeader} ${columnPropertys.control}`}>
+        <th className={`${columnPropertys.control} ${tableClasses.subHeader}`}>
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -68,9 +68,9 @@ export const TableHeader = observer(({
         <th className={tableClasses.subHeader}>Казань</th>
       </tr>
       <tr>
-        <th colSpan={6} className={`${tableClasses.subHeader} ${tableClasses.fixedCell}`}></th>
+        <th colSpan={5} className={`${tableClasses.subHeader} ${tableClasses.headerFixedCell}`}></th>
         {Array.from({ length: workSpaceSettings.days }, (_, index) => -index).reverse().map((number, index) => (
-          <td key={index} className={tableClasses.subHeader}>{number}</td>
+          <td key={index} className={tableClasses.subHeaderDaysAgo}>{number}</td>
         ))}
         {Array.from({ length: 13 }).map((_, index) => (
           <th key={`empty-${index}`} className={tableClasses.subHeader}></th>

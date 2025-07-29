@@ -6,12 +6,12 @@ export const SubRow = React.memo(({ item, metadata, dates }) => {
 
   return (
     <tr className={tableClasses.row}>
-      <td className={`${tableClasses.cell} ${columnPropertys.control}`}></td>
-      <td className={`${tableClasses.cell} ${columnPropertys.article}`}></td>
-      <td className={`${tableClasses.cell} ${columnPropertys.name}`}></td>
-      <td className={`${tableClasses.cell} ${columnPropertys.variant}`}></td>
-      <td className={`${tableClasses.cell} ${columnPropertys.wbArticle}`}></td>
-      <td className={`${tableClasses.cell} ${columnPropertys.empty} text-gray-500`}>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.control}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.article}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.name}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.variant}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.wbArticle}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.empty} text-gray-500`}>
         {name}
       </td>
       {dates.map((date, i) => item.salesData.hasOwnProperty(date) ?

@@ -10,12 +10,12 @@ export const NotesRow = React.memo(({
 }) => {
   return (
     <tr className={tableClasses.row}>
-      <td className={`${tableClasses.cell} ${columnPropertys.control}`}></td>
-      <td className={`${tableClasses.cell} ${columnPropertys.article}`}></td>
-      <td className={`${tableClasses.cell} ${columnPropertys.name}`}></td>
-      <td className={`${tableClasses.cell} ${columnPropertys.variant}`}></td>
-      <td className={`${tableClasses.cell} ${columnPropertys.wbArticle}`}></td>
-      <td className={`${tableClasses.cell} ${columnPropertys.empty} text-gray-500`}>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.control}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.article}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.name}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.variant}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.wbArticle}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.empty} text-gray-500`}>
         Заметки
       </td>
       {dates.map((date, i) => (
@@ -29,7 +29,7 @@ export const NotesRow = React.memo(({
           </button>
         </td>
       ))}
-      {Array.from({ length: 13 }).map((_, index) => (
+      {Array.from({ length: 12 }).map((_, index) => (
         <td key={`empty-${index}`} className={tableClasses.cell}></td>
       ))}
     </tr>

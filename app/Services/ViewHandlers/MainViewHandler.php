@@ -157,12 +157,12 @@ class MainViewHandler implements ViewHandler
                 'variant' => $good->nsi->variant ?? '-',
                 'fg1' => $good->nsi->fg_1 ?? '-',
                 'wbArticle' => $good->nm_id,
-                'mainRowMetadata' => ['name' => 'Продажи шт', 'type' => 'orders_count'],
+                'mainRowMetadata' => ['name' => 'Шт', 'type' => 'orders_count'],
                 'subRowsMetadata' => [
                     ['name' => 'Продажи руб', 'type' => 'orders_sum_rub'],
-                    ['name' => 'Реклама', 'type' => 'advertising_costs'],
+                    ['name' => 'Рекл', 'type' => 'advertising_costs'],
                     ['name' => 'Цена СПП', 'type' => 'finished_price'],
-                    ['name' => 'Прибыль', 'type' => 'profit'],
+                    ['name' => 'Приб', 'type' => 'profit'],
                 ],
                 'isNotesExists' => $isNotesExists ?? [],
                 'totals' => [
@@ -261,7 +261,7 @@ class MainViewHandler implements ViewHandler
                 - $row->advertising_costs
                 - ($row->orders_count * $costWithTaxes);
 
-            return round($profit, 1) == 0 ? '' : round($profit);
+            return round($profit, 1) == 0 ? '' : round($profit / 1000);
         } catch (\Exception $e) {
             return '-';
         }
