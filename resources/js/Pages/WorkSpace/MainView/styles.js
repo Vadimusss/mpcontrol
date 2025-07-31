@@ -14,10 +14,12 @@ export const tableClasses = {
   subHeaderDaysAgo: 'bg-gray-50 px-1 py-0.5 text-xs font-medium text-right whitespace-nowrap shadow-[0_0_0_1px_rgba(209,213,219,1)]',
 
   // строки
-  productRow: 'hover:bg-gray-100 transition-colors duration-200 bg-white shadow-[0_-2px_0_0_rgba(0,0,0,1)]',
-  row: 'hover:bg-gray-100 transition-colors duration-200 bg-white',
-  
+  productRow: 'hover:bg-gray-100 transition-colors duration-200 shadow-[0_-2px_0_0_rgba(0,0,0,1)]',
+  row: 'hover:bg-gray-100 transition-colors duration-200',
+
   // Ячейки
+  notesFixedCell: 'px-1 py-0.5 text-xs whitespace-nowrap shadow-[0_0_0_1px_rgba(209,213,219,1)] bg-[linear-gradient(to_bottom,white_0,white_calc(100%-2px),transparent_calc(100%-2px),transparent_100%)]',
+  productFixedCell: 'px-1 py-0.5 text-xs whitespace-nowrap shadow-[0_0_0_1px_rgba(209,213,219,1)] bg-[linear-gradient(to_bottom,white_0,white_calc(100%-2px),transparent_calc(100%-2px),transparent_100%)]',
   fixedCell: 'bg-white px-1 py-0.5 text-xs whitespace-nowrap shadow-[0_0_0_1px_rgba(209,213,219,1)]',
   cell: 'px-1 py-0.5 text-xs shadow-[0_0_0_1px_rgba(209,213,219,1)]',
   notesCell: 'shadow-[0_0_0_1px_rgba(209,213,219,1)]',

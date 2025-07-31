@@ -11,7 +11,7 @@ export const ProductRow = observer(({
 }) => {
   return (
     <tr className={tableClasses.productRow}>
-      <td className={`${tableClasses.fixedCell} ${columnPropertys.control}`} >
+      <td className={`${tableClasses.productFixedCell} ${columnPropertys.control}`} >
         <TableControls
           showOnlySelected={viewStore.selectedItems.includes(item.id)}
           allExpanded={!!viewStore.expandedRows[item.id]}
@@ -19,16 +19,16 @@ export const ProductRow = observer(({
           onToggleAllRows={() => viewStore.toggleRow(item.id)}
         />
       </td>
-      <td className={`${tableClasses.fixedCell} ${columnPropertys.article} ${tableClasses.textCell}`}>
+      <td className={`${tableClasses.productFixedCell} ${columnPropertys.article} ${tableClasses.textCell}`}>
         {item.article}
       </td>
-      <td className={`${tableClasses.fixedCell} ${columnPropertys.name} ${tableClasses.textCell}`}>
+      <td className={`${tableClasses.productFixedCell} ${columnPropertys.name} ${tableClasses.textCell}`}>
         {item.name}
       </td>
-      <td className={`${tableClasses.fixedCell} ${columnPropertys.variant}`}>
+      <td className={`${tableClasses.productFixedCell} ${columnPropertys.variant}`}>
         {item.variant}
       </td>
-      <td className={`${tableClasses.fixedCell} ${columnPropertys.wbArticle}`}>
+      <td className={`${tableClasses.productFixedCell} ${columnPropertys.wbArticle}`}>
         <a
           href={`https://www.wildberries.ru/catalog/${item.wbArticle}/detail.aspx`}
           target="_blank"
@@ -38,7 +38,7 @@ export const ProductRow = observer(({
           {item.wbArticle}
         </a>
       </td>
-      <td className={`${tableClasses.fixedCell} ${columnPropertys.empty}`}>
+      <td className={`${tableClasses.productFixedCell} ${columnPropertys.empty}`}>
         {item.mainRowMetadata.name}
       </td>
       {dates.map((date, i) => item.salesData.hasOwnProperty(date) ?
