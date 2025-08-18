@@ -1,8 +1,10 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import notesStore from './NotesStore';
+import { viewStore } from './ViewStore';
 
 class GoodsStore {
   goods = [];
+  articleSortDirection = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -10,6 +12,23 @@ class GoodsStore {
 
   setGoods(goods) {
     this.goods = goods;
+    if (this.articleSortDirection) {
+      this.sortByArticle();
+    }
+  }
+
+  toggleArticleSort() {
+    this.articleSortDirection = this.articleSortDirection === 'asc' ? 'desc' : 'asc';
+    this.sortByArticle();
+    viewStore.saveState();
+  }
+
+  sortByArticle() {
+    this.goods.sort((a, b) => {
+      return this.articleSortDirection === 'asc' 
+        ? a.article.localeCompare(b.article)
+        : b.article.localeCompare(a.article);
+    });
   }
 
   async updateNoteExists(date, goodId, viewId) {

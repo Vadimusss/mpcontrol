@@ -1,8 +1,10 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { ArrowsUpDownIcon, BarsArrowUpIcon, BarsArrowDownIcon } from '@heroicons/react/24/solid';
 import { tableClasses, columnPropertys } from '../styles';
 import { viewStore } from '../Stores/ViewStore';
+import { goodsStore } from '../Stores/GoodsStore';
 
 export const TableHeader = observer(({ 
   shop, 
@@ -43,7 +45,20 @@ export const TableHeader = observer(({
             </button>
           </div>
         </th>
-        <th className={`${tableClasses.subHeader} ${columnPropertys.article}`}>Арт.</th>
+        <th 
+          className={`${tableClasses.subHeader} ${columnPropertys.article}`}
+          onClick={() => goodsStore.toggleArticleSort()}
+          style={{ cursor: 'pointer' }}
+        >
+          Арт.
+          {goodsStore.articleSortDirection === 'asc' ? (
+            <BarsArrowUpIcon className="w-4 h-4 ml-1 inline" />
+          ) : goodsStore.articleSortDirection === 'desc' ? (
+            <BarsArrowDownIcon className="w-4 h-4 ml-1 inline" />
+          ) : (
+            <ArrowsUpDownIcon className="w-4 h-4 ml-1 inline" />
+          )}
+        </th>
         <th className={`${tableClasses.subHeader} ${columnPropertys.name}`}>Название</th>
         <th className={`${tableClasses.subHeader} ${columnPropertys.variant}`}>Вариант</th>
         <th className={`${tableClasses.subHeader} ${columnPropertys.wbArticle}`}>Арт. WB</th>

@@ -18,10 +18,20 @@ class ViewStore {
   }
 
   setInitialState(state = {}) {
-    const { expandedRows = [], selectedItems = [], showOnlySelected = false } = state;
+    const { 
+      expandedRows = [], 
+      selectedItems = [], 
+      showOnlySelected = false,
+      sortField = 'article',
+      sortDirection = 'asc'
+    } = state;
+    if (!sortDirection) {
+      sortDirection = 'asc'; // Гарантируем значение по умолчанию
+    }
     this.expandedRows = this.getExpandedRows(expandedRows);
     this.selectedItems = selectedItems;
     this.showOnlySelected = showOnlySelected;
+    goodsStore.articleSortDirection = sortDirection;
   }
 
   get allExpanded() {
@@ -64,7 +74,9 @@ class ViewStore {
     const stateToSave = {
       expandedRows: this.getExpandedIds(this.expandedRows),
       selectedItems: this.selectedItems,
-      showOnlySelected: this.showOnlySelected
+      showOnlySelected: this.showOnlySelected,
+      sortField: 'article',
+      sortDirection: goodsStore.articleSortDirection
     };
 
     apiClient.post(`/${this.workSpaceId}/${this.viewId}`, { viewState: stateToSave })
