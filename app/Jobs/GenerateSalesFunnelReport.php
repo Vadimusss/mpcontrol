@@ -40,7 +40,10 @@ class GenerateSalesFunnelReport implements ShouldQueue
             'open_card_count',
             'add_to_cart_count',
             'orders_count',
-            'orders_sum_rub'
+            'orders_sum_rub',
+            'buyouts_count',
+            'buyouts_sum_rub',
+            'buyout_percent'
         )->where('dt', '=', $this->day)->get();
 
         $advCostsSumByGoodId = $this->shop->wbAdvV2FullstatsWbAdverts()
@@ -132,6 +135,9 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'add_to_cart_count' => $row->add_to_cart_count,
                 'orders_count' => $row->orders_count,
                 'orders_sum_rub' => $row->orders_sum_rub,
+                'buyouts_count' => $row->buyouts_count,
+                'buyouts_sum_rub' => $row->buyouts_sum_rub,
+                'buyout_percent' => $row->buyout_percent,
                 'advertising_costs' => $row->advertising_costs,
                 'price_with_disc' => $row->price_with_disc,
                 'finished_price' => $row->finished_price,
