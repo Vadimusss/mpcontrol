@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Log;
 
 class WbApiService
@@ -154,7 +155,13 @@ class WbApiService
     public function getWbAdvV2Fullstats(array $payload)
     {
         $response = Http::withToken($this->apiKey)
-            ->retry(3, 60000, throw: false)
+            ->retry(3, 60000, function ($exception, $request) {
+                if ($exception instanceof RequestException) {
+                    $statusCode = $exception->response->status();
+                    return in_array($statusCode, [400]) || $statusCode >= 500;
+                }
+                return $exception instanceof ConnectionException;
+            }, throw: false)
             ->post('https://advert-api.wildberries.ru/adv/v2/fullstats', $payload);
 
         $response->throw();
