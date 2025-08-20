@@ -40,7 +40,6 @@ class DailyWbApiDataUpdate implements ShouldQueue
                 'end' => $date,
             ];
 
-            // $shop->wbAdvV2FullstatsWbAdverts()->where('date', '=', $date)->delete();
             $advertIds = $shop->wbAdvV1PromotionCounts()
                 ->where('shop_id', $shop->id)
                 ->where(function ($query) use ($date) {
@@ -64,7 +63,6 @@ class DailyWbApiDataUpdate implements ShouldQueue
             });
             $fullstatsJobs = Arr::prepend($fullstatsJobs, new AddWbAdvV1PromotionCount($shop));
 
-            $shop->WbNmReportDetailHistory()->where('dt', '=', $date)->delete();
             $shopGoods = $shop->goods();
             $shopNmIds = $shopGoods->pluck('nm_id')->toArray();
             $chunks = array_chunk($shopNmIds, 20);
