@@ -27,18 +27,22 @@ class AddWbV1SupplierOrders implements ShouldQueue
 
     public function handle(): void
     {
-        $this->shop->WbV1SupplierOrders()->whereRaw("DATE(date) >= '{$this->date}'")->delete();
-
         $api = new WbApiService($this->shop->apiKey->key);
-        $api->getApiV1SupplierOrders($this->date)->map(function ($row) {
+        $newData = $api->getApiV1SupplierOrders($this->date)->map(function ($row) {
                 $row['shop_id'] = $this->shop->id;
                 $row['order_type'] = 'Устарел';
                 return $row;
-            })->chunk(1000)->each(function ($chunk) {
+            });
+
+        if ($newData->isNotEmpty()) {
+            $this->shop->WbV1SupplierOrders()->whereRaw("DATE(date) = '{$this->date}'")->delete();
+
+            $newData->chunk(1000)->each(function ($chunk) {
                 $transformed = array_map([$this, 'camelToSnakeKeys'], $chunk->toArray());
 
                 DB::table('wb_v1_supplier_orders')->insert($transformed);
             });
+        }
     }
 
     public function failed(?Throwable $exception): void
