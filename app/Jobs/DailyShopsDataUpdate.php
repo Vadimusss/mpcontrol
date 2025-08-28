@@ -32,7 +32,7 @@ class DailyShopsDataUpdate implements ShouldQueue
 
         $shops = Shop::without(['owner', 'customers'])->get();
 
-        $dates = collect(range(1, 31))->map(function ($day) {
+        $dates = collect(range(2, 32))->map(function ($day) {
             return Carbon::now()->subDays($day)->format('Y-m-d');
         });
 
