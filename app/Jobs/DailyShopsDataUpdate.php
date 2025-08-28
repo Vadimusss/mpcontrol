@@ -6,12 +6,15 @@ use App\Models\Shop;
 use App\Jobs\AddShopWbListGoods;
 use App\Jobs\СheckApiKey;
 use App\Jobs\UpdateNsiFromGoogleSheets;
+use App\Jobs\ProcessNmReportDownload;
+use App\Jobs\UpdateWbNmReportFromTempData;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use App\Events\JobFailed;
 use App\Events\JobSucceeded;
 use Illuminate\Support\Facades\Bus;
+use Carbon\Carbon;
 use Throwable;
 
 class DailyShopsDataUpdate implements ShouldQueue
@@ -29,8 +32,26 @@ class DailyShopsDataUpdate implements ShouldQueue
 
         $shops = Shop::without(['owner', 'customers'])->get();
 
-        $shops->each(function ($shop) {
+        $dates = collect(range(1, 31))->map(function ($day) {
+            return Carbon::now()->subDays($day)->format('Y-m-d');
+        });
+
+        $period = [
+            'begin' => $dates->min(),
+            'end' => $dates->max(),
+        ];
+
+        $shops->each(function ($shop) use ($period, $dates) {
+            $UpdateNmReportDownloadChain[] = new ProcessNmReportDownload($shop, $period);
+
+            foreach ($dates as $date) {
+                $UpdateNmReportDownloadChain[] = new UpdateWbNmReportFromTempData($shop, $date);
+            }
+
+            Bus::chain($UpdateNmReportDownloadChain)->dispatch();
+
             СheckApiKey::dispatch($shop->apiKey);
+
             Bus::chain([
                 new AddShopWbListGoods($shop),
                 new UpdateNsiFromGoogleSheets($shop->id),

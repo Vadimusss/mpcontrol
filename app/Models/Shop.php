@@ -114,4 +114,9 @@ class Shop extends Model
     {
         return $this->hasManyThrough(Nsi::class, Good::class);
     }
+
+    public function TempWbNmReportDetailHistory(): HasMany
+    {
+        return $this->hasMany(TempWbNmReportDetailHistory::class);
+    }
 }

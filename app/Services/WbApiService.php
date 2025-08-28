@@ -6,6 +6,7 @@ use Illuminate\Support\Sleep;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 class WbApiService
@@ -167,5 +168,59 @@ class WbApiService
         $response->throw();
 
         return $response->collect();
+    }
+
+    public function createNmReportDownload(array $params): array
+    {
+        $uuid = Str::uuid()->toString();
+        
+        $payload = [
+            'id' => $uuid,
+            'reportType' => 'DETAIL_HISTORY_REPORT',
+            'params' => $params
+        ];
+        
+        $response = Http::withToken($this->apiKey)
+            ->retry(3, 1000)
+            ->post('https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads', $payload);
+        
+        $response->throw();
+        
+        return [
+            'id' => $uuid,
+            'response' => $response->collect()
+        ];
+    }
+
+    public function getNmReportDownloads()
+    {
+        $response = Http::withToken($this->apiKey)
+            ->retry(3, 1000)
+            ->get('https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads');
+        
+        $response->throw();
+        return $response->collect('data');
+    }
+
+    public function retryNmReportDownload(string $downloadId)
+    {
+        $response = Http::withToken($this->apiKey)
+            ->retry(3, 1000)
+            ->post('https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads/retry', [
+                'downloadId' => $downloadId
+            ]);
+        
+        $response->throw();
+        return $response->collect();
+    }
+
+    public function getNmReportFile(string $downloadId)
+    {
+        $response = Http::withToken($this->apiKey)
+            ->retry(3, 1000)
+            ->get("https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads/file/{$downloadId}");
+        
+        $response->throw();
+        return $response->body();
     }
 }
