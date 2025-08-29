@@ -33,7 +33,6 @@ class AddWbNmReportDetailHistory implements ShouldQueue
 
         if ($WbNmReportDetailHistoryData->isNotEmpty()) {
             $date = $this->period['begin'];
-            $this->shop->WbNmReportDetailHistory()->where('dt', '=', $date)->delete();
 
             $WbNmReportDetailHistoryData->each(function ($row) {
                 $good = Good::firstWhere('nm_id', $row['nmID']);

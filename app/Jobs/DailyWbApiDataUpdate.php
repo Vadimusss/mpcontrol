@@ -70,6 +70,8 @@ class DailyWbApiDataUpdate implements ShouldQueue
                 return (new AddWbNmReportDetailHistory($shop, $chunk, $period))->delay(20);
             }, $chunks);
 
+            $shop->WbNmReportDetailHistory()->where('dt', '=', $date)->delete();
+
             Bus::batch([
                 $fullstatsJobs,
                 $nmReportDetailHistoryJobs,
