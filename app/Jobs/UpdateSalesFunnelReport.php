@@ -26,16 +26,19 @@ class UpdateSalesFunnelReport implements ShouldQueue
 
     public function handle()
     {
-        $dates = collect(range(2, 13))->map(function ($day) {
+        $dates = collect(range(2, 32))->map(function ($day) {
             return Carbon::now()->subDays($day)->format('Y-m-d');
         });
 
+        $fullUpdateDates = $dates->take(13);
+        $generateOnlyDates = $dates->slice(13);
+
         $shops = Shop::without(['owner', 'customers'])->get();
 
-        $shops->each(function ($shop) use ($dates) {
+        $shops->each(function ($shop) use ($fullUpdateDates, $generateOnlyDates) {
             $shopFullUpdateJobs = [];
 
-            $dates->each(function ($date) use ($shop, &$shopFullUpdateJobs) {
+            $fullUpdateDates->each(function ($date) use ($shop, &$shopFullUpdateJobs) {
                 $advertIds = $shop->wbAdvV1PromotionCounts()
                     ->where('shop_id', $shop->id)
                     ->where(function ($query) use ($date) {
@@ -65,6 +68,12 @@ class UpdateSalesFunnelReport implements ShouldQueue
                     [new GenerateSalesFunnelReport($shop, $date)]
                 )])->then(function (Batch $batch) {})->allowFailures();
             });
+
+            $generateJobs = $generateOnlyDates->map(function ($date) use ($shop) {
+                return new GenerateSalesFunnelReport($shop, $date);
+            })->toArray();
+
+            $shopFullUpdateJobs = array_merge($shopFullUpdateJobs, $generateJobs);
 
             Bus::chain($shopFullUpdateJobs)->dispatch();
         });
