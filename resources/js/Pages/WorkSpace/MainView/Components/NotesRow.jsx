@@ -10,16 +10,17 @@ export const NotesRow = React.memo(({
 }) => {
   return (
     <tr className={tableClasses.row}>
-      <td className={`${tableClasses.notesFixedCell} ${columnPropertys.control}`}></td>
-      <td className={`${tableClasses.notesFixedCell} ${columnPropertys.article}`}></td>
-      <td className={`${tableClasses.notesFixedCell} ${columnPropertys.name}`}></td>
-      <td className={`${tableClasses.notesFixedCell} ${columnPropertys.variant}`}></td>
-      <td className={`${tableClasses.notesFixedCell} ${columnPropertys.wbArticle}`}></td>
-      <td className={`${tableClasses.notesFixedCell} ${columnPropertys.empty} text-gray-500`}>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.control}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.article}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.name}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.variant}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.wbArticle}`}></td>
+      <td className={`${tableClasses.fixedCell} ${columnPropertys.empty} text-gray-500`}>
         Заметки
       </td>
       {dates.map((date, i) => (
         <td key={`date-${i}`}
+          /* className={`${tableClasses.notesCell} ${isNotesExists[date] ? tableClasses.cellBgGreen : ''}`}> */
           className={`${tableClasses.notesCell} ${isNotesExists[date] ? tableClasses.cellBgGreen : ''}`}>
           <button
             onClick={() => onOpenNotes(date, goodId)}

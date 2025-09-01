@@ -82,7 +82,7 @@ export default observer(function MainView({ shop, workSpace, goods: initialGoods
                   item={item}
                   dates={dates}
                 />
-                {viewStore.expandedRows[item.id] && item.subRowsMetadata?.map((metadata, i) => (
+                {viewStore.expandedRows[item.id] && item.subRowsMetadata?.slice(0, 8).map((metadata, i) => (
                   <SubRow
                     key={`${item.id}-${i}`}
                     item={item}
@@ -98,6 +98,14 @@ export default observer(function MainView({ shop, workSpace, goods: initialGoods
                     onOpenNotes={handleOpenNotes}
                   />
                 }
+                {viewStore.expandedRows[item.id] && item.subRowsMetadata?.slice(8).map((metadata, i) => (
+                  <SubRow
+                    key={`${item.id}-${i + 8}`}
+                    item={item}
+                    metadata={metadata}
+                    dates={dates}
+                  />
+                ))}
               </React.Fragment>
             ))}
           </tbody>

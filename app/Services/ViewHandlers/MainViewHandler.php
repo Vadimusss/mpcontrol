@@ -71,13 +71,16 @@ class MainViewHandler implements ViewHandler
                 'orders_count' => 0,
                 'orders_sum_rub' => 0,
                 'advertising_costs' => 0,
+                'price_with_disc' => 0,
                 'finished_price' => 0,
                 'profit' => 0
             ];
 
             // Формируем salesData и считаем totals за один проход
             foreach ($good->salesFunnel as $row) {
-                $profit = $this->calculateProfit($row, $good->nsi, $commission, $logistics);
+                // $profit = $this->calculateProfit($row, $good->nsi, $commission, $logistics);
+                $ordersProfit = $this->calculateProfit($row->orders_sum_rub, $row->orders_count, $row->advertising_costs, $good->nsi, $commission, $logistics);
+                $buyoutsProfit = $this->calculateProfit($row->buyouts_sum_rub, $row->buyouts_count, $row->advertising_costs, $good->nsi, $commission, $logistics);
 
                 $noteDates = $good->notes
                     ->map(fn($note) => Carbon::parse($note->date)->format('Y-m-d'))
@@ -92,11 +95,18 @@ class MainViewHandler implements ViewHandler
                 if ($rowDate >= Carbon::parse($salesDataStartDate)) {
                     $salesData[$row->date] = [
                         'orders_count' => $row->orders_count === 0 ? '' : $row->orders_count,
-                        'orders_sum_rub' => $row->orders_sum_rub === 0 ? '' : round($row->orders_sum_rub / 1000),
                         'advertising_costs' => $row->advertising_costs === 0 ? '' : round($row->advertising_costs / 1000, 1),
+                        'price_with_disc' => $row->price_with_disc === 0 ? '' : round($row->price_with_disc),
                         'finished_price' => $row->finished_price == 0 ? '' : round($row->finished_price),
-                        'profit' => $profit,
+                        'orders_profit' => $ordersProfit,
+                        'orders_sum_rub' => $row->orders_sum_rub === 0 ? '' : round($row->orders_sum_rub / 1000),
+                        'buyouts_sum_rub' => $row->buyouts_sum_rub === 0 ? '' : round($row->buyouts_sum_rub / 1000),
                         'isHighlighted' => $row->advertising_costs != 0 && $row->advertising_costs > 100,
+                        'buyouts_count' => $row->buyouts_count === 0 ? '' : $row->buyouts_count,
+                        'buyouts_profit' => $buyoutsProfit,
+                        'open_card_count' => $row->open_card_count === 0 ? '' : $row->open_card_count,
+                        'no_ad_clicks' => ($row->aac_clicks != 0 || $row->auc_clicks != 0) ? $row->open_card_count - ($row->aac_clicks + $row->auc_clicks) : '',
+                        'add_to_cart_count' => $row->add_to_cart_count === 0 ? '' : $row->add_to_cart_count,
                     ];
                 }
 
@@ -105,7 +115,7 @@ class MainViewHandler implements ViewHandler
                 if (is_numeric($row->orders_sum_rub)) $totals['orders_sum_rub'] += $row->orders_sum_rub;
                 if (is_numeric($row->advertising_costs)) $totals['advertising_costs'] += $row->advertising_costs;
                 if (is_numeric($row->finished_price)) $totals['finished_price'] += $row->finished_price * $row->orders_count;
-                if (is_numeric($profit)) $totals['profit'] += $profit * 1000;
+                if (is_numeric($ordersProfit)) $totals['profit'] += $ordersProfit * 1000;
             }
 
             // Форматируем итоги
@@ -159,10 +169,19 @@ class MainViewHandler implements ViewHandler
                 'wbArticle' => $good->nm_id,
                 'mainRowMetadata' => ['name' => 'Шт', 'type' => 'orders_count'],
                 'subRowsMetadata' => [
-                    ['name' => 'Продажи руб', 'type' => 'orders_sum_rub'],
                     ['name' => 'Рекл', 'type' => 'advertising_costs'],
+                    ['name' => 'Приб', 'type' => 'orders_profit'],
                     ['name' => 'Цена СПП', 'type' => 'finished_price'],
-                    ['name' => 'Приб', 'type' => 'profit'],
+                    ['name' => 'Цена', 'type' => 'price_with_disc'],
+                    ['name' => 'Заказы руб', 'type' => 'orders_sum_rub'],
+                    ['name' => 'Продажи руб', 'type' => 'buyouts_sum_rub'],
+                    ['name' => 'Продажи шт', 'type' => 'buyouts_count'],
+                    ['name' => 'Приб по прод', 'type' => 'buyouts_profit'],
+                    ['name' => 'Клики всего', 'type' => 'open_card_count'],
+                    ['name' => 'Клики не рекл', 'type' => 'no_ad_clicks'],
+                    ['name' => 'Корзины', 'type' => 'add_to_cart_count'],
+/*                     ['name' => 'Конв корз', 'type' => 'add_to_cart_count'],
+                    ['name' => 'Конв заказ', 'type' => 'add_to_cart_count'], */
                 ],
                 'isNotesExists' => $isNotesExists ?? [],
                 'totals' => [
@@ -172,6 +191,7 @@ class MainViewHandler implements ViewHandler
                     'finished_price' => ($totals['finished_price'] == 0 || $totals['orders_count'] == 0) ? '' :
                         round($totals['finished_price'] / $totals['orders_count']),
                     'profit' => $totals['profit'] == 0 ? '' : round($totals['profit']),
+                    'price_with_disc' => $totals['price_with_disc'] == 0 ? '' : $totals['price_with_disc'],
                 ],
                 'salesByWarehouse' => [
                     'elektrostal' => $salesByWarehouse['elektrostal']->get($good->nm_id)['orders_count'] ?? 0,
@@ -240,14 +260,14 @@ class MainViewHandler implements ViewHandler
         }
     }
 
-    private function calculateProfit($row, $nsi, $commission, $logistics): string
+    private function calculateProfit($sum, $count, $advertising_costs, $nsi, $commission, $logistics): string
     {
         try {
             $costWithTaxes = $nsi->cost_with_taxes ?? null;
 
             if (
-                $row->orders_sum_rub === null || $commission === null ||
-                $logistics === null || $row->advertising_costs === null ||
+                $sum === null || $commission === null ||
+                $logistics === null || $advertising_costs === null ||
                 $costWithTaxes === null
             ) {
                 return '?';
@@ -255,13 +275,14 @@ class MainViewHandler implements ViewHandler
 
             $commissionPercent = $commission / 100;
 
-            $profit = $row->orders_sum_rub
-                - ($row->orders_sum_rub * $commissionPercent)
-                - ($row->orders_count * $logistics)
-                - $row->advertising_costs
-                - ($row->orders_count * $costWithTaxes);
+            $profit = $sum
+                - ($sum * $commissionPercent)
+                - ($count * $logistics)
+                - $advertising_costs
+                - ($count * $costWithTaxes);
 
-            return round($profit, 1) == 0 ? '' : round($profit / 1000);
+            // return round($profit, 1) == 0 ? '' : round($profit / 1000);
+            return round($profit, 1) == 0 ? '' : round($profit);
         } catch (\Exception $e) {
             return '-';
         }
