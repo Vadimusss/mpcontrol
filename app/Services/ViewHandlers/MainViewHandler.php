@@ -49,6 +49,10 @@ class MainViewHandler implements ViewHandler
                             $q->select('good_id', 'date')
                                 ->where('view_id', $viewId)
                                 ->whereIn('date', $dates);
+                        },
+                        'wbNmReportDetailHistory' => function ($q) use ($dates) {
+                            $q->select('good_id', 'dt', 'add_to_cart_conversion', 'cart_to_order_conversion')
+                                ->whereIn('dt', $dates);
                         }
                     ]);
                 }
@@ -66,6 +70,14 @@ class MainViewHandler implements ViewHandler
             $salesByWarehouse,
             $dates,
         ) {
+            $conversionMap = [];
+            foreach ($good->wbNmReportDetailHistory as $conversionData) {
+                $conversionMap[$conversionData->dt] = [
+                    'add_to_cart_conversion' => $conversionData->add_to_cart_conversion ?? 0,
+                    'cart_to_order_conversion' => $conversionData->cart_to_order_conversion ?? 0
+                ];
+            }
+
             $salesData = [];
             $totals = [
                 'orders_count' => 0,
@@ -78,7 +90,11 @@ class MainViewHandler implements ViewHandler
 
             // Формируем salesData и считаем totals за один проход
             foreach ($good->salesFunnel as $row) {
-                // $profit = $this->calculateProfit($row, $good->nsi, $commission, $logistics);
+                $conversion = $conversionMap[$row->date] ?? [
+                    'add_to_cart_conversion' => 0,
+                    'cart_to_order_conversion' => 0
+                ];
+
                 $ordersProfit = $this->calculateProfit($row->orders_sum_rub, $row->orders_count, $row->advertising_costs, $good->nsi, $commission, $logistics);
                 $buyoutsProfit = $this->calculateProfit($row->buyouts_sum_rub, $row->buyouts_count, $row->advertising_costs, $good->nsi, $commission, $logistics);
 
@@ -107,6 +123,22 @@ class MainViewHandler implements ViewHandler
                         'open_card_count' => $row->open_card_count === 0 ? '' : $row->open_card_count,
                         'no_ad_clicks' => ($row->aac_clicks != 0 || $row->auc_clicks != 0) ? $row->open_card_count - ($row->aac_clicks + $row->auc_clicks) : '',
                         'add_to_cart_count' => $row->add_to_cart_count === 0 ? '' : $row->add_to_cart_count,
+                        'add_to_cart_conversion' => $conversion['add_to_cart_conversion'] === 0 ? '' : $conversion['add_to_cart_conversion'],
+                        'cart_to_order_conversion' => $conversion['cart_to_order_conversion'] === 0 ? '' : $conversion['cart_to_order_conversion'],
+
+                        'aac_cpm' => $row->aac_cpm === 0 ? '' : $row->aac_cpm,
+                        'aac_views' => $row->aac_views === 0 ? '' : $row->aac_views,
+                        'aac_clicks' => $row->aac_clicks === 0 ? '' : $row->aac_clicks,
+                        'aac_sum' => $row->aac_sum === 0 ? '' : round($row->aac_sum),
+                        'aac_orders' => $row->aac_orders === 0 ? '' : $row->aac_orders,
+                        'auc_cpm' => $row->auc_cpm === 0 ? '' : $row->auc_cpm,
+                        'auc_views' => $row->auc_views === 0 ? '' : $row->auc_views,
+                        'auc_clicks' => $row->auc_clicks === 0 ? '' : $row->auc_clicks,
+                        'auc_sum' => $row->auc_sum === 0 ? '' : round($row->auc_sum),
+                        'auc_orders' => $row->auc_orders === 0 ? '' : $row->auc_orders,
+                        'ad_orders' => ($row->auc_orders != 0 || $row->aac_orders != 0) ? $row->auc_orders + $row->aac_orders : '',
+                        'no_ad_orders' => (($row->auc_orders != 0 || $row->aac_orders != 0) && $row->orders_count != 0) ?
+                            $row->orders_count - ($row->auc_orders + $row->aac_orders) : '',
                     ];
                 }
 
@@ -180,8 +212,20 @@ class MainViewHandler implements ViewHandler
                     ['name' => 'Клики всего', 'type' => 'open_card_count'],
                     ['name' => 'Клики не рекл', 'type' => 'no_ad_clicks'],
                     ['name' => 'Корзины', 'type' => 'add_to_cart_count'],
-/*                     ['name' => 'Конв корз', 'type' => 'add_to_cart_count'],
-                    ['name' => 'Конв заказ', 'type' => 'add_to_cart_count'], */
+                    ['name' => 'Конв корз', 'type' => 'add_to_cart_conversion'],
+                    ['name' => 'Конв заказ', 'type' => 'cart_to_order_conversion'],
+                    ['name' => 'АРК CPM', 'type' => 'aac_cpm'],
+                    ['name' => 'АРК Показы', 'type' => 'aac_views'],
+                    ['name' => 'АРК Клики', 'type' => 'aac_clicks'],
+                    ['name' => 'АРК Затраты', 'type' => 'aac_sum'],
+                    ['name' => 'АРК Зак по рекл', 'type' => 'aac_orders'],
+                    ['name' => 'Аукцион CPM', 'type' => 'auc_cpm'],
+                    ['name' => 'Аукцион Показы', 'type' => 'auc_views'],
+                    ['name' => 'Аукцион Клики', 'type' => 'auc_clicks'],
+                    ['name' => 'Аукцион Затраты', 'type' => 'auc_sum'],
+                    ['name' => 'Аукцион Зак по рекл', 'type' => 'auc_orders'],
+                    ['name' => 'Заказы по рекл', 'type' => 'ad_orders'],
+                    ['name' => 'Заказы не по рекл', 'type' => 'no_ad_orders'],
                 ],
                 'isNotesExists' => $isNotesExists ?? [],
                 'totals' => [

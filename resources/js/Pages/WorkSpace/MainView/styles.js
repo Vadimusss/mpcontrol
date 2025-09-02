@@ -41,5 +41,5 @@ export const columnPropertys = {
   name: 'min-w-[200px] max-w-[200px] sticky left-[119px]',
   variant: 'min-w-[150px] max-w-[150px] sticky left-[320px]',
   wbArticle: 'min-w-[62px] max-w-[62px] sticky left-[471px]',
-  empty: 'min-w-[78px] max-w-[78px] sticky left-[534px]'
+  empty: 'min-w-[110px] max-w-[110px] sticky left-[534px]'
 };
