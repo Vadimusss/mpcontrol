@@ -223,4 +223,14 @@ class WbApiService
         $response->throw();
         return $response->body();
     }
+
+    public function getApiV3Warehouses()
+    {
+        $response = Http::withToken($this->apiKey)
+            ->retry(3, 1000)
+            ->get('https://marketplace-api.wildberries.ru/api/v3/warehouses');
+        
+        $response->throw();
+        return $response->collect();
+    }
 }

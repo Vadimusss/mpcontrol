@@ -8,6 +8,7 @@ use App\Jobs\СheckApiKey;
 use App\Jobs\UpdateNsiFromGoogleSheets;
 use App\Jobs\ProcessNmReportDownload;
 use App\Jobs\UpdateWbNmReportFromTempData;
+use App\Jobs\AddWbApiV3Warehouses;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
@@ -51,6 +52,8 @@ class DailyShopsDataUpdate implements ShouldQueue
             Bus::chain($UpdateNmReportDownloadChain)->dispatch();
 
             СheckApiKey::dispatch($shop->apiKey);
+
+            AddWbApiV3Warehouses::dispatch($shop);
 
             Bus::chain([
                 new AddShopWbListGoods($shop),

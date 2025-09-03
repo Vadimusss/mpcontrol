@@ -119,4 +119,9 @@ class Shop extends Model
     {
         return $this->hasMany(TempWbNmReportDetailHistory::class);
     }
+
+    public function warehouses(): HasMany
+    {
+        return $this->hasMany(WbApiV3Warehouses::class);
+    }
 }
