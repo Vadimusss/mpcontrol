@@ -121,6 +121,7 @@ class MainViewHandler implements ViewHandler
                         'orders_count' => $row->orders_count === 0 ? '' : $row->orders_count,
                         'advertising_costs' => $row->advertising_costs === 0 ? '' : round($row->advertising_costs / 1000, 1),
                         'price_with_disc' => $row->price_with_disc === 0 ? '' : round($row->price_with_disc),
+                        'spp' => $row->price_with_disc != 0 ? round($row->price_with_disc - $row->finished_price) : '',
                         'finished_price' => $row->finished_price == 0 ? '' : round($row->finished_price),
                         'orders_profit' => $ordersProfit,
                         'orders_sum_rub' => $row->orders_sum_rub === 0 ? '' : round($row->orders_sum_rub / 1000),
@@ -217,8 +218,9 @@ class MainViewHandler implements ViewHandler
                 'subRowsMetadata' => [
                     ['name' => 'Рекл', 'type' => 'advertising_costs'],
                     ['name' => 'Приб', 'type' => 'orders_profit'],
-                    ['name' => 'Цена СПП', 'type' => 'finished_price'],
                     ['name' => 'Цена', 'type' => 'price_with_disc'],
+                    ['name' => 'СПП', 'type' => 'spp'],
+                    ['name' => 'Цена СПП', 'type' => 'finished_price'],
                     ['name' => 'Заказы руб', 'type' => 'orders_sum_rub'],
                     ['name' => 'Продажи руб', 'type' => 'buyouts_sum_rub'],
                     ['name' => 'Продажи шт', 'type' => 'buyouts_count'],
