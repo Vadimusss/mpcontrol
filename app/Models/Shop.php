@@ -124,4 +124,9 @@ class Shop extends Model
     {
         return $this->hasMany(WbApiV3Warehouses::class);
     }
+
+    public function supplierWarehousesStocks(): HasMany
+    {
+        return $this->hasMany(SupplierWarehousesStocks::class);
+    }
 }
