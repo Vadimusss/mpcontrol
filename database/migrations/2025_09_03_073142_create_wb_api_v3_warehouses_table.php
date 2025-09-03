@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('shop_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->bigInteger('office_id')->index();
-            $table->bigInteger('wb_id');
+            $table->bigInteger('warehouse_id');
             $table->integer('cargo_type');
             $table->integer('delivery_type');
             $table->boolean('is_deleting')->default(false);

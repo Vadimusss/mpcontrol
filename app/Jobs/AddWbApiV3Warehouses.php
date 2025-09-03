@@ -33,7 +33,7 @@ class AddWbApiV3Warehouses implements ShouldQueue
                 $this->shop->warehouses()->create([
                     'name' => $warehouse['name'],
                     'office_id' => $warehouse['officeId'],
-                    'wb_id' => $warehouse['id'],
+                    'warehouse_id' => $warehouse['id'],
                     'cargo_type' => $warehouse['cargoType'],
                     'delivery_type' => $warehouse['deliveryType'],
                     'is_deleting' => $warehouse['isDeleting'],

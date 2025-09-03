@@ -11,7 +11,7 @@ class WbApiV3Warehouses extends Model
         'shop_id',
         'name',
         'office_id',
-        'wb_id',
+        'warehouse_id',
         'cargo_type',
         'delivery_type',
         'is_deleting',
