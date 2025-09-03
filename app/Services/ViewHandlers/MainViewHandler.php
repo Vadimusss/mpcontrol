@@ -2,6 +2,7 @@
 
 namespace App\Services\ViewHandlers;
 
+use App\Models\WbAdvV2FullstatsProduct;
 use App\Models\WorkSpace;
 use Carbon\Carbon;
 
@@ -19,6 +20,11 @@ class MainViewHandler implements ViewHandler
         $dates = collect(range(0, $viewSettings->days))->map(function ($day) {
             return Carbon::now()->subDays($day)->format('Y-m-d');
         })->all();
+
+        // Получаем данные по рекламным кампаниям с CTR и CPC
+        $advDataByType = $this->getAdvDataWithCtrCpc($shop, $dates);
+        $aacData = $advDataByType[8] ?? [];
+        $aucData = $advDataByType[9] ?? [];
 
         $warehouses = [
             'elektrostal' => 'Электросталь',
@@ -69,6 +75,8 @@ class MainViewHandler implements ViewHandler
             $stocks,
             $salesByWarehouse,
             $dates,
+            $aacData,
+            $aucData,
         ) {
             $conversionMap = [];
             foreach ($good->wbNmReportDetailHistory as $conversionData) {
@@ -131,11 +139,17 @@ class MainViewHandler implements ViewHandler
                         'aac_clicks' => $row->aac_clicks === 0 ? '' : $row->aac_clicks,
                         'aac_sum' => $row->aac_sum === 0 ? '' : round($row->aac_sum),
                         'aac_orders' => $row->aac_orders === 0 ? '' : $row->aac_orders,
+                        'aac_ctr' => $aacData[$row->date][$row->good_id]['ctr'] ?? '',
+                        'aac_cpc' => $aacData[$row->date][$row->good_id]['cpc'] ?? '',
+
                         'auc_cpm' => $row->auc_cpm === 0 ? '' : $row->auc_cpm,
                         'auc_views' => $row->auc_views === 0 ? '' : $row->auc_views,
                         'auc_clicks' => $row->auc_clicks === 0 ? '' : $row->auc_clicks,
                         'auc_sum' => $row->auc_sum === 0 ? '' : round($row->auc_sum),
                         'auc_orders' => $row->auc_orders === 0 ? '' : $row->auc_orders,
+                        'auc_ctr' => $aucData[$row->date][$row->good_id]['ctr'] ?? '',
+                        'auc_cpc' => $aucData[$row->date][$row->good_id]['cpc'] ?? '',
+
                         'ad_orders' => ($row->auc_orders != 0 || $row->aac_orders != 0) ? $row->auc_orders + $row->aac_orders : '',
                         'no_ad_orders' => (($row->auc_orders != 0 || $row->aac_orders != 0) && $row->orders_count != 0) ?
                             $row->orders_count - ($row->auc_orders + $row->aac_orders) : '',
@@ -219,11 +233,15 @@ class MainViewHandler implements ViewHandler
                     ['name' => 'АРК Клики', 'type' => 'aac_clicks'],
                     ['name' => 'АРК Затраты', 'type' => 'aac_sum'],
                     ['name' => 'АРК Зак по рекл', 'type' => 'aac_orders'],
+                    ['name' => 'АРК CTR', 'type' => 'aac_ctr'],
+                    ['name' => 'АРК CPC', 'type' => 'aac_cpc'],
                     ['name' => 'Аукцион CPM', 'type' => 'auc_cpm'],
                     ['name' => 'Аукцион Показы', 'type' => 'auc_views'],
                     ['name' => 'Аукцион Клики', 'type' => 'auc_clicks'],
                     ['name' => 'Аукцион Затраты', 'type' => 'auc_sum'],
                     ['name' => 'Аукцион Зак по рекл', 'type' => 'auc_orders'],
+                    ['name' => 'Аукцион CTR', 'type' => 'auc_ctr'],
+                    ['name' => 'Аукцион CPC', 'type' => 'auc_cpc'],
                     ['name' => 'Заказы по рекл', 'type' => 'ad_orders'],
                     ['name' => 'Заказы не по рекл', 'type' => 'no_ad_orders'],
                 ],
@@ -403,5 +421,35 @@ class MainViewHandler implements ViewHandler
         }
 
         return $result;
+    }
+
+    private function getAdvDataWithCtrCpc($shop, $dates)
+    {
+        return WbAdvV2FullstatsProduct::whereIn('wb_adv_fs_products.date', $dates)
+            ->join('wb_adv_fs_apps', 'wb_adv_fs_products.wb_adv_fs_app_id', '=', 'wb_adv_fs_apps.id')
+            ->join('wb_adv_fs_days', 'wb_adv_fs_apps.wb_adv_fs_day_id', '=', 'wb_adv_fs_days.id')
+            ->join('wb_adv_v2_fullstats_wb_adverts', 'wb_adv_fs_days.wb_adv_v2_fullstats_wb_advert_id', '=', 'wb_adv_v2_fullstats_wb_adverts.id')
+            ->join('wb_adv_v1_promotion_counts', 'wb_adv_v2_fullstats_wb_adverts.advert_id', '=', 'wb_adv_v1_promotion_counts.advert_id')
+            ->where('wb_adv_v1_promotion_counts.shop_id', $shop->id)
+            ->whereIn('wb_adv_v1_promotion_counts.type', [8, 9])
+            ->select(
+                'wb_adv_fs_products.good_id',
+                'wb_adv_fs_products.date',
+                'wb_adv_v1_promotion_counts.type',
+                'wb_adv_v2_fullstats_wb_adverts.ctr',
+                'wb_adv_v2_fullstats_wb_adverts.cpc'
+            )
+            ->get()
+            ->groupBy(['type', 'date', 'good_id'])
+            ->map(function ($typeGroup) {
+                return $typeGroup->map(function ($dateGroup) {
+                    return $dateGroup->map(function ($items) {
+                        return [
+                            'ctr' => $items->first()->ctr,
+                            'cpc' => $items->first()->cpc,
+                        ];
+                    });
+                });
+            });
     }
 }
