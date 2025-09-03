@@ -22,8 +22,6 @@ return new class extends Migration
             $table->boolean('is_deleting')->default(false);
             $table->boolean('is_processing')->default(false);
             $table->timestamps();
-
-            $table->index(['shop_id', 'office_id']);
         });
     }
 
