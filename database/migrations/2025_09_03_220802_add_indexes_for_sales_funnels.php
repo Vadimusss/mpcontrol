@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::table('sales_funnels', function (Blueprint $table) {
             $table->index(['good_id']);
             $table->index(['date']);
-            $table->index(['good_id', 'date']);
         });
     }
 
@@ -26,7 +25,6 @@ return new class extends Migration
         Schema::table('sales_funnels', function (Blueprint $table) {
             $table->dropIndex(['good_id']);
             $table->dropIndex(['date']);
-            $table->dropIndex(['good_id', 'date']);
         });
     }
 };
