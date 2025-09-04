@@ -89,11 +89,19 @@ class MainViewHandler implements ViewHandler
             $salesData = [];
             $totals = [
                 'orders_count' => 0,
-                'orders_sum_rub' => 0,
                 'advertising_costs' => 0,
+                'orders_profit' => 0,
+                'orders_sum_rub' => 0,
                 'price_with_disc' => 0,
                 'finished_price' => 0,
-                'profit' => 0
+                'buyouts_sum_rub' => 0,
+                'buyouts_count' => 0,
+                'buyouts_profit' => 0,
+                'open_card_count' => 0,
+                'no_ad_clicks' => 0,
+                'add_to_cart_count' => 0,
+                'add_to_cart_conversion' => 0,
+                'cart_to_order_conversion' => 0,
             ];
 
             // Формируем salesData и считаем totals за один проход
@@ -119,11 +127,11 @@ class MainViewHandler implements ViewHandler
                 if ($rowDate >= Carbon::parse($salesDataStartDate)) {
                     $salesData[$row->date] = [
                         'orders_count' => $row->orders_count === 0 ? '' : $row->orders_count,
-                        'advertising_costs' => $row->advertising_costs === 0 ? '' : round($row->advertising_costs / 1000, 1),
+                        'advertising_costs' => $row->advertising_costs === 0 ? '' : round($row->advertising_costs / 1000),
+                        'orders_profit' => $ordersProfit,
                         'price_with_disc' => $row->price_with_disc === 0 ? '' : round($row->price_with_disc),
                         'spp' => $row->price_with_disc != 0 ? round($row->price_with_disc - $row->finished_price) : '',
                         'finished_price' => $row->finished_price == 0 ? '' : round($row->finished_price),
-                        'orders_profit' => $ordersProfit,
                         'orders_sum_rub' => $row->orders_sum_rub === 0 ? '' : round($row->orders_sum_rub / 1000),
                         'buyouts_sum_rub' => $row->buyouts_sum_rub === 0 ? '' : round($row->buyouts_sum_rub / 1000),
                         'isHighlighted' => $row->advertising_costs != 0 && $row->advertising_costs > 100,
@@ -159,16 +167,25 @@ class MainViewHandler implements ViewHandler
 
                 // Считаем totals для всех дней за 30 дней
                 if (is_numeric($row->orders_count)) $totals['orders_count'] += $row->orders_count;
-                if (is_numeric($row->orders_sum_rub)) $totals['orders_sum_rub'] += $row->orders_sum_rub;
                 if (is_numeric($row->advertising_costs)) $totals['advertising_costs'] += $row->advertising_costs;
+                if (is_numeric($ordersProfit)) $totals['orders_profit'] += $ordersProfit;
                 if (is_numeric($row->finished_price)) $totals['finished_price'] += $row->finished_price * $row->orders_count;
-                if (is_numeric($ordersProfit)) $totals['profit'] += $ordersProfit * 1000;
+                if (is_numeric($row->orders_sum_rub)) $totals['orders_sum_rub'] += $row->orders_sum_rub;
+                if (is_numeric($row->buyouts_sum_rub)) $totals['buyouts_sum_rub'] += $row->buyouts_sum_rub;
+                if (is_numeric($row->buyouts_count)) $totals['buyouts_count'] += $row->buyouts_count;
+                if (is_numeric($buyoutsProfit)) $totals['buyouts_profit'] += $buyoutsProfit;
+                if (is_numeric($row->open_card_count)) $totals['open_card_count'] += $row->open_card_count;
+                if (is_numeric($salesData[$row->date]['no_ad_clicks'])) $totals['no_ad_clicks'] += $salesData[$row->date]['no_ad_clicks'];
+                if (is_numeric($salesData[$row->date]['add_to_cart_count'])) $totals['add_to_cart_count'] += $salesData[$row->date]['add_to_cart_count'];
+                if (is_numeric($salesData[$row->date]['add_to_cart_conversion'])) $totals['add_to_cart_conversion'] += $salesData[$row->date]['add_to_cart_conversion'];
+                if (is_numeric($salesData[$row->date]['cart_to_order_conversion'])) $totals['cart_to_order_conversion'] += $salesData[$row->date]['cart_to_order_conversion'];
             }
 
             // Форматируем итоги
             $totals['orders_sum_rub'] = round($totals['orders_sum_rub'] / 1000);
             $totals['advertising_costs'] = round($totals['advertising_costs'] / 1000);
-            $totals['profit'] = round($totals['profit'] / 1000);
+            $totals['buyouts_sum_rub'] = round($totals['buyouts_sum_rub'] / 1000);
+            // $totals['orders_profit'] = round($totals['orders_profit'] / 1000);
 
             // Calculate prices
             $price = $good->sizes->first()?->price ?? 0;
@@ -250,12 +267,20 @@ class MainViewHandler implements ViewHandler
                 'isNotesExists' => $isNotesExists ?? [],
                 'totals' => [
                     'orders_count' => $totals['orders_count'] == 0 ? '' : $totals['orders_count'],
-                    'orders_sum_rub' => $totals['orders_sum_rub'] == 0 ? '' : $totals['orders_sum_rub'],
                     'advertising_costs' => $totals['advertising_costs'] == 0 ? '' : $totals['advertising_costs'],
+                    'orders_profit' => $totals['orders_profit'] ?? '',
+                    'orders_sum_rub' => $totals['orders_sum_rub'] == 0 ? '' : $totals['orders_sum_rub'],
                     'finished_price' => ($totals['finished_price'] == 0 || $totals['orders_count'] == 0) ? '' :
                         round($totals['finished_price'] / $totals['orders_count']),
-                    'profit' => $totals['profit'] == 0 ? '' : round($totals['profit']),
                     'price_with_disc' => $totals['price_with_disc'] == 0 ? '' : $totals['price_with_disc'],
+                    'buyouts_sum_rub' => $totals['buyouts_sum_rub'] == 0 ? '' : $totals['buyouts_sum_rub'],
+                    'buyouts_count' => $totals['buyouts_count'] == 0 ? '' : $totals['buyouts_count'],
+                    'buyouts_profit' => $totals['buyouts_profit'] ?? '',
+                    'open_card_count' => $totals['open_card_count'] == 0 ? '' : $totals['open_card_count'],
+                    'no_ad_clicks' => $totals['no_ad_clicks'] == 0 ? '' : $totals['no_ad_clicks'],
+                    'add_to_cart_count' => $totals['add_to_cart_count'] == 0 ? '' : $totals['add_to_cart_count'],
+                    'add_to_cart_conversion' => $totals['add_to_cart_conversion'] == 0 ? '' : $totals['add_to_cart_conversion'],
+                    'cart_to_order_conversion' => $totals['cart_to_order_conversion'] == 0 ? '' : $totals['cart_to_order_conversion'],
                 ],
                 'salesByWarehouse' => [
                     'elektrostal' => $salesByWarehouse['elektrostal']->get($good->nm_id)['orders_count'] ?? 0,
