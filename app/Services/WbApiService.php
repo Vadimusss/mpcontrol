@@ -173,19 +173,19 @@ class WbApiService
     public function createNmReportDownload(array $params): array
     {
         $uuid = Str::uuid()->toString();
-        
+
         $payload = [
             'id' => $uuid,
             'reportType' => 'DETAIL_HISTORY_REPORT',
             'params' => $params
         ];
-        
+
         $response = Http::withToken($this->apiKey)
             ->retry(3, 1000)
             ->post('https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads', $payload);
-        
+
         $response->throw();
-        
+
         return [
             'id' => $uuid,
             'response' => $response->collect()
@@ -197,7 +197,7 @@ class WbApiService
         $response = Http::withToken($this->apiKey)
             ->retry(3, 1000)
             ->get('https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads');
-        
+
         $response->throw();
         return $response->collect('data');
     }
@@ -209,7 +209,7 @@ class WbApiService
             ->post('https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads/retry', [
                 'downloadId' => $downloadId
             ]);
-        
+
         $response->throw();
         return $response->collect();
     }
@@ -219,7 +219,7 @@ class WbApiService
         $response = Http::withToken($this->apiKey)
             ->retry(3, 1000)
             ->get("https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads/file/{$downloadId}");
-        
+
         $response->throw();
         return $response->body();
     }
@@ -229,7 +229,7 @@ class WbApiService
         $response = Http::withToken($this->apiKey)
             ->retry(3, 1000)
             ->get('https://marketplace-api.wildberries.ru/api/v3/warehouses');
-        
+
         $response->throw();
         return $response->collect();
     }
@@ -241,8 +241,26 @@ class WbApiService
             ->post("https://marketplace-api.wildberries.ru/api/v3/stocks/{$warehouseId}", [
                 'skus' => $skus
             ]);
-        
+
         $response->throw();
         return $response->collect('stocks');
+    }
+
+    public function getContentV2CardsList(array $cursor): array
+    {
+        $payload = [
+            'settings' => [
+                'cursor' => $cursor,
+                'filter' => ['withPhoto' => -1]
+            ]
+        ];
+
+        $response = Http::withToken($this->apiKey)
+            ->retry(3, 1000)
+            ->post('https://content-api.wildberries.ru/content/v2/get/cards/list', $payload);
+
+        $response->throw();
+
+        return $response->json();
     }
 }
