@@ -35,6 +35,7 @@ class AddSupplierWarehousesStocks implements ShouldQueue
         if ($stocksData->isNotEmpty()) {
             SupplierWarehousesStocks::where('shop_id', $this->shop->id)
                 ->where('date', $this->date)
+                ->where('warehouse_id', $this->warehouseId)
                 ->whereIn('barcode', $this->barcodes)
                 ->delete();
 
