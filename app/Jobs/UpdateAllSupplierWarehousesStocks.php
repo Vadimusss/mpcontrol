@@ -23,19 +23,14 @@ class UpdateAllSupplierWarehousesStocks implements ShouldQueue
 
     public function handle(): void
     {
-        $shops = Shop::without(['owner', 'customers'])->with(['stocks', 'warehouses'])->get();
+        $shops = Shop::without(['owner', 'customers'])->with(['warehouses'])->get();
 
         $shops->each(function ($shop) {
-            $barcodes = $shop->stocks
-                ->pluck('barcode')
-                ->unique()
-                ->toArray();
-
             $warehouseIds = $shop->warehouses
                 ->pluck('warehouse_id');
             
-            $warehouseIds->each(function ($warehouseId) use ($shop, $barcodes) {
-                $barcodesChunks = array_chunk($barcodes, 1000);
+            $warehouseIds->each(function ($warehouseId) use ($shop) {
+                $barcodesChunks = array_chunk($shop->barcodes(), 1000);
                 $jobsChain = array_map(function ($chunk) use ($shop, $warehouseId) {
                     return (new AddSupplierWarehousesStocks(
                         $shop,

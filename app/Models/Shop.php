@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use App\Models\WbContentV2CardsList;
+use App\Models\WbContentV2CardsListSize;
 
 class Shop extends Model
 {
@@ -128,5 +130,27 @@ class Shop extends Model
     public function supplierWarehousesStocks(): HasMany
     {
         return $this->hasMany(SupplierWarehousesStocks::class);
+    }
+
+    public function wbContentV2CardsListSizes(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            WbContentV2CardsListSize::class,
+            WbContentV2CardsList::class,
+            'shop_id',
+            'wb_cards_list_id',
+            'id',
+            'id',
+        );
+    }
+
+    public function barcodes(): array
+    {
+        $barcodes = $this->wbContentV2CardsListSizes->reduce(function (array $skus, $size) {
+            $sizeSkus = array_map('trim', explode(',', $size->skus_text));
+            return $skus = array_merge($skus, $sizeSkus);
+        }, []);
+
+        return array_unique($barcodes);
     }
 }

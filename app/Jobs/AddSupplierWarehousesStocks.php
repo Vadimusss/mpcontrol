@@ -42,18 +42,18 @@ class AddSupplierWarehousesStocks implements ShouldQueue
                 ->where('warehouse_id', $this->warehouseId)
                 ->first();
 
-            $warehouseName = $warehouse ? $warehouse->name : 'Unknown Warehouse';
-
             $stocksData->each(function ($stock) use ($warehouse) {
-                SupplierWarehousesStocks::create([
-                    'shop_id' => $this->shop->id,
-                    'date' => $this->date,
-                    'office_id' => $warehouse->office_id,
-                    'warehouse_name' => $warehouse->name,
-                    'warehouse_id' => $this->warehouseId,
-                    'barcode' => $stock['sku'],
-                    'amount' => $stock['amount'],
-                ]);
+                if ($stock['amount'] != 0) {
+                    SupplierWarehousesStocks::create([
+                        'shop_id' => $this->shop->id,
+                        'date' => $this->date,
+                        'office_id' => $warehouse->office_id,
+                        'warehouse_name' => $warehouse->name,
+                        'warehouse_id' => $this->warehouseId,
+                        'barcode' => $stock['sku'],
+                        'amount' => $stock['amount'],
+                    ]);
+                }
             });
         }
     }
