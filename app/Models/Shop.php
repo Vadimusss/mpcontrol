@@ -178,7 +178,7 @@ class Shop extends Model
                 if (!empty($barcode)) {
                     $barcodesWithMetadata[$barcode] = [
                         'nm_id' => $nmId,
-                        'vendor_code' => $vendorCode
+                        'vendor_code' => $vendorCode,
                     ];
                 }
             }

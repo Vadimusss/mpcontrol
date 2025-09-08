@@ -18,25 +18,30 @@ class AddSupplierWarehousesStocks implements ShouldQueue
     public function __construct(
         public Shop $shop,
         public string $date,
-        public array $barcodes,
+        public array $barcodesData,
         public int $warehouseId
     ) {
         $this->shop = $shop;
         $this->date = $date;
-        $this->barcodes = $barcodes;
+        $this->barcodesData = $barcodesData;
         $this->warehouseId = $warehouseId;
     }
 
     public function handle(): void
     {
         $api = new WbApiService($this->shop->apiKey->key);
-        $stocksData = $api->getApiV3Stocks($this->warehouseId, $this->barcodes);
+
+        $stringBarcodes = array_map(function ($barcode) {
+            return (string) $barcode;
+        }, array_keys($this->barcodesData));
+
+        $stocksData = $api->getApiV3Stocks($this->warehouseId, $stringBarcodes);
 
         if ($stocksData->isNotEmpty()) {
             SupplierWarehousesStocks::where('shop_id', $this->shop->id)
                 ->where('date', $this->date)
                 ->where('warehouse_id', $this->warehouseId)
-                ->whereIn('barcode', $this->barcodes)
+                ->whereIn('barcode', $stringBarcodes)
                 ->delete();
 
             $warehouse = $this->shop->warehouses()
@@ -45,12 +50,16 @@ class AddSupplierWarehousesStocks implements ShouldQueue
 
             $stocksData->each(function ($stock) use ($warehouse) {
                 if ($stock['amount'] != 0) {
+                    $barcode = $stock['sku'];
+
                     SupplierWarehousesStocks::create([
                         'shop_id' => $this->shop->id,
                         'date' => $this->date,
                         'office_id' => $warehouse->office_id,
                         'warehouse_name' => $warehouse->name,
                         'warehouse_id' => $this->warehouseId,
+                        'nm_id' => $this->barcodesData[$barcode]['nm_id'] ?? null,
+                        'vendor_code' => $this->barcodesData[$barcode]['vendor_code'] ?? null,
                         'barcode' => $stock['sku'],
                         'amount' => $stock['amount'],
                     ]);

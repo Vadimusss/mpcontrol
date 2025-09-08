@@ -13,6 +13,8 @@ class SupplierWarehousesStocks extends Model
         'office_id',
         'warehouse_name',
         'warehouse_id',
+        'nm_id',
+        'vendor_code',
         'barcode',
         'amount',
     ];

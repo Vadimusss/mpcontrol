@@ -30,7 +30,7 @@ class UpdateAllSupplierWarehousesStocks implements ShouldQueue
                 ->pluck('warehouse_id');
             
             $warehouseIds->each(function ($warehouseId) use ($shop) {
-                $barcodesChunks = array_chunk($shop->barcodes(), 1000);
+                $barcodesChunks = array_chunk($shop->barcodesWitchMetadata(), 1000, true);
                 $jobsChain = array_map(function ($chunk) use ($shop, $warehouseId) {
                     return (new AddSupplierWarehousesStocks(
                         $shop,
