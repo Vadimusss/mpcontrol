@@ -44,14 +44,6 @@ class DailyShopsDataUpdate implements ShouldQueue
         ];
 
         $shops->each(function ($shop) use ($period, $dates) {
-            $UpdateNmReportDownloadChain[] = new ProcessNmReportDownload($shop, $period);
-
-            foreach ($dates as $date) {
-                $UpdateNmReportDownloadChain[] = new UpdateWbNmReportFromTempData($shop, $date);
-            }
-
-            Bus::chain($UpdateNmReportDownloadChain)->dispatch();
-
             СheckApiKey::dispatch($shop->apiKey);
 
             AddWbApiV3Warehouses::dispatch($shop);
@@ -62,6 +54,14 @@ class DailyShopsDataUpdate implements ShouldQueue
                 new AddShopWbListGoods($shop),
                 new UpdateNsiFromGoogleSheets($shop->id),
             ])->dispatch();
+
+            $UpdateNmReportDownloadChain[] = new ProcessNmReportDownload($shop, $period);
+
+            foreach ($dates as $date) {
+                $UpdateNmReportDownloadChain[] = new UpdateWbNmReportFromTempData($shop, $date);
+            }
+
+            Bus::chain($UpdateNmReportDownloadChain)->dispatch();
         });
 
 
