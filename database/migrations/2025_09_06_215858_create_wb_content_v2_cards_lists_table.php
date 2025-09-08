@@ -35,8 +35,9 @@ return new class extends Migration
             $table->timestamp('created_at_api')->nullable();
             $table->timestamp('updated_at_api')->nullable();
             $table->timestamps();
-            
-            $table->unique(['shop_id', 'nm_id']);
+
+            $table->index(['shop_id']);
+            $table->index(['nm_id']);
         });
     }
 
