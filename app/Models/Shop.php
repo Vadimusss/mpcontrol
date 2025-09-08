@@ -153,4 +153,37 @@ class Shop extends Model
 
         return array_unique($barcodes);
     }
+
+    public function barcodesWitchMetadata(): array
+    {
+        $barcodesWithMetadata = [];
+        
+        $sizes = $this->wbContentV2CardsListSizes()
+            ->with(['cardsList' => function ($query) {
+                $query->select('id', 'nm_id', 'vendor_code');
+            }])
+            ->get(['wb_cards_sizes.id', 'wb_cards_sizes.skus_text', 'wb_cards_sizes.wb_cards_list_id']);
+        
+        foreach ($sizes as $size) {
+            if (!$size->cardsList) {
+                continue;
+            }
+            
+            $barcodes = array_map('trim', explode(',', $size->skus_text));
+            
+            $nmId = $size->cardsList->nm_id;
+            $vendorCode = $size->cardsList->vendor_code;
+            
+            foreach ($barcodes as $barcode) {
+                if (!empty($barcode)) {
+                    $barcodesWithMetadata[$barcode] = [
+                        'nm_id' => $nmId,
+                        'vendor_code' => $vendorCode
+                    ];
+                }
+            }
+        }
+        
+        return $barcodesWithMetadata;
+    }
 }
