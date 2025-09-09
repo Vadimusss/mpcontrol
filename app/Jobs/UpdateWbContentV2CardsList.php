@@ -33,16 +33,11 @@ class UpdateWbContentV2CardsList implements ShouldQueue
             $apiService = new WbApiService($this->shop->apiKey->key);
             $limit = 100;
             $cursor = ['limit' => $limit];
-            $allCards = [];
             $hasMore = true;
 
             while ($hasMore) {
                 $response = $apiService->getContentV2CardsList($cursor);
                 $cards = $response['cards'] ?? [];
-
-                if (!empty($cards)) {
-                    $allCards = array_merge($allCards, $cards);
-                }
 
                 $total = $response['cursor']['total'];
 
@@ -54,20 +49,10 @@ class UpdateWbContentV2CardsList implements ShouldQueue
                 } else {
                     $hasMore = false;
                 }
-
+                $this->processCardsBatch($cards);
                 if ($hasMore) {
                     sleep(1);
                 }
-            }
-
-            if (!empty($allCards)) {
-                $chunkSize = 300;
-                $chunks = array_chunk($allCards, $chunkSize);
-                foreach ($chunks as $chunk) {
-                    $this->processCardsBatch($chunk);
-                }
-            } else {
-                Log::warning("No cards found for shop {$this->shop->id}");
             }
         } catch (Exception $e) {
             Log::error("Error in TestWbContentV2CardsList for shop {$this->shop->id}: " . $e->getMessage());
