@@ -13,8 +13,9 @@ use App\Services\WbApiService;
 use Illuminate\Support\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
-use Exception;
+use App\Events\JobFailed;
+use App\Events\JobSucceeded;
+use Throwable;
 
 class UpdateWbContentV2CardsList implements ShouldQueue
 {
@@ -29,179 +30,178 @@ class UpdateWbContentV2CardsList implements ShouldQueue
 
     public function handle(): void
     {
-        try {
-            $apiService = new WbApiService($this->shop->apiKey->key);
-            $limit = 100;
-            $cursor = ['limit' => $limit];
-            $hasMore = true;
+        $apiService = new WbApiService($this->shop->apiKey->key);
+        $limit = 100;
+        $cursor = ['limit' => $limit];
+        $hasMore = true;
+        $addedCardsCount = 0;
+        $startTime = microtime(true);
 
-            while ($hasMore) {
-                $response = $apiService->getContentV2CardsList($cursor);
-                $cards = $response['cards'] ?? [];
+        while ($hasMore) {
+            $response = $apiService->getContentV2CardsList($cursor);
+            $cards = $response['cards'] ?? [];
 
-                $total = $response['cursor']['total'];
+            $total = $response['cursor']['total'];
 
-                if ($total >= $limit) {
-                    $cursor['nmID'] = $response['cursor']['nmID'];
-                    $cursor['updatedAt'] = $response['cursor']['updatedAt'];
-                    $cursor['limit'] = $limit;
-                    $hasMore = true;
-                } else {
-                    $hasMore = false;
-                }
-                $this->processCardsBatch($cards);
-                if ($hasMore) {
-                    sleep(1);
-                }
+            if ($total >= $limit) {
+                $cursor['nmID'] = $response['cursor']['nmID'];
+                $cursor['updatedAt'] = $response['cursor']['updatedAt'];
+                $cursor['limit'] = $limit;
+                $hasMore = true;
+            } else {
+                $hasMore = false;
             }
-        } catch (Exception $e) {
-            Log::error("Error in TestWbContentV2CardsList for shop {$this->shop->id}: " . $e->getMessage());
-            throw $e;
+
+            $this->processCardsBatch($cards);
+            $addedCardsCount += count($cards);
+
+            if ($hasMore) {
+                sleep(1);
+            }
         }
+
+        $message = $message = "{$addedCardsCount} карточек магазина {$this->shop->name} обработаны!";
+        $duration = microtime(true) - $startTime;
+        JobSucceeded::dispatch('UpdateWbContentV2CardsList', $duration, $message);
     }
 
-    protected function processCardsBatch(array $chunk): void
+    protected function processCardsBatch(array $cards): void
     {
-        try {
-            $nmIds = array_column($chunk, 'nmID');
+        $nmIds = array_column($cards, 'nmID');
 
-            WbContentV2CardsList::where('shop_id', $this->shop->id)
-                ->whereIn('nm_id', $nmIds)
-                ->delete();
+        WbContentV2CardsList::where('shop_id', $this->shop->id)
+            ->whereIn('nm_id', $nmIds)
+            ->delete();
 
-            $insertData = [];
+        $insertData = [];
 
-            foreach ($chunk as $cardData) {
-                $nmId = $cardData['nmID'];
+        foreach ($cards as $cardData) {
+            $nmId = $cardData['nmID'];
 
-                $createdAtApi = $cardData['createdAt'] ?? null;
-                $updatedAtApi = $cardData['updatedAt'] ?? null;
+            $createdAtApi = $cardData['createdAt'] ?? null;
+            $updatedAtApi = $cardData['updatedAt'] ?? null;
 
-                if ($createdAtApi) {
-                    $createdAtApi = Carbon::parse($createdAtApi)->format('Y-m-d H:i:s');
-                }
-
-                if ($updatedAtApi) {
-                    $updatedAtApi = Carbon::parse($updatedAtApi)->format('Y-m-d H:i:s');
-                }
-
-                $insertData[] = [
-                    'shop_id' => $this->shop->id,
-                    'nm_id' => $nmId,
-                    'imt_id' => $cardData['imtID'] ?? null,
-                    'nm_uuid' => $cardData['nmUUID'] ?? null,
-                    'subject_id' => $cardData['subjectID'] ?? null,
-                    'subject_name' => $cardData['subjectName'] ?? null,
-                    'vendor_code' => $cardData['vendorCode'] ?? null,
-                    'brand' => $cardData['brand'] ?? null,
-                    'title' => $cardData['title'] ?? null,
-                    'description' => $cardData['description'] ?? null,
-                    'video' => $cardData['video'] ?? null,
-                    'need_kiz' => $cardData['needKiz'] ?? false,
-                    'wholesale_enabled' => $cardData['wholesaleEnabled'] ?? false,
-                    'wholesale_quantum' => $cardData['wholesaleQuantum'] ?? null,
-                    'created_at_api' => $createdAtApi,
-                    'updated_at_api' => $updatedAtApi,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+            if ($createdAtApi) {
+                $createdAtApi = Carbon::parse($createdAtApi)->format('Y-m-d H:i:s');
             }
 
-            if (!empty($insertData)) {
-                WbContentV2CardsList::insert($insertData);
+            if ($updatedAtApi) {
+                $updatedAtApi = Carbon::parse($updatedAtApi)->format('Y-m-d H:i:s');
+            }
 
-                $insertedCards = WbContentV2CardsList::where('shop_id', $this->shop->id)
-                    ->whereIn('nm_id', $nmIds)
-                    ->get()
-                    ->keyBy('nm_id');
+            $insertData[] = [
+                'shop_id' => $this->shop->id,
+                'nm_id' => $nmId,
+                'imt_id' => $cardData['imtID'] ?? null,
+                'nm_uuid' => $cardData['nmUUID'] ?? null,
+                'subject_id' => $cardData['subjectID'] ?? null,
+                'subject_name' => $cardData['subjectName'] ?? null,
+                'vendor_code' => $cardData['vendorCode'] ?? null,
+                'brand' => $cardData['brand'] ?? null,
+                'title' => $cardData['title'] ?? null,
+                'description' => $cardData['description'] ?? null,
+                'video' => $cardData['video'] ?? null,
+                'need_kiz' => $cardData['needKiz'] ?? false,
+                'wholesale_enabled' => $cardData['wholesaleEnabled'] ?? false,
+                'wholesale_quantum' => $cardData['wholesaleQuantum'] ?? null,
+                'created_at_api' => $createdAtApi,
+                'updated_at_api' => $updatedAtApi,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
 
-                $photosData = [];
-                $characteristicsData = [];
-                $sizesData = [];
-                $tagsData = [];
-                $dimensionsData = [];
+        if (!empty($insertData)) {
+            WbContentV2CardsList::insert($insertData);
 
-                foreach ($chunk as $cardData) {
-                    $nmId = $cardData['nmID'];
-                    $card = $insertedCards[$nmId] ?? null;
+            $insertedCards = WbContentV2CardsList::where('shop_id', $this->shop->id)
+                ->whereIn('nm_id', $nmIds)
+                ->get()
+                ->keyBy('nm_id');
 
-                    if ($card) {
-                        if (isset($cardData['photos'])) {
-                            foreach ($cardData['photos'] as $photoData) {
-                                $photosData[] = [
-                                    'wb_cards_list_id' => $card->id,
-                                    'big' => $photoData['big'] ?? null,
-                                    'c246x328' => $photoData['c246x328'] ?? null,
-                                    'c516x688' => $photoData['c516x688'] ?? null,
-                                    'square' => $photoData['square'] ?? null,
-                                    'tm' => $photoData['tm'] ?? null,
-                                    'created_at' => now(),
-                                    'updated_at' => now(),
-                                ];
-                            }
-                        }
+            $photosData = [];
+            $characteristicsData = [];
+            $sizesData = [];
+            $tagsData = [];
+            $dimensionsData = [];
 
-                        foreach ($cardData['characteristics'] ?? [] as $charData) {
-                            $values = $charData['value'] ?? [];
-                            $valuesText = is_array($values) ? implode(', ', $values) : (string)$values;
+            foreach ($cards as $cardData) {
+                $nmId = $cardData['nmID'];
+                $card = $insertedCards[$nmId] ?? null;
 
-                            $characteristicsData[] = [
+                if ($card) {
+                    if (isset($cardData['photos'])) {
+                        foreach ($cardData['photos'] as $photoData) {
+                            $photosData[] = [
                                 'wb_cards_list_id' => $card->id,
-                                'characteristic_id' => $charData['id'] ?? null,
-                                'name' => $charData['name'] ?? '',
-                                'values_text' => $valuesText,
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ];
-                        }
-
-                        foreach ($cardData['sizes'] ?? [] as $sizeData) {
-                            $skus = $sizeData['skus'] ?? [];
-                            $skusText = implode(', ', $skus);
-
-                            $sizesData[] = [
-                                'wb_cards_list_id' => $card->id,
-                                'chrt_id' => $sizeData['chrtID'] ?? null,
-                                'tech_size' => $sizeData['techSize'] ?? null,
-                                'wb_size' => $sizeData['wbSize'] ?? null,
-                                'price' => $sizeData['price'] ?? null,
-                                'skus_text' => $skusText,
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ];
-                        }
-
-                        foreach ($cardData['tags'] ?? [] as $tagData) {
-                            $tagsData[] = [
-                                'wb_cards_list_id' => $card->id,
-                                'tag_id' => $tagData['id'] ?? null,
-                                'name' => $tagData['name'] ?? '',
-                                'color' => $tagData['color'] ?? null,
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ];
-                        }
-
-                        if (!empty($cardData['dimensions'])) {
-                            $dimensionsData[] = [
-                                'wb_cards_list_id' => $card->id,
-                                'width' => $cardData['dimensions']['width'] ?? null,
-                                'height' => $cardData['dimensions']['height'] ?? null,
-                                'length' => $cardData['dimensions']['length'] ?? null,
-                                'weight_brutto' => $cardData['dimensions']['weightBrutto'] ?? null,
-                                'is_valid' => $cardData['dimensions']['isValid'] ?? false,
+                                'big' => $photoData['big'] ?? null,
+                                'c246x328' => $photoData['c246x328'] ?? null,
+                                'c516x688' => $photoData['c516x688'] ?? null,
+                                'square' => $photoData['square'] ?? null,
+                                'tm' => $photoData['tm'] ?? null,
                                 'created_at' => now(),
                                 'updated_at' => now(),
                             ];
                         }
                     }
-                }
 
-                $this->insertRelatedData($photosData, $characteristicsData, $sizesData, $tagsData, $dimensionsData);
+                    foreach ($cardData['characteristics'] ?? [] as $charData) {
+                        $values = $charData['value'] ?? [];
+                        $valuesText = is_array($values) ? implode(', ', $values) : (string)$values;
+
+                        $characteristicsData[] = [
+                            'wb_cards_list_id' => $card->id,
+                            'characteristic_id' => $charData['id'] ?? null,
+                            'name' => $charData['name'] ?? '',
+                            'values_text' => $valuesText,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+
+                    foreach ($cardData['sizes'] ?? [] as $sizeData) {
+                        $skus = $sizeData['skus'] ?? [];
+                        $skusText = implode(', ', $skus);
+
+                        $sizesData[] = [
+                            'wb_cards_list_id' => $card->id,
+                            'chrt_id' => $sizeData['chrtID'] ?? null,
+                            'tech_size' => $sizeData['techSize'] ?? null,
+                            'wb_size' => $sizeData['wbSize'] ?? null,
+                            'price' => $sizeData['price'] ?? null,
+                            'skus_text' => $skusText,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+
+                    foreach ($cardData['tags'] ?? [] as $tagData) {
+                        $tagsData[] = [
+                            'wb_cards_list_id' => $card->id,
+                            'tag_id' => $tagData['id'] ?? null,
+                            'name' => $tagData['name'] ?? '',
+                            'color' => $tagData['color'] ?? null,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+
+                    if (!empty($cardData['dimensions'])) {
+                        $dimensionsData[] = [
+                            'wb_cards_list_id' => $card->id,
+                            'width' => $cardData['dimensions']['width'] ?? null,
+                            'height' => $cardData['dimensions']['height'] ?? null,
+                            'length' => $cardData['dimensions']['length'] ?? null,
+                            'weight_brutto' => $cardData['dimensions']['weightBrutto'] ?? null,
+                            'is_valid' => $cardData['dimensions']['isValid'] ?? false,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
             }
-        } catch (Exception $e) {
-            Log::error("Error processing chunk for shop {$this->shop->id}: " . $e->getMessage());
-            throw $e;
+
+            $this->insertRelatedData($photosData, $characteristicsData, $sizesData, $tagsData, $dimensionsData);
         }
     }
 
@@ -212,28 +212,29 @@ class UpdateWbContentV2CardsList implements ShouldQueue
         array $tagsData,
         array $dimensionsData
     ): void {
-        try {
-            if (!empty($photosData)) {
-                WbContentV2CardsListPhoto::insert($photosData);
-            }
-
-            if (!empty($characteristicsData)) {
-                WbContentV2CardsListCharacteristic::insert($characteristicsData);
-            }
-
-            if (!empty($sizesData)) {
-                WbContentV2CardsListSize::insert($sizesData);
-            }
-
-            if (!empty($tagsData)) {
-                WbContentV2CardsListTag::insert($tagsData);
-            }
-
-            if (!empty($dimensionsData)) {
-                WbContentV2CardsListDimension::insert($dimensionsData);
-            }
-        } catch (Exception $e) {
-            Log::error("Error inserting related data: " . $e->getMessage());
+        if (!empty($photosData)) {
+            WbContentV2CardsListPhoto::insert($photosData);
         }
+
+        if (!empty($characteristicsData)) {
+            WbContentV2CardsListCharacteristic::insert($characteristicsData);
+        }
+
+        if (!empty($sizesData)) {
+            WbContentV2CardsListSize::insert($sizesData);
+        }
+
+        if (!empty($tagsData)) {
+            WbContentV2CardsListTag::insert($tagsData);
+        }
+
+        if (!empty($dimensionsData)) {
+            WbContentV2CardsListDimension::insert($dimensionsData);
+        }
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        JobFailed::dispatch('UpdateWbContentV2CardsList', $exception);
     }
 }

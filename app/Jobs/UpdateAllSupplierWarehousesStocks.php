@@ -46,6 +46,6 @@ class UpdateAllSupplierWarehousesStocks implements ShouldQueue
 
     public function failed(?Throwable $exception): void
     {
-        JobFailed::dispatch('UpdateSupplierWarehousesStocks', $exception);
+        JobFailed::dispatch('UpdateAllSupplierWarehousesStocks', $exception);
     }
 }
