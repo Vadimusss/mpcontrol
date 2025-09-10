@@ -76,7 +76,7 @@ class MainViewHandler implements ViewHandler
             $salesByWarehouse,
             $dates,
             $aacData,
-            $aucData,
+            $aucData
         ) {
             $conversionMap = [];
             foreach ($good->wbNmReportDetailHistory as $conversionData) {
@@ -175,10 +175,18 @@ class MainViewHandler implements ViewHandler
                 if (is_numeric($row->buyouts_count)) $totals['buyouts_count'] += $row->buyouts_count;
                 if (is_numeric($buyoutsProfit)) $totals['buyouts_profit'] += $buyoutsProfit;
                 if (is_numeric($row->open_card_count)) $totals['open_card_count'] += $row->open_card_count;
-                if (is_numeric($salesData[$row->date]['no_ad_clicks'])) $totals['no_ad_clicks'] += $salesData[$row->date]['no_ad_clicks'];
-                if (is_numeric($salesData[$row->date]['add_to_cart_count'])) $totals['add_to_cart_count'] += $salesData[$row->date]['add_to_cart_count'];
-                if (is_numeric($salesData[$row->date]['add_to_cart_conversion'])) $totals['add_to_cart_conversion'] += $salesData[$row->date]['add_to_cart_conversion'];
-                if (is_numeric($salesData[$row->date]['cart_to_order_conversion'])) $totals['cart_to_order_conversion'] += $salesData[$row->date]['cart_to_order_conversion'];
+                
+                // Рассчитываем значения напрямую из $row и conversionMap, а не из salesData
+                $noAdClicks = ($row->aac_clicks != 0 || $row->auc_clicks != 0) ? $row->open_card_count - ($row->aac_clicks + $row->auc_clicks) : 0;
+                if (is_numeric($noAdClicks)) $totals['no_ad_clicks'] += $noAdClicks;
+                
+                if (is_numeric($row->add_to_cart_count)) $totals['add_to_cart_count'] += $row->add_to_cart_count;
+                
+                // Используем данные из conversionMap для конверсий
+                $addToCartConversion = $conversion['add_to_cart_conversion'] ?? 0;
+                $cartToOrderConversion = $conversion['cart_to_order_conversion'] ?? 0;
+                if (is_numeric($addToCartConversion)) $totals['add_to_cart_conversion'] += $addToCartConversion;
+                if (is_numeric($cartToOrderConversion)) $totals['cart_to_order_conversion'] += $cartToOrderConversion;
             }
 
             // Форматируем итоги
