@@ -5,6 +5,7 @@ namespace App\Jobs;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
+use Illuminate\Support\Facades\DB;
 use App\Models\Good;
 use App\Models\Shop;
 use App\Models\SalesFunnel;
@@ -46,63 +47,40 @@ class GenerateSalesFunnelReport implements ShouldQueue
             'buyout_percent'
         )->where('dt', '=', $this->day)->get();
 
-        $advCostsSumByGoodId = $this->shop->wbAdvV2FullstatsWbAdverts()
-            ->with(['wbAdvV2FullstatsDays.wbAdvV2FullstatsApps.wbAdvV2FullstatsProducts' => function ($query) {
-                $query->where('date', $this->day)
-                    ->select('wb_adv_fs_app_id', 'good_id', 'sum');
-            }])->get()
-            ->pluck('wbAdvV2FullstatsDays')->collapse()
-            ->pluck('wbAdvV2FullstatsApps')->collapse()
-            ->pluck('wbAdvV2FullstatsProducts')->collapse()->groupBy('good_id')
-            ->map(function ($products) {
-                return round($products->sum('sum'));
-            })
+        $advCostsSumByGoodId = DB::table('wb_adv_fs_products as p')
+            ->join('wb_adv_fs_apps as a', 'p.wb_adv_fs_app_id', '=', 'a.id')
+            ->join('wb_adv_fs_days as d', 'a.wb_adv_fs_day_id', '=', 'd.id')
+            ->join('wb_adv_v2_fullstats_wb_adverts as adv', 'd.wb_adv_v2_fullstats_wb_advert_id', '=', 'adv.id')
+            ->where('adv.shop_id', $this->shop->id)
+            ->where('p.date', $this->day)
+            ->whereNotNull('p.good_id')
+            ->select('p.good_id', DB::raw('ROUND(SUM(p.sum)) as total_sum'))
+            ->groupBy('p.good_id')
+            ->pluck('total_sum', 'good_id')
             ->toArray();
 
-        $advDataByType = $this->shop->wbAdvV1PromotionCounts()
-            ->whereIn('type', [8, 9])
-            ->with(['wbAdvV2FullstatsWbAdverts.wbAdvV2FullstatsDays.wbAdvV2FullstatsApps.wbAdvV2FullstatsProducts' => function ($query) {
-                $query->where('date', $this->day)
-                    ->select('wb_adv_fs_app_id', 'good_id', 'sum', 'views', 'clicks', 'orders');
-            }])->get()
-            ->groupBy('type')
-            ->map(function ($typeGroup, $type) {
-                return $typeGroup->flatMap(function ($item) {
-                    return $item->wbAdvV2FullstatsWbAdverts;
-                })
-                    ->flatMap(function ($advert) {
-                        return $advert->wbAdvV2FullstatsDays;
-                    })
-                    ->flatMap(function ($day) {
-                        return $day->wbAdvV2FullstatsApps;
-                    })
-                    ->flatMap(function ($app) {
-                        return $app->wbAdvV2FullstatsProducts;
-                    })
-                    ->groupBy('good_id')
-                    ->map(function ($products) use ($type) {
-                        $sum = $products->sum('sum');
-                        $views = $products->sum('views');
-                        return [
-                            'sum' => round($sum),
-                            'views' => $views,
-                            'clicks' => $products->sum('clicks'),
-                            'orders' => $products->sum('orders'),
-                            'cpm' => $views > 0 ? round(($sum / $views) * 1000, 2) : 0
-                        ];
-                    });
-            });
+        $aacData = $this->getAdvDataByType(8);
+        $aucData = $this->getAdvDataByType(9);
 
-        $aacData = $advDataByType->get(8, collect())->toArray();
-        $aucData = $advDataByType->get(9, collect())->toArray();
-
-        $WbV1SupplierOrders = $this->shop->WbV1SupplierOrders()->select('nm_id', 'finished_price', 'price_with_disc')->where('date', 'like', "%{$this->day}%")->get();
-
-        $avgPricesByDay = $WbV1SupplierOrders->groupBy('nm_id')->reduce(function ($carry, $day, $nmId) {
-            $carry[$nmId]['finished_price'] = round($day->avg('finished_price'), 2);
-            $carry[$nmId]['price_with_disc'] = round($day->avg('price_with_disc'), 2);
-            return $carry;
-        }, []);
+        $avgPricesByDay = DB::table('wb_v1_supplier_orders')
+            ->where('shop_id', $this->shop->id)
+            ->where('date', 'like', "%{$this->day}%")
+            ->select(
+                'nm_id',
+                DB::raw('ROUND(AVG(finished_price), 2) as finished_price'),
+                DB::raw('ROUND(AVG(price_with_disc), 2) as price_with_disc')
+            )
+            ->groupBy('nm_id')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [
+                    $item->nm_id => [
+                        'finished_price' => (float)$item->finished_price,
+                        'price_with_disc' => (float)$item->price_with_disc
+                    ]
+                ];
+            })
+            ->toArray();
 
         $report = $WbNmReportDetailHistory->map(function ($row) use ($advCostsSumByGoodId, $aacData, $aucData, $avgPricesByDay) {
             $row->advertising_costs = array_key_exists($row->good_id, $advCostsSumByGoodId) ? $advCostsSumByGoodId[$row->good_id] : 0;
@@ -166,5 +144,40 @@ class GenerateSalesFunnelReport implements ShouldQueue
     public function failed(?Throwable $exception): void
     {
         JobFailed::dispatch('GenerateSalesFunnelReport', $exception);
+    }
+
+    private function getAdvDataByType(int $type): array
+    {
+        return DB::table('wb_adv_fs_products as p')
+            ->join('wb_adv_fs_apps as a', 'p.wb_adv_fs_app_id', '=', 'a.id')
+            ->join('wb_adv_fs_days as d', 'a.wb_adv_fs_day_id', '=', 'd.id')
+            ->join('wb_adv_v2_fullstats_wb_adverts as adv', 'd.wb_adv_v2_fullstats_wb_advert_id', '=', 'adv.id')
+            ->join('wb_adv_v1_promotion_counts as pc', 'adv.advert_id', '=', 'pc.advert_id')
+            ->where('adv.shop_id', $this->shop->id)
+            ->where('p.date', $this->day)
+            ->where('pc.type', $type)
+            ->whereNotNull('p.good_id')
+            ->select(
+                'p.good_id',
+                DB::raw('ROUND(SUM(p.sum)) as sum'),
+                DB::raw('SUM(p.views) as views'),
+                DB::raw('SUM(p.clicks) as clicks'),
+                DB::raw('SUM(p.orders) as orders'),
+                DB::raw('CASE WHEN SUM(p.views) > 0 THEN ROUND((SUM(p.sum) / SUM(p.views)) * 1000, 2) ELSE 0 END as cpm')
+            )
+            ->groupBy('p.good_id')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [
+                    $item->good_id => [
+                        'sum' => (int)$item->sum,
+                        'views' => (int)$item->views,
+                        'clicks' => (int)$item->clicks,
+                        'orders' => (int)$item->orders,
+                        'cpm' => (float)$item->cpm
+                    ]
+                ];
+            })
+            ->toArray();
     }
 }
