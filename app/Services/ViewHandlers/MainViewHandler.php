@@ -76,7 +76,7 @@ class MainViewHandler implements ViewHandler
             $salesByWarehouse,
             $dates,
             $aacData,
-            $aucData
+            $aucData,
         ) {
             $conversionMap = [];
             foreach ($good->wbNmReportDetailHistory as $conversionData) {
