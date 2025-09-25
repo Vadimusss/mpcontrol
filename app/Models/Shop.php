@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use App\Models\WbContentV2CardsList;
-use App\Models\WbContentV2CardsListSize;
 
 class Shop extends Model
 {
@@ -112,6 +110,11 @@ class Shop extends Model
         return $this->hasMany(WbAdvV2FullstatsWbAdvert::class);
     }
 
+    public function wbAdvV3FullstatsWbAdverts(): HasMany
+    {
+        return $this->hasMany(WbAdvV3FullstatsWbAdvert::class);
+    }
+
     public function nsis(): HasManyThrough
     {
         return $this->hasManyThrough(Nsi::class, Good::class);
@@ -130,6 +133,16 @@ class Shop extends Model
     public function supplierWarehousesStocks(): HasMany
     {
         return $this->hasMany(SupplierWarehousesStocks::class);
+    }
+
+    public function wbAdvV1PromotionAdverts(): HasMany
+    {
+        return $this->hasMany(WbAdvV1PromotionAdverts::class);
+    }
+
+    public function wbAdvV0AuctionAdvert(): HasMany
+    {
+        return $this->hasMany(WbAdvV0AuctionAdvert::class);
     }
 
     public function wbContentV2CardsListSizes(): HasManyThrough
@@ -157,23 +170,23 @@ class Shop extends Model
     public function barcodesWitchMetadata(): array
     {
         $barcodesWithMetadata = [];
-        
+
         $sizes = $this->wbContentV2CardsListSizes()
             ->with(['cardsList' => function ($query) {
                 $query->select('id', 'nm_id', 'vendor_code');
             }])
             ->get(['wb_cards_sizes.id', 'wb_cards_sizes.skus_text', 'wb_cards_sizes.wb_cards_list_id']);
-        
+
         foreach ($sizes as $size) {
             if (!$size->cardsList) {
                 continue;
             }
-            
+
             $barcodes = array_map('trim', explode(',', $size->skus_text));
-            
+
             $nmId = $size->cardsList->nm_id;
             $vendorCode = $size->cardsList->vendor_code;
-            
+
             foreach ($barcodes as $barcode) {
                 if (!empty($barcode)) {
                     $barcodesWithMetadata[$barcode] = [
@@ -183,7 +196,7 @@ class Shop extends Model
                 }
             }
         }
-        
+
         return $barcodesWithMetadata;
     }
 }
