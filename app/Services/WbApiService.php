@@ -256,11 +256,58 @@ class WbApiService
         ];
 
         $response = Http::withToken($this->apiKey)
+            ->timeout(90)
+            ->connectTimeout(60)
             ->retry(3, 1000)
             ->post('https://content-api.wildberries.ru/content/v2/get/cards/list', $payload);
 
         $response->throw();
 
         return $response->json();
+    }
+
+    public function getWbAdvV3Fullstats(array $ids, string $beginDate, string $endDate)
+    {
+        $response = Http::withToken($this->apiKey)
+            ->timeout(90)
+            ->connectTimeout(60)
+            ->retry(3, 1000)
+            ->get('https://advert-api.wildberries.ru/adv/v3/fullstats', [
+                'ids' => implode(',', $ids),
+                'beginDate' => $beginDate,
+                'endDate' => $endDate
+            ]);
+
+        $response->throw();
+
+        return $response->collect();
+    }
+
+    public function getWbAdvV1PromotionAdverts(array $advertIds)
+    {
+        $response = Http::withToken($this->apiKey)
+            ->timeout(90)
+            ->connectTimeout(60)
+            ->retry(3, 1000)
+            ->post('https://advert-api.wildberries.ru/adv/v1/promotion/adverts?order=id', $advertIds);
+
+        $response->throw();
+
+        return $response->collect();
+    }
+
+    public function getWbAdvV0AuctionAdvert(array $advertIds)
+    {
+        $response = Http::withToken($this->apiKey)
+            ->timeout(90)
+            ->connectTimeout(60)
+            ->retry(3, 1000)
+            ->get('https://advert-api.wildberries.ru/adv/v0/auction/adverts', [
+                'ids' => implode(',', $advertIds)
+            ]);
+
+        $response->throw();
+
+        return $response->collect('adverts');
     }
 }
