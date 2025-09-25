@@ -50,16 +50,11 @@ class DailyWbApiDataUpdate implements ShouldQueue
                 ->pluck('advert_id')
                 ->toArray();
 
-            $fullstatsPayload = array_map(function ($advertId) use ($date) {
-                return [
-                    'id' => $advertId,
-                    'dates' => [$date],
-                ];
-            }, $advertIds);
-            $fullstatsChunks = array_chunk($fullstatsPayload, 100);
-            $fullstatsJobs = Arr::map($fullstatsChunks, function (array $chunk, int $index) use ($shop) {
-                return (new AddWbAdvV2Fullstats($shop, $chunk))->delay(60);
-            });
+            $fullstatsChunks = array_chunk($advertIds, 100);
+            $fullstatsJobs = array_map(function ($chunk) use ($shop, $date) {
+                return (new AddWbAdvV3Fullstats($shop, $chunk, $date))->delay(60);
+            }, $fullstatsChunks);
+
             $fullstatsJobs = Arr::prepend($fullstatsJobs, new AddWbAdvV1PromotionCount($shop));
 
             $shopGoods = $shop->goods();

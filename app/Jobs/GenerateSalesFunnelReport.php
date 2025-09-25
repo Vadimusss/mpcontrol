@@ -47,10 +47,10 @@ class GenerateSalesFunnelReport implements ShouldQueue
             'buyout_percent'
         )->where('dt', '=', $this->day)->get();
 
-        $advCostsSumByGoodId = DB::table('wb_adv_fs_products as p')
-            ->join('wb_adv_fs_apps as a', 'p.wb_adv_fs_app_id', '=', 'a.id')
-            ->join('wb_adv_fs_days as d', 'a.wb_adv_fs_day_id', '=', 'd.id')
-            ->join('wb_adv_v2_fullstats_wb_adverts as adv', 'd.wb_adv_v2_fullstats_wb_advert_id', '=', 'adv.id')
+        $advCostsSumByGoodId = DB::table('wb_adv_v3_fs_products as p')
+            ->join('wb_adv_v3_fs_apps as a', 'p.wb_adv_v3_fs_app_id', '=', 'a.id')
+            ->join('wb_adv_v3_fs_days as d', 'a.wb_adv_v3_fs_day_id', '=', 'd.id')
+            ->join('wb_adv_v3_fullstats_wb_adverts as adv', 'd.wb_adv_v3_fullstats_wb_advert_id', '=', 'adv.id')
             ->where('adv.shop_id', $this->shop->id)
             ->where('p.date', $this->day)
             ->whereNotNull('p.good_id')
@@ -148,10 +148,10 @@ class GenerateSalesFunnelReport implements ShouldQueue
 
     private function getAdvDataByType(int $type): array
     {
-        return DB::table('wb_adv_fs_products as p')
-            ->join('wb_adv_fs_apps as a', 'p.wb_adv_fs_app_id', '=', 'a.id')
-            ->join('wb_adv_fs_days as d', 'a.wb_adv_fs_day_id', '=', 'd.id')
-            ->join('wb_adv_v2_fullstats_wb_adverts as adv', 'd.wb_adv_v2_fullstats_wb_advert_id', '=', 'adv.id')
+        return DB::table('wb_adv_v3_fs_products as p')
+            ->join('wb_adv_v3_fs_apps as a', 'p.wb_adv_v3_fs_app_id', '=', 'a.id')
+            ->join('wb_adv_v3_fs_days as d', 'a.wb_adv_v3_fs_day_id', '=', 'd.id')
+            ->join('wb_adv_v3_fullstats_wb_adverts as adv', 'd.wb_adv_v3_fullstats_wb_advert_id', '=', 'adv.id')
             ->join('wb_adv_v1_promotion_counts as pc', 'adv.advert_id', '=', 'pc.advert_id')
             ->where('adv.shop_id', $this->shop->id)
             ->where('p.date', $this->day)
