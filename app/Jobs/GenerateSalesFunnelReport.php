@@ -148,7 +148,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
 
     private function getAdvDataByType(int $type): array
     {
-        return DB::table('wb_adv_v3_fs_products as p')
+        $query = DB::table('wb_adv_v3_fs_products as p')
             ->join('wb_adv_v3_fs_apps as a', 'p.wb_adv_v3_fs_app_id', '=', 'a.id')
             ->join('wb_adv_v3_fs_days as d', 'a.wb_adv_v3_fs_day_id', '=', 'd.id')
             ->join('wb_adv_v3_fullstats_wb_adverts as adv', 'd.wb_adv_v3_fullstats_wb_advert_id', '=', 'adv.id')
@@ -156,8 +156,20 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->where('adv.shop_id', $this->shop->id)
             ->where('p.date', $this->day)
             ->where('pc.type', $type)
-            ->whereNotNull('p.good_id')
-            ->select(
+            ->whereNotNull('p.good_id');
+
+        if ($type === 8) {
+            $query->join('wb_adv_v1_promotion_adverts as pa', 'adv.advert_id', '=', 'pa.advert_id')
+                  ->join('wb_adv_v1_promo_nms as pn', 'pa.id', '=', 'pn.wb_adv_v1_promotion_adverts_id')
+                  ->where('pn.nm', '=', DB::raw('p.nm_id'));
+        } elseif ($type === 9) {
+            $query->join('wb_adv_v0_auction_adverts as aa', function($join) {
+                $join->on('adv.advert_id', '=', 'aa.advert_id')
+                     ->on('aa.nm_id', '=', DB::raw('p.nm_id'));
+            });
+        }
+
+        return $query->select(
                 'p.good_id',
                 DB::raw('ROUND(SUM(p.sum)) as sum'),
                 DB::raw('SUM(p.views) as views'),
