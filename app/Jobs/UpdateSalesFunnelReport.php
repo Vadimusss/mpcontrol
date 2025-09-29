@@ -49,18 +49,12 @@ class UpdateSalesFunnelReport implements ShouldQueue
                     ->pluck('advert_id')
                     ->toArray();
 
-                $fullstatsApiPayload = array_map(function ($advertId) use ($date) {
-                    return [
-                        'id' => $advertId,
-                        'dates' => [$date],
-                    ];
-                }, $advertIds);
 
-                $fullstatsApiChunks = array_chunk($fullstatsApiPayload, 100);
+                $fullstatsChunks = array_chunk($advertIds, 100);
 
-                $fullstatsJobs = Arr::map($fullstatsApiChunks, function (array $chunk, int $index) use ($shop) {
-                    return (new AddWbAdvV2Fullstats($shop, $chunk))->delay(60);
-                });
+                $fullstatsJobs = array_map(function ($chunk) use ($shop, $date) {
+                    return (new AddWbAdvV3Fullstats($shop, $chunk, $date))->delay(60);
+                }, $fullstatsChunks);
 
                 $shopFullUpdateJobs[] = Bus::batch([array_merge(
                     $fullstatsJobs,
