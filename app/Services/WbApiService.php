@@ -107,7 +107,10 @@ class WbApiService
 
     public function getApiV1SupplierStocks(string $dateFrom)
     {
-        $response = Http::withToken($this->apiKey)->retry([1000, 5000, 10000, 15000])->get('https://statistics-api.wildberries.ru/api/v1/supplier/stocks', [
+        $response = Http::withToken($this->apiKey)
+            ->timeout(90)
+            ->connectTimeout(60)
+            ->retry([1000, 5000, 10000, 15000])->get('https://statistics-api.wildberries.ru/api/v1/supplier/stocks', [
             'dateFrom' => $dateFrom,
         ]);
 
@@ -133,6 +136,8 @@ class WbApiService
     public function getAdvV1PromotionCount()
     {
         $response = Http::withToken($this->apiKey)
+            ->timeout(90)
+            ->connectTimeout(60)
             ->retry(3, 1000)
             ->get('https://advert-api.wildberries.ru/adv/v1/promotion/count');
 
