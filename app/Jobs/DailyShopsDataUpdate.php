@@ -10,6 +10,8 @@ use App\Jobs\ProcessNmReportDownload;
 use App\Jobs\UpdateWbNmReportFromTempData;
 use App\Jobs\AddWbApiV3Warehouses;
 use App\Jobs\UpdateWbContentV2CardsList;
+use App\Jobs\UpdateWbAdvV0AuctionAdvert;
+use App\Jobs\UpdateWbAdvV1PromotionAdverts;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
@@ -47,6 +49,10 @@ class DailyShopsDataUpdate implements ShouldQueue
             СheckApiKey::dispatch($shop->apiKey);
 
             AddWbApiV3Warehouses::dispatch($shop);
+
+            UpdateWbAdvV0AuctionAdvert::dispatch($shop);
+
+            UpdateWbAdvV1PromotionAdverts::dispatch($shop);
 
             UpdateWbContentV2CardsList::dispatch($shop);
 
