@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use Illuminate\Support\Facades\DB;
+use App\Events\JobSucceeded;
 use App\Events\JobFailed;
 use Throwable;
 
@@ -22,6 +23,8 @@ class UpdateStocksAndOrdersReport implements ShouldQueue
 
     public function handle(): void
     {
+        $startTime = microtime(true);
+
         $stocksAndOrdersReport = $this->shop->stocksAndOrders()->
             select('shop_id', 'barcode', 'supplier_article', 'nm_id', 'warehouse_name', 'date', 'quantity', 'orders_count')->
                 where('date', '=', $this->date)->get();
@@ -48,6 +51,10 @@ class UpdateStocksAndOrdersReport implements ShouldQueue
         each(function ($chunk) {
             DB::table('stocks_and_orders')->insert($chunk->toArray());
         });
+
+        $message = $message = "Остатки и продажи магазина {$this->shop->name} за {$this->date} обновлены!";
+        $duration = microtime(true) - $startTime;
+        JobSucceeded::dispatch('UpdateStocksAndOrdersReport', $duration, $message);
     }
 
     public function failed(?Throwable $exception): void
