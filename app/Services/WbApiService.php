@@ -93,7 +93,11 @@ class WbApiService
 
     public function getApiV1SupplierOrders(string $dateFrom, $flag = 1)
     {
-        $response = Http::withToken($this->apiKey)->retry(3, 60000)->get('https://statistics-api.wildberries.ru/api/v1/supplier/orders', [
+        $response = Http::withToken($this->apiKey)
+        ->timeout(90)
+        ->connectTimeout(60)
+        ->retry(3, 60000)
+        ->get('https://statistics-api.wildberries.ru/api/v1/supplier/orders', [
             'dateFrom' => $dateFrom,
             'flag' =>  $flag,
         ]);
@@ -110,7 +114,8 @@ class WbApiService
         $response = Http::withToken($this->apiKey)
             ->timeout(90)
             ->connectTimeout(60)
-            ->retry([1000, 5000, 10000, 15000])->get('https://statistics-api.wildberries.ru/api/v1/supplier/stocks', [
+            ->retry([1000, 5000, 10000, 15000])
+            ->get('https://statistics-api.wildberries.ru/api/v1/supplier/stocks', [
             'dateFrom' => $dateFrom,
         ]);
 
