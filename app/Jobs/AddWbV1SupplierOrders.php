@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Bus\Batchable;
+use App\Events\JobSucceeded;
 use App\Events\JobFailed;
 use Throwable;
 
@@ -27,6 +28,8 @@ class AddWbV1SupplierOrders implements ShouldQueue
 
     public function handle(): void
     {
+        $startTime = microtime(true);
+
         $api = new WbApiService($this->shop->apiKey->key);
         $newData = $api->getApiV1SupplierOrders($this->date)->map(function ($row) {
                 $row['shop_id'] = $this->shop->id;
@@ -43,6 +46,10 @@ class AddWbV1SupplierOrders implements ShouldQueue
                 DB::table('wb_v1_supplier_orders')->insert($transformed);
             });
         }
+
+        $message = $message = "Заказы магазина {$this->shop->name} за {$this->date} обновлены!";
+        $duration = microtime(true) - $startTime;
+        JobSucceeded::dispatch('AddWbV1SupplierOrders', $duration, $message);
     }
 
     public function failed(?Throwable $exception): void
