@@ -33,6 +33,7 @@ class SalesFunnel extends Model
         'auc_clicks',
         'auc_orders',
         'auc_sum',
+        'assoc_orders',
     ];
 
     protected $hidden = [

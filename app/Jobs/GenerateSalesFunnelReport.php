@@ -99,6 +99,11 @@ class GenerateSalesFunnelReport implements ShouldQueue
             $row->auc_orders = array_key_exists($row->good_id, $aucData) ? $aucData[$row->good_id]['orders'] : 0;
             $row->auc_sum = array_key_exists($row->good_id, $aucData) ? $aucData[$row->good_id]['sum'] : 0;
 
+            // Рассчитываем общее количество ассоциированных конверсий
+            $aacAssocOrders = array_key_exists($row->good_id, $aacData) ? $aacData[$row->good_id]['assoc_orders'] : 0;
+            $aucAssocOrders = array_key_exists($row->good_id, $aucData) ? $aucData[$row->good_id]['assoc_orders'] : 0;
+            $row->assoc_orders = $aacAssocOrders + $aucAssocOrders;
+
             return $row;
         });
 
@@ -129,6 +134,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'auc_clicks' => $row->auc_clicks,
                 'auc_orders' => $row->auc_orders,
                 'auc_sum' => $row->auc_sum,
+                'assoc_orders' => $row->assoc_orders,
                 'created_at' => now(),
                 'updated_at' => now()
             ];
@@ -148,7 +154,8 @@ class GenerateSalesFunnelReport implements ShouldQueue
 
     private function getAdvDataByType(int $type): array
     {
-        $query = DB::table('wb_adv_v3_fs_products as p')
+        // Базовый запрос для отфильтрованных данных (filtered = 1)
+        $filteredQuery = DB::table('wb_adv_v3_fs_products as p')
             ->join('wb_adv_v3_fs_apps as a', 'p.wb_adv_v3_fs_app_id', '=', 'a.id')
             ->join('wb_adv_v3_fs_days as d', 'a.wb_adv_v3_fs_day_id', '=', 'd.id')
             ->join('wb_adv_v3_fullstats_wb_adverts as adv', 'd.wb_adv_v3_fullstats_wb_advert_id', '=', 'adv.id')
@@ -158,26 +165,63 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->where('pc.type', $type)
             ->whereNotNull('p.good_id');
 
+        // Базовый запрос для всех данных (filtered = 0)
+        $allQuery = DB::table('wb_adv_v3_fs_products as p')
+            ->join('wb_adv_v3_fs_apps as a', 'p.wb_adv_v3_fs_app_id', '=', 'a.id')
+            ->join('wb_adv_v3_fs_days as d', 'a.wb_adv_v3_fs_day_id', '=', 'd.id')
+            ->join('wb_adv_v3_fullstats_wb_adverts as adv', 'd.wb_adv_v3_fullstats_wb_advert_id', '=', 'adv.id')
+            ->join('wb_adv_v1_promotion_counts as pc', 'adv.advert_id', '=', 'pc.advert_id')
+            ->where('adv.shop_id', $this->shop->id)
+            ->where('p.date', $this->day)
+            ->where('pc.type', $type)
+            ->whereNotNull('p.good_id');
+
+        // Добавляем фильтрацию для отфильтрованных данных
         if ($type === 8) {
-            $query->join('wb_adv_v1_promotion_adverts as pa', 'adv.advert_id', '=', 'pa.advert_id')
-                  ->join('wb_adv_v1_promo_nms as pn', 'pa.id', '=', 'pn.wb_adv_v1_promotion_adverts_id')
-                  ->where('pn.nm', '=', DB::raw('p.nm_id'));
+            $filteredQuery->join('wb_adv_v1_promotion_adverts as pa', 'adv.advert_id', '=', 'pa.advert_id')
+                          ->join('wb_adv_v1_promo_nms as pn', 'pa.id', '=', 'pn.wb_adv_v1_promotion_adverts_id')
+                          ->where('pn.nm', '=', DB::raw('p.nm_id'));
         } elseif ($type === 9) {
-            $query->join('wb_adv_v0_auction_adverts as aa', function($join) {
+            $filteredQuery->join('wb_adv_v0_auction_adverts as aa', function($join) {
                 $join->on('adv.advert_id', '=', 'aa.advert_id')
                      ->on('aa.nm_id', '=', DB::raw('p.nm_id'));
             });
         }
 
-        return $query->select(
-                'p.good_id',
-                DB::raw('ROUND(SUM(p.sum)) as sum'),
-                DB::raw('SUM(p.views) as views'),
-                DB::raw('SUM(p.clicks) as clicks'),
-                DB::raw('SUM(p.orders) as orders'),
-                DB::raw('CASE WHEN SUM(p.views) > 0 THEN ROUND((SUM(p.sum) / SUM(p.views)) * 1000, 2) ELSE 0 END as cpm')
+        // Строим UNION запрос
+        $filteredSubquery = $filteredQuery->select(
+            'p.good_id',
+            'p.sum',
+            'p.views',
+            'p.clicks',
+            'p.orders',
+            DB::raw('1 as filtered')
+        );
+
+        $allSubquery = $allQuery->select(
+            'p.good_id',
+            'p.sum',
+            'p.views',
+            'p.clicks',
+            'p.orders',
+            DB::raw('0 as filtered')
+        );
+
+        // Объединяем запросы и агрегируем результаты
+        $combinedQuery = DB::table(DB::raw("({$filteredSubquery->toSql()} UNION ALL {$allSubquery->toSql()}) as combined"))
+            ->mergeBindings($filteredSubquery)
+            ->mergeBindings($allSubquery);
+
+        return $combinedQuery->select(
+                'good_id',
+                DB::raw('ROUND(SUM(CASE WHEN filtered = 1 THEN sum ELSE 0 END)) as sum'),
+                DB::raw('SUM(CASE WHEN filtered = 1 THEN views ELSE 0 END) as views'),
+                DB::raw('SUM(CASE WHEN filtered = 1 THEN clicks ELSE 0 END) as clicks'),
+                DB::raw('SUM(CASE WHEN filtered = 1 THEN orders ELSE 0 END) as orders'),
+                DB::raw('SUM(CASE WHEN filtered = 0 THEN orders ELSE 0 END) - SUM(CASE WHEN filtered = 1 THEN orders ELSE 0 END) as assoc_orders'),
+                DB::raw('CASE WHEN SUM(CASE WHEN filtered = 1 THEN views ELSE 0 END) > 0 THEN ROUND((SUM(CASE WHEN filtered = 1 THEN sum ELSE 0 END) / SUM(CASE WHEN filtered = 1 THEN views ELSE 0 END)) * 1000, 2) ELSE 0 END as cpm')
             )
-            ->groupBy('p.good_id')
+            ->groupBy('good_id')
             ->get()
             ->mapWithKeys(function ($item) {
                 return [
@@ -186,7 +230,8 @@ class GenerateSalesFunnelReport implements ShouldQueue
                         'views' => (int)$item->views,
                         'clicks' => (int)$item->clicks,
                         'orders' => (int)$item->orders,
-                        'cpm' => (float)$item->cpm
+                        'cpm' => (float)$item->cpm,
+                        'assoc_orders' => (int)$item->assoc_orders
                     ]
                 ];
             })

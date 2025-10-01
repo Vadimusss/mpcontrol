@@ -58,7 +58,8 @@ class ReportExport implements FromCollection, WithHeadings, WithStrictNullCompar
             'auc_views',
             'auc_clicks',
             'auc_orders',
-            'auc_sum')->whereBetween('date', [$this->begin, $this->end])->whereIn('sales_funnels.nm_id', $goodListNmIds)->get();
+            'auc_sum',
+            'assoc_orders')->whereBetween('date', [$this->begin, $this->end])->whereIn('sales_funnels.nm_id', $goodListNmIds)->get();
 
         return $selectedData;
     }
@@ -90,6 +91,7 @@ class ReportExport implements FromCollection, WithHeadings, WithStrictNullCompar
             'auc_clicks',
             'auc_orders',
             'auc_sum',
+            'assoc_orders',
         ];
     }
 }
