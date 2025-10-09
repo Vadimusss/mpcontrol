@@ -37,12 +37,12 @@ export const TableHeader = observer(({
               onChange={() => viewStore.toggleShowOnlySelected()}
               className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
-            <button
+{/*             <button
               onClick={() => viewStore.toggleAllRows()}
               className="p-1 rounded hover:bg-gray-100"
             >
               {viewStore.allExpanded ? <MinusIcon className="w-4 h-4" /> : <PlusIcon className="w-4 h-4" />}
-            </button>
+            </button> */}
           </div>
         </th>
         <th 

@@ -3,7 +3,7 @@ import { goodsStore } from './GoodsStore';
 import { apiClient } from '../Utils';
 
 class ViewStore {
-  expandedRows = {};
+  expandedGoodId = null;
   selectedItems = [];
   showOnlySelected = false;
   apiClient = null;
@@ -19,23 +19,15 @@ class ViewStore {
 
   setInitialState(state = {}) {
     const { 
-      expandedRows = [], 
       selectedItems = [], 
       showOnlySelected = false,
       sortField = 'article',
       sortDirection = 'asc'
     } = state;
-    if (!sortDirection) {
-      sortDirection = 'asc'; // Гарантируем значение по умолчанию
-    }
-    this.expandedRows = this.getExpandedRows(expandedRows);
-    this.selectedItems = selectedItems;
-    this.showOnlySelected = showOnlySelected;
-    goodsStore.articleSortDirection = sortDirection;
   }
 
-  get allExpanded() {
-    return Object.keys(this.expandedRows).length === goodsStore.goods.length;
+  get isExpanded() {
+    return this.expandedGoodId !== null;
   }
 
   toggleItemSelection(id) {
@@ -45,23 +37,12 @@ class ViewStore {
     this.saveState();
   }
 
-  toggleAllRows() {
-    if (this.allExpanded) {
-      this.expandedRows = {};
-    } else {
-      this.expandedRows = goodsStore.goods.reduce((acc, item) => ({ ...acc, [item.id]: true }), {});
-    }
-    this.saveState();
-  }
-
   toggleRow(id) {
-    const newExpanded = { ...this.expandedRows };
-    if (newExpanded[id]) {
-      delete newExpanded[id];
+    if (this.expandedGoodId === id) {
+      this.expandedGoodId = null;
     } else {
-      newExpanded[id] = true;
+      this.expandedGoodId = id;
     }
-    this.expandedRows = newExpanded;
     this.saveState();
   }
 
@@ -72,7 +53,7 @@ class ViewStore {
 
   saveState() {
     const stateToSave = {
-      expandedRows: this.getExpandedIds(this.expandedRows),
+      expandedRows: this.expandedGoodId ? [this.expandedGoodId] : [],
       selectedItems: this.selectedItems,
       showOnlySelected: this.showOnlySelected,
       sortField: 'article',
@@ -82,14 +63,6 @@ class ViewStore {
     apiClient.post(`/${this.workSpaceId}/${this.viewId}`, { viewState: stateToSave })
       .catch(error => console.error('Error saving view state:', error));
   }
-
-  getExpandedIds = (rows) =>
-    Object.entries(rows)
-      .filter(([_, isExpanded]) => isExpanded)
-      .map(([id]) => id);
-
-  getExpandedRows = (ids) =>
-    ids.reduce((acc, id) => ({ ...acc, [id]: true }), {});
 }
 
 export const viewStore = new ViewStore();

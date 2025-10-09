@@ -3,8 +3,7 @@ import { Head } from '@inertiajs/react';
 import React, { useMemo, useCallback, useEffect } from 'react';
 import { TableHeader } from './Components/TableHeader';
 import { ProductRow } from './Components/ProductRow';
-import { SubRow } from './Components/SubRow';
-import { NotesRow } from './Components/NotesRow';
+import { SubRowsLoader } from './Components/SubRowsLoader';
 import NotesModal from './Modals/NotesModal';
 import { observer } from 'mobx-react-lite';
 import notesStore from './Stores/NotesStore';
@@ -34,6 +33,7 @@ export default observer(function MainView({ shop, workSpace, goods: initialGoods
 
   useEffect(() => {
     goodsStore.setGoods(initialGoods);
+    goodsStore.clearSubRows();
   }, [initialGoods]);
 
   useEffect(() => {
@@ -82,30 +82,13 @@ export default observer(function MainView({ shop, workSpace, goods: initialGoods
                   item={item}
                   dates={dates}
                 />
-                {viewStore.expandedRows[item.id] && item.subRowsMetadata?.slice(0, 8).map((metadata, i) => (
-                  <SubRow
-                    key={`${item.id}-${i}`}
-                    item={item}
-                    metadata={metadata}
-                    dates={dates}
-                  />
-                ))}
-                {viewStore.expandedRows[item.id] &&
-                  <NotesRow
-                    isNotesExists={item.isNotesExists || {}}
+                {viewStore.expandedGoodId === item.id && item.hasSubRows && (
+                  <SubRowsLoader
                     goodId={item.id}
                     dates={dates}
                     onOpenNotes={handleOpenNotes}
                   />
-                }
-                {viewStore.expandedRows[item.id] && item.subRowsMetadata?.slice(8).map((metadata, i) => (
-                  <SubRow
-                    key={`${item.id}-${i + 8}`}
-                    item={item}
-                    metadata={metadata}
-                    dates={dates}
-                  />
-                ))}
+                )}
               </React.Fragment>
             ))}
           </tbody>

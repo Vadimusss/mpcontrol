@@ -5,6 +5,7 @@ use App\Http\Controllers\WorkSpaceController;
 use App\Http\Controllers\GoodListController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ViewStatesController;
+use App\Http\Controllers\SubRowsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NoteController;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +44,10 @@ Route::resource('shops.reports', ReportController::class)
 Route::get('reports/export', [ReportController::class, 'export'])->name('reports.export');
 
 Route::post('/api/{workspaceId}/{viewId}', [ViewStatesController::class, 'saveState'])
+    ->middleware('auth')
+    ->withoutMiddleware(['inertia']);
+
+Route::get('/api/workspaces/{workspaceId}/goods/{goodId}/subrows', [SubRowsController::class, 'getSubRows'])
     ->middleware('auth')
     ->withoutMiddleware(['inertia']);
 

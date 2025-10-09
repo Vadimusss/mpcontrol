@@ -1,10 +1,13 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import notesStore from './NotesStore';
 import { viewStore } from './ViewStore';
+import { apiClient } from '../Utils';
 
 class GoodsStore {
   goods = [];
   articleSortDirection = null;
+  loadedSubRows = new Map();
+  loadingSubRows = new Set();
 
   constructor() {
     makeAutoObservable(this);
@@ -42,6 +45,45 @@ class GoodsStore {
         };
       }
     });
+  }
+
+  async loadSubRows(goodId) {
+    if (this.loadingSubRows.has(goodId) || this.loadedSubRows.has(goodId)) {
+      return;
+    }
+
+    this.loadingSubRows.add(goodId);
+
+    try {
+      const response = await apiClient.get(`/workspaces/${viewStore.workSpaceId}/goods/${goodId}/subrows`);
+      
+      runInAction(() => {
+        this.loadedSubRows.set(goodId, response.data);
+        this.loadingSubRows.delete(goodId);
+      });
+    } catch (error) {
+      runInAction(() => {
+        console.error('Error loading subrows:', error);
+        this.loadingSubRows.delete(goodId);
+      });
+    }
+  }
+
+  getSubRows(goodId) {
+    return this.loadedSubRows.get(goodId);
+  }
+
+  hasSubRows(goodId) {
+    return this.loadedSubRows.has(goodId);
+  }
+
+  isLoadingSubRows(goodId) {
+    return this.loadingSubRows.has(goodId);
+  }
+
+  clearSubRows() {
+    this.loadedSubRows.clear();
+    this.loadingSubRows.clear();
   }
 }
 

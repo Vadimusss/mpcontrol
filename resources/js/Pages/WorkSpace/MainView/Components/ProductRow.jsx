@@ -14,7 +14,6 @@ export const ProductRow = observer(({
       <td className={`${tableClasses.productFixedCell} ${columnPropertys.control}`} >
         <TableControls
           showOnlySelected={viewStore.selectedItems.includes(item.id)}
-          allExpanded={!!viewStore.expandedRows[item.id]}
           onToggleShowOnlySelected={() => viewStore.toggleItemSelection(item.id)}
           onToggleAllRows={() => viewStore.toggleRow(item.id)}
         />
