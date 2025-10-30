@@ -279,7 +279,7 @@ class WbApiService
     public function getWbAdvV3Fullstats(array $ids, string $beginDate, string $endDate)
     {
         $response = Http::withToken($this->apiKey)
-            ->timeout(90)
+            ->timeout(120)
             ->connectTimeout(60)
             ->retry(3, 60000)
             ->get('https://advert-api.wildberries.ru/adv/v3/fullstats', [
