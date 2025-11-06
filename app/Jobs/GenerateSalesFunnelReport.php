@@ -64,7 +64,6 @@ class GenerateSalesFunnelReport implements ShouldQueue
         $aucData = $this->getAucData();
         $allData = $this->getAllAdvData();
 
-        // Получаем данные о расходах по категориям из отчета реализации
         $nmIds = $WbNmReportDetailHistory->pluck('nm_id')->toArray();
         $expenseData = WbRealizationReport::getExpenseData($this->day, $nmIds);
 
@@ -110,7 +109,6 @@ class GenerateSalesFunnelReport implements ShouldQueue
             $aucOrders = array_key_exists($row->good_id, $aucData) ? $aucData[$row->good_id]['orders'] : 0;
             $row->assoc_orders = $allOrders - ($aacOrders + $aucOrders);
 
-            // Добавляем данные о расходах по категориям из отчета реализации
             $expenseInfo = array_key_exists($row->nm_id, $expenseData) ? $expenseData[$row->nm_id] : null;
             $row->commission_total = $expenseInfo ? $expenseInfo['commission_total'] : 0;
             $row->logistics_total = $expenseInfo ? $expenseInfo['logistics_total'] : 0;
@@ -118,11 +116,9 @@ class GenerateSalesFunnelReport implements ShouldQueue
             $row->acquiring_total = $expenseInfo ? $expenseInfo['acquiring_total'] : 0;
             $row->other_total = $expenseInfo ? $expenseInfo['other_total'] : 0;
 
-            // Рассчитываем прибыль без учета рекламы: buyouts_sum_rub - сумма всех категорий расходов
             $total_expenses = $row->commission_total + $row->logistics_total + $row->storage_total + $row->acquiring_total + $row->other_total;
             $row->profit_without_ads = $row->buyouts_sum_rub - $total_expenses;
 
-            // Рассчитываем прибыль за вычетом рекламы: profit_without_ads - advertising_costs
             $row->profit_with_ads = $row->profit_without_ads - $row->advertising_costs;
 
             return $row;
