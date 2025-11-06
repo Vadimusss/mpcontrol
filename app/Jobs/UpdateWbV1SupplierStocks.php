@@ -18,12 +18,14 @@ class UpdateWbV1SupplierStocks implements ShouldQueue
     public function __construct(
         public Shop $shop,
         public string $dateFrom = '2023-06-01',
-        public $timeout = 1200,
-    )
-    {
+    ) {
         $this->shop = $shop;
         $this->dateFrom = $dateFrom;
     }
+
+    public $timeout = 120;
+    public $backoff = 1;
+    public $tries = 5;
 
     public function handle(): void
     {

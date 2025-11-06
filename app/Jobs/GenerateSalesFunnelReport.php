@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Good;
 use App\Models\Shop;
 use App\Models\SalesFunnel;
+use App\Models\WbRealizationReport;
 use App\Events\JobFailed;
 use App\Events\JobSucceeded;
 use Throwable;
@@ -63,6 +64,10 @@ class GenerateSalesFunnelReport implements ShouldQueue
         $aucData = $this->getAucData();
         $allData = $this->getAllAdvData();
 
+        // Получаем данные о расходах по категориям из отчета реализации
+        $nmIds = $WbNmReportDetailHistory->pluck('nm_id')->toArray();
+        $expenseData = WbRealizationReport::getExpenseData($this->day, $nmIds);
+
         $avgPricesByDay = DB::table('wb_v1_supplier_orders')
             ->where('shop_id', $this->shop->id)
             ->where('date', 'like', "%{$this->day}%")
@@ -83,7 +88,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
             })
             ->toArray();
 
-        $report = $WbNmReportDetailHistory->map(function ($row) use ($advCostsSumByGoodId, $aacData, $aucData, $allData, $avgPricesByDay) {
+        $report = $WbNmReportDetailHistory->map(function ($row) use ($advCostsSumByGoodId, $aacData, $aucData, $allData, $avgPricesByDay, $expenseData) {
             $row->advertising_costs = array_key_exists($row->good_id, $advCostsSumByGoodId) ? $advCostsSumByGoodId[$row->good_id] : 0;
             $row->finished_price = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['finished_price'] : 0;
             $row->price_with_disc = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['price_with_disc'] : 0;
@@ -104,6 +109,21 @@ class GenerateSalesFunnelReport implements ShouldQueue
             $aacOrders = array_key_exists($row->good_id, $aacData) ? $aacData[$row->good_id]['orders'] : 0;
             $aucOrders = array_key_exists($row->good_id, $aucData) ? $aucData[$row->good_id]['orders'] : 0;
             $row->assoc_orders = $allOrders - ($aacOrders + $aucOrders);
+
+            // Добавляем данные о расходах по категориям из отчета реализации
+            $expenseInfo = array_key_exists($row->nm_id, $expenseData) ? $expenseData[$row->nm_id] : null;
+            $row->commission_total = $expenseInfo ? $expenseInfo['commission_total'] : 0;
+            $row->logistics_total = $expenseInfo ? $expenseInfo['logistics_total'] : 0;
+            $row->storage_total = $expenseInfo ? $expenseInfo['storage_total'] : 0;
+            $row->acquiring_total = $expenseInfo ? $expenseInfo['acquiring_total'] : 0;
+            $row->other_total = $expenseInfo ? $expenseInfo['other_total'] : 0;
+
+            // Рассчитываем прибыль без учета рекламы: buyouts_sum_rub - сумма всех категорий расходов
+            $total_expenses = $row->commission_total + $row->logistics_total + $row->storage_total + $row->acquiring_total + $row->other_total;
+            $row->profit_without_ads = $row->buyouts_sum_rub - $total_expenses;
+
+            // Рассчитываем прибыль за вычетом рекламы: profit_without_ads - advertising_costs
+            $row->profit_with_ads = $row->profit_without_ads - $row->advertising_costs;
 
             return $row;
         });
@@ -136,6 +156,13 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'auc_orders' => $row->auc_orders,
                 'auc_sum' => $row->auc_sum,
                 'assoc_orders' => $row->assoc_orders,
+                'commission_total' => $row->commission_total,
+                'logistics_total' => $row->logistics_total,
+                'storage_total' => $row->storage_total,
+                'acquiring_total' => $row->acquiring_total,
+                'other_total' => $row->other_total,
+                'profit_without_ads' => $row->profit_without_ads,
+                'profit_with_ads' => $row->profit_with_ads,
                 'created_at' => now(),
                 'updated_at' => now()
             ];

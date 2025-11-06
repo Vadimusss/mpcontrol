@@ -34,6 +34,13 @@ class SalesFunnel extends Model
         'auc_orders',
         'auc_sum',
         'assoc_orders',
+        'commission_total',
+        'logistics_total',
+        'storage_total',
+        'acquiring_total',
+        'other_total',
+        'profit_without_ads',
+        'profit_with_ads',
     ];
 
     protected $hidden = [

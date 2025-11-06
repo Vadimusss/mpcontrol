@@ -112,6 +112,20 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'ozon_api' => [
+            'driver' => 'mysql',
+            'host' => '109.172.6.188',
+            'port' => '3306',
+            'database' => 'ozon_api',
+            'username' => 'ozon_reader',
+            'password' => 'ReadOnlyPass123!',
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ],
+
     ],
 
     /*

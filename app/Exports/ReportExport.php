@@ -19,8 +19,7 @@ class ReportExport implements FromCollection, WithHeadings, WithStrictNullCompar
         public GoodList $goodList,
         public string $begin,
         public string $end,
-    )
-    {
+    ) {
         $this->shop = $shop;
         $this->goodList = $goodList;
         $this->begin = $begin;
@@ -28,8 +27,8 @@ class ReportExport implements FromCollection, WithHeadings, WithStrictNullCompar
     }
 
     /**
-    * @return \Illuminate\Support\Collection
-    */
+     * @return \Illuminate\Support\Collection
+     */
     public function collection()
     {
         $goodListNmIds = $this->goodList->goods()->pluck('nm_id');
@@ -59,7 +58,15 @@ class ReportExport implements FromCollection, WithHeadings, WithStrictNullCompar
             'auc_clicks',
             'auc_orders',
             'auc_sum',
-            'assoc_orders')->whereBetween('date', [$this->begin, $this->end])->whereIn('sales_funnels.nm_id', $goodListNmIds)->get();
+            'assoc_orders',
+            'commission_total',
+            'logistics_total',
+            'storage_total',
+            'acquiring_total',
+            'other_total',
+            'profit_without_ads',
+            'profit_with_ads',
+        )->whereBetween('date', [$this->begin, $this->end])->whereIn('sales_funnels.nm_id', $goodListNmIds)->get();
 
         return $selectedData;
     }
@@ -92,6 +99,13 @@ class ReportExport implements FromCollection, WithHeadings, WithStrictNullCompar
             'auc_orders',
             'auc_sum',
             'assoc_orders',
+            'commission_total',
+            'logistics_total',
+            'storage_total',
+            'acquiring_total',
+            'other_total',
+            'profit_without_ads',
+            'profit_with_ads',
         ];
     }
 }
