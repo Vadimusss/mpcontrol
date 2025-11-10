@@ -14,15 +14,33 @@ class WbRealizationReport extends Model
         $query = self::selectRaw("
             date_from, 
             nm_id,
-            SUM(COALESCE(ppvz_sales_commission, 0) + COALESCE(ppvz_vw, 0) + COALESCE(ppvz_vw_nds, 0)) AS commission_total,
-            SUM(COALESCE(delivery_rub, 0) + COALESCE(rebill_logistic_cost, 0) + COALESCE(ppvz_reward, 0)) AS logistics_total,
+             (
+                (
+                    (
+                        SUM(CASE WHEN doc_type_name = 'Продажа' AND supplier_oper_name = 'Продажа' THEN retail_price ELSE 0 END) 
+                        - SUM(CASE WHEN doc_type_name = 'Возврат' THEN retail_price ELSE 0 END)
+                    ) - (
+                        SUM(CASE WHEN doc_type_name = 'Продажа' AND supplier_oper_name = 'Продажа' THEN ppvz_for_pay ELSE 0 END) 
+                        - SUM(CASE WHEN doc_type_name = 'Возврат' THEN ppvz_for_pay ELSE 0 END)
+                    )
+                ) - (
+                    (
+                        SUM(CASE WHEN doc_type_name = 'Продажа' AND supplier_oper_name = 'Продажа' THEN retail_price ELSE 0 END) 
+                        - SUM(CASE WHEN doc_type_name = 'Возврат' THEN retail_price ELSE 0 END)
+                    ) - (
+                         SUM(CASE WHEN doc_type_name = 'Продажа' AND supplier_oper_name = 'Продажа' THEN retail_amount ELSE 0 END) 
+                        - SUM(CASE WHEN doc_type_name = 'Возврат' THEN retail_amount ELSE 0 END)
+                    )
+                )
+            ) + SUM(COALESCE(delivery_rub, 0)) + SUM(COALESCE(storage_fee, 0)) + SUM(COALESCE(penalty, 0)) + SUM(CASE WHEN supplier_oper_name = 'Удержание' AND bonus_type_name NOT LIKE 'Списание за отзыв%%' AND bonus_type_name <> 'Оказание услуг «WB Продвижение»' THEN COALESCE(deduction, 0) ELSE 0 END) AS commission_total,
+            SUM(COALESCE(delivery_rub, 0)) AS logistics_total,
             SUM(COALESCE(storage_fee, 0)) AS storage_total,
             SUM(COALESCE(acquiring_fee, 0)) AS acquiring_total,
-            SUM(COALESCE(deduction, 0) + COALESCE(acceptance, 0) + COALESCE(cashback_amount, 0) + COALESCE(cashback_discount, 0) + COALESCE(cashback_commission_change, 0)) AS other_total
+            SUM(COALESCE(penalty, 0)) + SUM(CASE WHEN supplier_oper_name = 'Удержание' AND bonus_type_name NOT LIKE 'Списание за отзыв%%' AND bonus_type_name <> 'Оказание услуг «WB Продвижение»' THEN COALESCE(deduction, 0) ELSE 0 END) + SUM(CASE WHEN supplier_oper_name = 'Удержание' AND bonus_type_name LIKE 'Списание за отзыв%%' THEN COALESCE(deduction, 0) ELSE 0 END) AS other_total,
+            SUM(CASE WHEN doc_type_name = 'Продажа' AND supplier_oper_name = 'Продажа' THEN retail_amount ELSE 0 END) 
+            - SUM(CASE WHEN doc_type_name = 'Возврат' THEN retail_amount ELSE 0 END) AS op_after_spp
         ")
-        ->where('date_from', $dateFrom)
-        ->where('doc_type_name', 'Продажа')
-        ->where('supplier_oper_name', 'Продажа');
+        ->where('date_from', $dateFrom);
 
         if (!empty($nmIds)) {
             $query->whereIn('nm_id', $nmIds);
@@ -38,6 +56,7 @@ class WbRealizationReport extends Model
                                 'storage_total' => (float)$item->storage_total,
                                 'acquiring_total' => (float)$item->acquiring_total,
                                 'other_total' => (float)$item->other_total,
+                                'op_after_spp' => (float)$item->op_after_spp,
                             ]
                         ];
                     })

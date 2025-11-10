@@ -116,9 +116,10 @@ class GenerateSalesFunnelReport implements ShouldQueue
             $row->acquiring_total = $expenseInfo ? $expenseInfo['acquiring_total'] : 0;
             $row->other_total = $expenseInfo ? $expenseInfo['other_total'] : 0;
 
-            $total_expenses = $row->commission_total + $row->logistics_total + $row->storage_total + $row->acquiring_total + $row->other_total;
-            $row->profit_without_ads = $row->buyouts_sum_rub - $total_expenses;
-
+            $op_after_spp = $expenseInfo ? $expenseInfo['op_after_spp'] : 0;
+            
+            $row->profit_without_ads = $op_after_spp - $row->commission_total;
+            
             $row->profit_with_ads = $row->profit_without_ads - $row->advertising_costs;
 
             return $row;
