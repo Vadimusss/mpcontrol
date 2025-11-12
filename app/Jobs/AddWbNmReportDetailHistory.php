@@ -35,7 +35,9 @@ class AddWbNmReportDetailHistory implements ShouldQueue
             $date = $this->period['begin'];
 
             $WbNmReportDetailHistoryData->each(function ($row) {
-                $good = Good::firstWhere('nm_id', $row['nmID']);
+                $good = Good::where('nm_id', $row['nmID'])
+                    ->where('shop_id', $this->shop->id)
+                    ->first();
 
                 array_walk($row['history'], function ($day) use ($good, $row) {
                     $good->WbNmReportDetailHistory()->create([
