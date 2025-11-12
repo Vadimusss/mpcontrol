@@ -112,7 +112,7 @@ class WbApiService
     public function getApiV1SupplierStocks(string $dateFrom)
     {
         $response = Http::withToken($this->apiKey)
-            ->timeout(120)
+            ->timeout(180)
             ->connectTimeout(60)
             ->retry(3, 1000)
             ->get('https://statistics-api.wildberries.ru/api/v1/supplier/stocks', [
@@ -279,7 +279,7 @@ class WbApiService
     public function getWbAdvV3Fullstats(array $ids, string $beginDate, string $endDate)
     {
         $response = Http::withToken($this->apiKey)
-            ->timeout(120)
+            ->timeout(180)
             ->connectTimeout(60)
             ->retry(3, 60000)
             ->get('https://advert-api.wildberries.ru/adv/v3/fullstats', [
@@ -287,6 +287,18 @@ class WbApiService
                 'beginDate' => $beginDate,
                 'endDate' => $endDate
             ]);
+
+        if ($response->status() === 400) {
+            $responseBody = $response->json();
+            if (isset($responseBody['detail']) && str_contains($responseBody['detail'], 'there are no statistics for this advertising period')) {
+                Log::info('No statistics available for advertising period', [
+                    'ids' => $ids,
+                    'beginDate' => $beginDate,
+                    'endDate' => $endDate
+                ]);
+                return collect();
+            }
+        }
 
         $response->throw();
 
