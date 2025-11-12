@@ -281,7 +281,7 @@ class WbApiService
         $response = Http::withToken($this->apiKey)
             ->timeout(180)
             ->connectTimeout(60)
-            ->retry(3, 60000)
+            ->retry(3, 60000, throw: false)
             ->get('https://advert-api.wildberries.ru/adv/v3/fullstats', [
                 'ids' => implode(',', $ids),
                 'beginDate' => $beginDate,
