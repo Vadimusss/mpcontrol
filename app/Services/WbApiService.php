@@ -287,7 +287,7 @@ class WbApiService
                 'beginDate' => $beginDate,
                 'endDate' => $endDate
             ]);
-
+        
         if ($response->status() === 400) {
             $responseBody = $response->json();
             if (isset($responseBody['detail']) && str_contains($responseBody['detail'], 'there are no statistics for this advertising period')) {
@@ -300,9 +300,21 @@ class WbApiService
             }
         }
 
+        if ($response->status() === 500) {
+            $responseBody = $response->json();
+            if (isset($responseBody['detail']) && str_contains($responseBody['detail'], 'error getting stats: GetStatsDailyNmApp: rpc error: code = DeadlineExceeded desc = context deadline exceeded')) {
+                Log::info('Statistics timeout - no data available for advertising period', [
+                   'ids' => $ids,
+                    'beginDate' => $beginDate,
+                    'endDate' => $endDate
+                ]);
+                return collect();
+            }
+        }
+    
         $response->throw();
-
-        return $response->collect();
+    
+       return $response->collect();
     }
 
     public function getWbAdvV1PromotionAdverts(array $advertIds)
