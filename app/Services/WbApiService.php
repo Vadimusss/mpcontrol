@@ -302,8 +302,8 @@ class WbApiService
 
         if ($response->status() === 500) {
             $responseBody = $response->json();
-            if (isset($responseBody['detail']) && str_contains($responseBody['detail'], 'error getting stats: GetStatsDailyNmApp: rpc error: code = DeadlineExceeded desc = context deadline exceeded')) {
-                Log::info('Statistics timeout - no data available for advertising period', [
+            if (isset($responseBody['detail']) && str_contains($responseBody['detail'], 'DeadlineExceeded')) {
+                Log::info($responseBody['detail'], [
                    'ids' => $ids,
                     'beginDate' => $beginDate,
                     'endDate' => $endDate
