@@ -31,7 +31,7 @@ class AddWbAdvV3Fullstats implements ShouldQueue
     }
 
     public $timeout = 240;
-    public $backoff = 20;
+    public $backoff = [20, 20, 20, 40, 40];
     public $tries = 5;
 
     public function handle(): void
