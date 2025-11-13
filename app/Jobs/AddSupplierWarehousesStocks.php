@@ -27,10 +27,6 @@ class AddSupplierWarehousesStocks implements ShouldQueue
         $this->warehouseId = $warehouseId;
     }
 
-    public $timeout = 240;
-    public $backoff = 60;
-    public $tries = 3;
-
     public function handle(): void
     {
         $api = new WbApiService($this->shop->apiKey->key);

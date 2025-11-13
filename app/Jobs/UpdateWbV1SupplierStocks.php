@@ -23,9 +23,9 @@ class UpdateWbV1SupplierStocks implements ShouldQueue
         $this->dateFrom = $dateFrom;
     }
 
-    public $timeout = 120;
-    public $backoff = 1;
-    public $tries = 5;
+    public $timeout = 240;
+    public $backoff = 60;
+    public $tries = 4;
 
     public function handle(): void
     {
