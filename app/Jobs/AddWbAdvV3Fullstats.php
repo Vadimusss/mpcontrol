@@ -30,16 +30,16 @@ class AddWbAdvV3Fullstats implements ShouldQueue
         $this->date = $date;
     }
 
-    public $timeout = 120;
-    public $backoff = 1;
+    public $timeout = 240;
+    public $backoff = 20;
     public $tries = 5;
 
     public function handle(): void
     {
         $api = new WbApiService($this->shop->apiKey->key);
 
-        $response = collect($api->getWbAdvV3Fullstats($this->ids, $this->date, $this->date));
- 
+        $response = $api->getWbAdvV3Fullstats($this->ids, $this->date, $this->date);
+
         if ($response->isEmpty()) {
             Log::error('Empty API response');
             return;

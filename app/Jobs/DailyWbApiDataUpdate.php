@@ -50,9 +50,9 @@ class DailyWbApiDataUpdate implements ShouldQueue
                 ->pluck('advert_id')
                 ->toArray();
 
-            $fullstatsChunks = array_chunk($advertIds, 100);
+            $fullstatsChunks = array_chunk($advertIds, 40);
             $fullstatsJobs = array_map(function ($chunk) use ($shop, $date) {
-                return (new AddWbAdvV3Fullstats($shop, $chunk, $date))->delay(60);
+                return (new AddWbAdvV3Fullstats($shop, $chunk, $date))->delay(20);
             }, $fullstatsChunks);
 
             $fullstatsJobs = Arr::prepend($fullstatsJobs, new AddWbAdvV1PromotionCount($shop));

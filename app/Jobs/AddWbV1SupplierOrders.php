@@ -20,11 +20,14 @@ class AddWbV1SupplierOrders implements ShouldQueue
     public function __construct(
         public Shop $shop,
         public string $date,
-        public $timeout = 2400,
     ) {
         $this->shop = $shop;
         $this->date = $date;
     }
+
+    public $timeout = 240;
+    public $backoff = 60;
+    public $tries = 4;
 
     public function handle(): void
     {
