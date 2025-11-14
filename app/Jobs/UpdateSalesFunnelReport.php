@@ -53,7 +53,7 @@ class UpdateSalesFunnelReport implements ShouldQueue
                 $fullstatsChunks = array_chunk($advertIds, 40);
 
                 $fullstatsJobs = array_map(function ($chunk) use ($shop, $date) {
-                    return (new AddWbAdvV3Fullstats($shop, $chunk, $date))->delay(20);
+                    return (new AddWbAdvV3Fullstats($shop, $chunk, $date))->delay(22);
                 }, $fullstatsChunks);
 
                 $shopFullUpdateJobs[] = Bus::batch([array_merge(
