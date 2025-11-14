@@ -41,7 +41,7 @@ class AddWbAdvV3Fullstats implements ShouldQueue
         $response = $api->getWbAdvV3Fullstats($this->ids, $this->date, $this->date);
 
         if ($response->isEmpty()) {
-            Log::error('Empty API response');
+            Log::info('Empty API response');
             return;
         }
 

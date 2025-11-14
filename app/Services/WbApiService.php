@@ -305,7 +305,6 @@ class WbApiService
                     'beginDate' => $beginDate,
                     'endDate' => $endDate
                 ]);
-                return collect();
             }
         }
         
