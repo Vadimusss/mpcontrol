@@ -106,7 +106,10 @@ class AddWbAdvV3Fullstats implements ShouldQueue
                         ]);
 
                         collect($appData['nms'] ?? [])->each(function ($productData) use ($wbApp) {
-                            $good = Good::where('nm_id', $productData['nmId'])->first();
+                            $good = Good::where('shop_id', $this->shop->id)
+                                ->where('nm_id', $productData['nmId'])
+                                ->first();
+        
                             if ($good) {
                                 WbAdvV3FullstatsProduct::create([
                                     'wb_adv_v3_fs_app_id' => $wbApp->id,
