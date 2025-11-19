@@ -107,30 +107,34 @@ class UpdateWbNmReportFromTempData implements ShouldQueue
 
     protected function bulkUpdate(array $updates): int
     {
-        $caseStatements = [];
-        $bindings = [];
-        $ids = [];
+        if (empty($updates)) {
+            return 0;
+        }
 
+        $values = [];
         foreach ($updates as $update) {
-            $ids[] = $update['id'];
-            foreach ($update as $field => $value) {
-                if ($field !== 'id') {
-                    $caseStatements[$field][] = "WHEN ? THEN ?";
-                    $bindings[] = $update['id'];
-                    $bindings[] = $value;
-                }
-            }
+            $values[] = $update;
         }
 
-        $sets = [];
-        foreach ($caseStatements as $field => $cases) {
-            $sets[] = "`{$field}` = CASE `id` " . implode(' ', $cases) . " ELSE `{$field}` END";
-        }
+        $updateFields = [
+            'open_card_count',
+            'add_to_cart_count',
+            'orders_count',
+            'orders_sum_rub',
+            'buyouts_count',
+            'buyouts_sum_rub',
+            'cancel_count',
+            'cancel_sum_rub',
+            'buyout_percent',
+            'add_to_cart_conversion',
+            'cart_to_order_conversion'
+        ];
 
-        $query = "UPDATE " . (new WbNmReportDetailHistory)->getTable() . " SET " . implode(', ', $sets) . " WHERE `id` IN (" . implode(',', array_fill(0, count($ids), '?')) . ")";
-        $bindings = array_merge($bindings, $ids);
-
-        return DB::affectingStatement($query, $bindings);
+        return WbNmReportDetailHistory::upsert(
+            $values,
+            ['id'],
+            $updateFields
+        );
     }
 
     public function failed(?Throwable $exception): void
