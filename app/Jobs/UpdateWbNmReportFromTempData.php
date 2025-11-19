@@ -111,30 +111,30 @@ class UpdateWbNmReportFromTempData implements ShouldQueue
             return 0;
         }
 
-        $values = [];
+        $updatedCount = 0;
+
         foreach ($updates as $update) {
-            $values[] = $update;
+            $mainRecord = WbNmReportDetailHistory::find($update['id']);
+
+            if ($mainRecord) {
+                $mainRecord->update([
+                    'open_card_count' => $update['open_card_count'],
+                    'add_to_cart_count' => $update['add_to_cart_count'],
+                    'orders_count' => $update['orders_count'],
+                    'orders_sum_rub' => $update['orders_sum_rub'],
+                    'buyouts_count' => $update['buyouts_count'],
+                    'buyouts_sum_rub' => $update['buyouts_sum_rub'],
+                    'cancel_count' => $update['cancel_count'],
+                    'cancel_sum_rub' => $update['cancel_sum_rub'],
+                    'buyout_percent' => $update['buyout_percent'],
+                    'add_to_cart_conversion' => $update['add_to_cart_conversion'],
+                    'cart_to_order_conversion' => $update['cart_to_order_conversion'],
+                ]);
+                $updatedCount++;
+            }
         }
 
-        $updateFields = [
-            'open_card_count',
-            'add_to_cart_count',
-            'orders_count',
-            'orders_sum_rub',
-            'buyouts_count',
-            'buyouts_sum_rub',
-            'cancel_count',
-            'cancel_sum_rub',
-            'buyout_percent',
-            'add_to_cart_conversion',
-            'cart_to_order_conversion'
-        ];
-
-        return WbNmReportDetailHistory::upsert(
-            $values,
-            ['id'],
-            $updateFields
-        );
+        return $updatedCount;
     }
 
     public function failed(?Throwable $exception): void
