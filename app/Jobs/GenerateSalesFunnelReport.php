@@ -65,7 +65,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
         $allData = $this->getAllAdvData();
 
         $nmIds = $WbNmReportDetailHistory->pluck('nm_id')->toArray();
-        $expenseData = WbRealizationReport::getExpenseData($this->day, $nmIds);
+        $expenseData = WbRealizationReport::getExpenseData($this->day, $nmIds, $this->shop->id);
 
         $avgPricesByDay = DB::table('wb_v1_supplier_orders')
             ->where('shop_id', $this->shop->id)

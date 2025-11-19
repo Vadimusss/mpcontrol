@@ -9,7 +9,7 @@ class WbRealizationReport extends Model
     protected $connection = 'ozon_api';
     protected $table = 'wb_realization_report';
     
-    public static function getExpenseData($dateFrom, $nmIds = [])
+    public static function getExpenseData($dateFrom, $nmIds = [], $shopId)
     {
         $query = self::selectRaw("
             date_from, 
@@ -40,6 +40,7 @@ class WbRealizationReport extends Model
             SUM(CASE WHEN doc_type_name = 'Продажа' AND supplier_oper_name = 'Продажа' THEN retail_amount ELSE 0 END) 
             - SUM(CASE WHEN doc_type_name = 'Возврат' THEN retail_amount ELSE 0 END) AS op_after_spp
         ")
+        ->where('cabinet', $shopId)
         ->where('date_from', $dateFrom);
 
         if (!empty($nmIds)) {
