@@ -6,7 +6,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use Illuminate\Support\Facades\DB;
-use App\Models\Good;
 use App\Models\Shop;
 use App\Models\SalesFunnel;
 use App\Models\WbRealizationReport;
@@ -54,7 +53,6 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->join('wb_adv_v3_fullstats_wb_adverts as adv', 'd.wb_adv_v3_fullstats_wb_advert_id', '=', 'adv.id')
             ->where('adv.shop_id', $this->shop->id)
             ->where('p.date', $this->day)
-            ->whereNotNull('p.good_id')
             ->select('p.good_id', DB::raw('ROUND(SUM(p.sum)) as total_sum'))
             ->groupBy('p.good_id')
             ->pluck('total_sum', 'good_id')
@@ -63,6 +61,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
         $aacData = $this->getAacData();
         $aucData = $this->getAucData();
         $allData = $this->getAllAdvData();
+        $assocFromThisData = $this->getAssocFromThisData();
 
         $nmIds = $WbNmReportDetailHistory->pluck('nm_id')->toArray();
         $expenseData = WbRealizationReport::getExpenseData($this->day, $nmIds, $this->shop->id);
@@ -87,7 +86,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
             })
             ->toArray();
 
-        $report = $WbNmReportDetailHistory->map(function ($row) use ($advCostsSumByGoodId, $aacData, $aucData, $allData, $avgPricesByDay, $expenseData) {
+        $report = $WbNmReportDetailHistory->map(function ($row) use ($advCostsSumByGoodId, $aacData, $aucData, $allData, $assocFromThisData, $avgPricesByDay, $expenseData) {
             $row->advertising_costs = array_key_exists($row->good_id, $advCostsSumByGoodId) ? $advCostsSumByGoodId[$row->good_id] : 0;
             $row->finished_price = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['finished_price'] : 0;
             $row->price_with_disc = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['price_with_disc'] : 0;
@@ -107,7 +106,8 @@ class GenerateSalesFunnelReport implements ShouldQueue
             $allOrders = array_key_exists($row->good_id, $allData) ? $allData[$row->good_id]['orders'] : 0;
             $aacOrders = array_key_exists($row->good_id, $aacData) ? $aacData[$row->good_id]['orders'] : 0;
             $aucOrders = array_key_exists($row->good_id, $aucData) ? $aucData[$row->good_id]['orders'] : 0;
-            $row->assoc_orders = $allOrders - ($aacOrders + $aucOrders);
+            $row->assoc_orders_from_other = $allOrders - ($aacOrders + $aucOrders);
+            $row->assoc_orders_from_this = array_key_exists($row->good_id, $assocFromThisData) ? $assocFromThisData[$row->good_id]['orders'] : 0;
 
             $expenseInfo = array_key_exists($row->nm_id, $expenseData) ? $expenseData[$row->nm_id] : null;
             $row->commission_total = $expenseInfo ? $expenseInfo['commission_total'] : 0;
@@ -152,7 +152,8 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'auc_clicks' => $row->auc_clicks,
                 'auc_orders' => $row->auc_orders,
                 'auc_sum' => $row->auc_sum,
-                'assoc_orders' => $row->assoc_orders,
+                'assoc_orders_from_other' => $row->assoc_orders_from_other,
+                'assoc_orders_from_this' => $row->assoc_orders_from_this,
                 'commission_total' => $row->commission_total,
                 'logistics_total' => $row->logistics_total,
                 'storage_total' => $row->storage_total,
@@ -165,7 +166,10 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ];
         })->toArray();
 
-        SalesFunnel::insert($data);
+        $chunks = array_chunk($data, 300);
+        foreach ($chunks as $chunk) {
+            SalesFunnel::insert($chunk);
+        }
 
         $message = $message = "Воронка продаж магазина {$this->shop->name} за {$this->day} обновлена!";
         $duration = microtime(true) - $startTime;
@@ -186,7 +190,6 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->join('wb_adv_v1_promotion_counts as pc', 'adv.advert_id', '=', 'pc.advert_id')
             ->where('adv.shop_id', $this->shop->id)
             ->where('p.date', $this->day)
-            ->whereNotNull('p.good_id')
             ->where('pc.type', 8)
             ->join('wb_adv_v1_promotion_adverts as pa', 'adv.advert_id', '=', 'pa.advert_id')
             ->join('wb_adv_v1_promo_nms as pn', 'pa.id', '=', 'pn.wb_adv_v1_promotion_adverts_id')
@@ -206,7 +209,6 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->join('wb_adv_v1_promotion_counts as pc', 'adv.advert_id', '=', 'pc.advert_id')
             ->where('adv.shop_id', $this->shop->id)
             ->where('p.date', $this->day)
-            ->whereNotNull('p.good_id')
             ->where('pc.type', 9)
             ->whereExists(function($exists) {
                 $exists->select(DB::raw(1))
@@ -263,7 +265,6 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->join('wb_adv_v1_promotion_counts as pc', 'adv.advert_id', '=', 'pc.advert_id')
             ->where('adv.shop_id', $this->shop->id)
             ->where('p.date', $this->day)
-            ->whereNotNull('p.good_id')
             ->where('pc.type', 9)
             ->whereExists(function($exists) {
                 $exists->select(DB::raw(1))
@@ -319,5 +320,74 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 ];
             })
             ->toArray();
+    }
+
+    private function getAssocFromThisData(): array
+    {
+        $shopAdverts = DB::table('wb_adv_v3_fullstats_wb_adverts as adv')
+            ->join('wb_adv_v3_fs_days as d', 'adv.id', '=', 'd.wb_adv_v3_fullstats_wb_advert_id')
+            ->join('wb_adv_v3_fs_apps as a', 'd.id', '=', 'a.wb_adv_v3_fs_day_id')
+            ->join('wb_adv_v3_fs_products as p', 'a.id', '=', 'p.wb_adv_v3_fs_app_id')
+            ->join('wb_adv_v1_promotion_counts as pc', 'adv.advert_id', '=', 'pc.advert_id')
+            ->where('adv.shop_id', $this->shop->id)
+            ->where('p.date', $this->day)
+            ->select('adv.advert_id', 'pc.type', 'p.good_id', 'p.nm_id')
+            ->distinct()
+            ->get();
+
+        $advertIdsWithCurrentGood = [];
+
+        foreach ($shopAdverts as $advert) {
+            $advert = (object)$advert;
+            $advertId = $advert->advert_id;
+            $type = $advert->type;
+            $goodId = $advert->good_id;
+            $nmId = $advert->nm_id;
+
+            if (!$nmId) {
+                continue;
+            }
+
+            $isMainGood = false;
+
+            if ($type == 9) {
+                $isMainGood = DB::table('wb_adv_v0_auction_adverts')
+                    ->where('advert_id', $advertId)
+                    ->where('nm_id', $nmId)
+                    ->exists();
+            } elseif ($type == 8) {
+                $isMainGood = DB::table('wb_adv_v1_promotion_adverts as pa')
+                    ->join('wb_adv_v1_promo_nms as pn', 'pa.id', '=', 'pn.wb_adv_v1_promotion_adverts_id')
+                    ->where('pa.advert_id', $advertId)
+                    ->where('pn.nm', $nmId)
+                    ->exists();
+            }
+
+            if ($isMainGood) {
+                if (!isset($advertIdsWithCurrentGood[$goodId])) {
+                    $advertIdsWithCurrentGood[$goodId] = [];
+                }
+                $advertIdsWithCurrentGood[$goodId][] = $advertId;
+            }
+        }
+
+        $result = [];
+        foreach ($advertIdsWithCurrentGood as $currentGoodId => $advertIds) {
+            $ordersFromThis = DB::table('wb_adv_v3_fs_products as p')
+                ->join('wb_adv_v3_fs_apps as a', 'p.wb_adv_v3_fs_app_id', '=', 'a.id')
+                ->join('wb_adv_v3_fs_days as d', 'a.wb_adv_v3_fs_day_id', '=', 'd.id')
+                ->join('wb_adv_v3_fullstats_wb_adverts as adv', 'd.wb_adv_v3_fullstats_wb_advert_id', '=', 'adv.id')
+                ->whereIn('adv.advert_id', $advertIds)
+                ->where('p.date', $this->day)
+                ->where('p.good_id', '!=', $currentGoodId)
+                ->select(DB::raw('SUM(p.orders) as orders'))
+                ->value('orders') ?? 0;
+
+            $result[$currentGoodId] = [
+                'orders' => (int)$ordersFromThis
+            ];
+        }
+
+        return $result;
     }
 }
