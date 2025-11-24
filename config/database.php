@@ -113,17 +113,16 @@ return [
         ],
 
         'ozon_api' => [
-            'driver' => 'mysql',
-            'host' => '109.172.6.188',
-            'port' => '3306',
-            'database' => 'ozon_api',
-            'username' => 'ozon_reader',
-            'password' => 'ReadOnlyPass123!',
-            'charset' => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
+            'driver' => 'pgsql',
+            'host' => '155.212.246.30',
+            'port' => '5432',
+            'database' => 'e_com',
+            'username' => 'vadim_php',
+            'password' => 'd464b20e686746185c5b',
+            'charset' => 'utf8',
             'prefix' => '',
-            'strict' => true,
-            'engine' => null,
+            'schema' => 'wb',
+            'sslmode' => 'prefer',
         ],
 
     ],
@@ -161,7 +160,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
         ],
 
         'default' => [
