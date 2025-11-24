@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class WbRealizationReport extends Model
 {
     protected $connection = 'ozon_api';
-    protected $table = 'wb_realization_report';
+    protected $table = 'realization_report';
     
     public static function getExpenseData($dateFrom, $nmIds = [], $shopId)
     {
