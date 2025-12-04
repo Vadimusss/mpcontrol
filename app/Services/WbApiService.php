@@ -94,12 +94,12 @@ class WbApiService
     public function getApiV1SupplierOrders(string $dateFrom, $flag = 1)
     {
         $response = Http::withToken($this->apiKey)
-        ->timeout(120)
-        ->connectTimeout(60)
-        ->get('https://statistics-api.wildberries.ru/api/v1/supplier/orders', [
-            'dateFrom' => $dateFrom,
-            'flag' =>  $flag,
-        ]);
+            ->timeout(120)
+            ->connectTimeout(60)
+            ->get('https://statistics-api.wildberries.ru/api/v1/supplier/orders', [
+                'dateFrom' => $dateFrom,
+                'flag' =>  $flag,
+            ]);
 
         $response->throw();
 
@@ -114,8 +114,8 @@ class WbApiService
             ->timeout(180)
             ->connectTimeout(60)
             ->get('https://statistics-api.wildberries.ru/api/v1/supplier/stocks', [
-            'dateFrom' => $dateFrom,
-        ]);
+                'dateFrom' => $dateFrom,
+            ]);
 
         $response->throw();
 
@@ -285,7 +285,7 @@ class WbApiService
                 'endDate' => $endDate
             ]);
 
-            if ($response->status() === 400) {
+        if ($response->status() === 400) {
             $responseBody = $response->json();
             if (isset($responseBody['detail']) && str_contains($responseBody['detail'], 'there are no statistics for this advertising period')) {
                 Log::info('No statistics available for advertising period', [
@@ -301,16 +301,16 @@ class WbApiService
             $responseBody = $response->json();
             if (isset($responseBody['detail']) && str_contains($responseBody['detail'], 'DeadlineExceeded')) {
                 Log::info($responseBody['detail'], [
-                   'ids' => $ids,
+                    'ids' => $ids,
                     'beginDate' => $beginDate,
                     'endDate' => $endDate
                 ]);
             }
         }
-        
+
         $response->throw();
-    
-       return $response->collect();
+
+        return $response->collect();
     }
 
     public function getWbAdvV1PromotionAdverts(array $advertIds)
@@ -339,5 +339,23 @@ class WbApiService
         $response->throw();
 
         return $response->collect('adverts');
+    }
+
+    public function getApiAnalyticsV3SalesFunnelProductsHistory(array $nmIds, string $date)
+    {
+        $response = Http::withToken($this->apiKey)
+            ->timeout(120)
+            ->connectTimeout(60)
+            ->post('https://seller-analytics-api.wildberries.ru/api/analytics/v3/sales-funnel/products/history', [
+                'selectedPeriod' => [
+                    'start' => $date,
+                    'end' => $date,
+                ],
+                'nmIds' => $nmIds,
+            ]);
+
+        $response->throw();
+
+        return $response->collect();
     }
 }

@@ -65,4 +65,9 @@ class Good extends Model
     {
         return $this->hasMany(Note::class);
     }
+
+    public function wbAnalyticsV3ProductsHistory(): HasMany
+    {
+        return $this->hasMany(WbAnalyticsV3ProductsHistory::class);
+    }
 }

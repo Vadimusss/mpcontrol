@@ -70,6 +70,11 @@ class Shop extends Model
         return $this->hasManyThrough(WbNmReportDetailHistory::class, Good::class);
     }
 
+    public function wbAnalyticsV3ProductsHistory(): HasManyThrough
+    {
+        return $this->hasManyThrough(WbAnalyticsV3ProductsHistory::class, Good::class);
+    }
+
     public function WbAdvV1Upd(): HasManyThrough
     {
         return $this->hasManyThrough(WbAdvV1Upd::class, Good::class);
