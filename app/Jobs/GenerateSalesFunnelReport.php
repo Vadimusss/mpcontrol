@@ -32,20 +32,20 @@ class GenerateSalesFunnelReport implements ShouldQueue
 
         $this->shop->salesFunnel()->where('date', '=', $this->day)->delete();
 
-        $WbNmReportDetailHistory = $this->shop->WbNmReportDetailHistory()->select(
+        $WbAnalyticsV3ProductsHistory = $this->shop->wbAnalyticsV3ProductsHistory()->select(
             'good_id',
-            'wb_nm_report_detail_histories.vendor_code',
-            'wb_nm_report_detail_histories.nm_id',
-            'imt_name',
-            'dt',
-            'open_card_count',
-            'add_to_cart_count',
-            'orders_count',
-            'orders_sum_rub',
-            'buyouts_count',
-            'buyouts_sum_rub',
+            'wb_analytics_v3_products_histories.vendor_code',
+            'wb_analytics_v3_products_histories.nm_id',
+            'title as imt_name',
+            'date as dt',
+            'open_count as open_card_count',
+            'cart_count as add_to_cart_count',
+            'order_count as orders_count',
+            'order_sum as orders_sum_rub',
+            'buyout_count as buyouts_count',
+            'buyout_sum as buyouts_sum_rub',
             'buyout_percent'
-        )->where('dt', '=', $this->day)->get();
+        )->where('date', '=', $this->day)->get();
 
         $advCostsSumByGoodId = DB::table('wb_adv_v3_fs_products as p')
             ->join('wb_adv_v3_fs_apps as a', 'p.wb_adv_v3_fs_app_id', '=', 'a.id')
@@ -63,7 +63,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
         $allData = $this->getAllAdvData();
         $assocFromThisData = $this->getAssocFromThisData();
 
-        $nmIds = $WbNmReportDetailHistory->pluck('nm_id')->toArray();
+        $nmIds = $WbAnalyticsV3ProductsHistory->pluck('nm_id')->toArray();
         $expenseData = WbRealizationReport::getExpenseData($this->day, $this->shop->id, $nmIds);
 
         $avgPricesByDay = DB::table('wb_v1_supplier_orders')
@@ -86,7 +86,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
             })
             ->toArray();
 
-        $report = $WbNmReportDetailHistory->map(function ($row) use ($advCostsSumByGoodId, $aacData, $aucData, $allData, $assocFromThisData, $avgPricesByDay, $expenseData) {
+        $report = $WbAnalyticsV3ProductsHistory->map(function ($row) use ($advCostsSumByGoodId, $aacData, $aucData, $allData, $assocFromThisData, $avgPricesByDay, $expenseData) {
             $row->advertising_costs = array_key_exists($row->good_id, $advCostsSumByGoodId) ? $advCostsSumByGoodId[$row->good_id] : 0;
             $row->finished_price = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['finished_price'] : 0;
             $row->price_with_disc = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['price_with_disc'] : 0;
@@ -109,7 +109,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
             $row->assoc_orders_from_other = $allOrders - ($aacOrders + $aucOrders);
             $row->assoc_orders_from_this = array_key_exists($row->good_id, $assocFromThisData) ? $assocFromThisData[$row->good_id]['orders'] : 0;
 
-            $expenseInfo = array_key_exists($row->nm_id, $expenseData) ? $expenseData[$row->nm_id] : null;
+            $expenseInfo = $expenseData[$row->nm_id];
             $row->wb_commission = $expenseInfo['wb_commission'];
             $row->logistics_total = $expenseInfo['logistics_total'];
             $row->storage_total = $expenseInfo['storage_total'];

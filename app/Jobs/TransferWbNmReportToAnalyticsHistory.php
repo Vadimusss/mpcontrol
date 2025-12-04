@@ -24,7 +24,7 @@ class TransferWbNmReportToAnalyticsHistory implements ShouldQueue
         $startDate = Carbon::now()->subDays(34)->format('Y-m-d');
         
         WbNmReportDetailHistory::whereBetween('dt', [$startDate, $endDate])
-            ->chunk(1000, function ($chunk) {
+            ->chunk(2000, function ($chunk) {
                 $mappedData = [];
                 
                 foreach ($chunk as $oldRecord) {

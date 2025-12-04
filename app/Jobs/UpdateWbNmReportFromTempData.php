@@ -5,7 +5,7 @@ namespace App\Jobs;
 use App\Models\Shop;
 use App\Models\Good;
 use App\Models\TempWbNmReportDetailHistory;
-use App\Models\WbNmReportDetailHistory;
+use App\Models\WbAnalyticsV3ProductsHistory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
@@ -50,8 +50,8 @@ class UpdateWbNmReportFromTempData implements ShouldQueue
 
         $goodIds = $goods->pluck('id')->toArray();
 
-        $mainRecords = WbNmReportDetailHistory::whereIn('good_id', $goodIds)
-            ->where('dt', $this->date)
+        $mainRecords = WbAnalyticsV3ProductsHistory::whereIn('good_id', $goodIds)
+            ->where('date', $this->date)
             ->get()
             ->keyBy('good_id');
 
@@ -77,12 +77,12 @@ class UpdateWbNmReportFromTempData implements ShouldQueue
 
             $updates[] = [
                 'id' => $mainRecord->id,
-                'open_card_count' => $tempRecord->open_card_count,
-                'add_to_cart_count' => $tempRecord->add_to_cart_count,
-                'orders_count' => $tempRecord->orders_count,
-                'orders_sum_rub' => $tempRecord->orders_sum_rub,
-                'buyouts_count' => $tempRecord->buyouts_count,
-                'buyouts_sum_rub' => $tempRecord->buyouts_sum_rub,
+                'open_count' => $tempRecord->open_card_count,
+                'cart_count' => $tempRecord->add_to_cart_count,
+                'order_count' => $tempRecord->orders_count,
+                'order_sum' => $tempRecord->orders_sum_rub,
+                'buyout_count' => $tempRecord->buyouts_count,
+                'buyout_sum' => $tempRecord->buyouts_sum_rub,
                 'cancel_count' => $tempRecord->cancel_count,
                 'cancel_sum_rub' => $tempRecord->cancel_sum_rub,
                 'buyout_percent' => $tempRecord->buyout_percent,
@@ -114,16 +114,16 @@ class UpdateWbNmReportFromTempData implements ShouldQueue
         $updatedCount = 0;
 
         foreach ($updates as $update) {
-            $mainRecord = WbNmReportDetailHistory::find($update['id']);
+            $mainRecord = WbAnalyticsV3ProductsHistory::find($update['id']);
 
             if ($mainRecord) {
                 $mainRecord->update([
-                    'open_card_count' => $update['open_card_count'],
-                    'add_to_cart_count' => $update['add_to_cart_count'],
-                    'orders_count' => $update['orders_count'],
-                    'orders_sum_rub' => $update['orders_sum_rub'],
-                    'buyouts_count' => $update['buyouts_count'],
-                    'buyouts_sum_rub' => $update['buyouts_sum_rub'],
+                    'open_count' => $update['open_count'],
+                    'cart_count' => $update['cart_count'],
+                    'order_count' => $update['order_count'],
+                    'order_sum' => $update['order_sum'],
+                    'buyout_count' => $update['buyout_count'],
+                    'buyout_sum' => $update['buyout_sum'],
                     'cancel_count' => $update['cancel_count'],
                     'cancel_sum_rub' => $update['cancel_sum_rub'],
                     'buyout_percent' => $update['buyout_percent'],

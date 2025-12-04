@@ -22,6 +22,8 @@ class WbAnalyticsV3ProductsHistory extends Model // /api/analytics/v3/sales-funn
         'order_sum',
         'buyout_count',
         'buyout_sum',
+        'cancel_count',
+        'cancel_sum_rub',
         'buyout_percent',
         'add_to_cart_conversion',
         'cart_to_order_conversion',
