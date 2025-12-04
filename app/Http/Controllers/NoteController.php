@@ -26,7 +26,6 @@ class NoteController extends Controller
 
     public function store(Request $request)
     {
-        dump($request);
         $validated = $request->validate([
             'date' => 'required|date',
             'goodId' => 'required|integer',
