@@ -109,15 +109,17 @@ class GenerateSalesFunnelReport implements ShouldQueue
             $row->assoc_orders_from_other = $allOrders - ($aacOrders + $aucOrders);
             $row->assoc_orders_from_this = array_key_exists($row->good_id, $assocFromThisData) ? $assocFromThisData[$row->good_id]['orders'] : 0;
 
-            $expenseInfo = $expenseData[$row->nm_id];
-            $row->wb_commission = $expenseInfo['wb_commission'];
-            $row->logistics_total = $expenseInfo['logistics_total'];
-            $row->storage_total = $expenseInfo['storage_total'];
-            $row->acquiring_total = $expenseInfo['acquiring_total'];
-            $row->penalty_total = $expenseInfo['penalty_total'];
-            $row->other_total = $expenseInfo['other_total'];
-            $row->commission_total = $expenseInfo['commission_total'];
-            $row->profit_without_ads = $expenseInfo['ppvz_for_pay'] - $expenseInfo['commission_total'];
+            $expenseInfo = array_key_exists($row->nm_id, $expenseData) ? $expenseData[$row->nm_id] : null;
+            $row->commission_total = $expenseInfo ? $expenseInfo['commission_total'] : 0;
+            $row->logistics_total = $expenseInfo ? $expenseInfo['logistics_total'] : 0;
+            $row->storage_total = $expenseInfo ? $expenseInfo['storage_total'] : 0;
+            $row->acquiring_total = $expenseInfo ? $expenseInfo['acquiring_total'] : 0;
+            $row->other_total = $expenseInfo ? $expenseInfo['other_total'] : 0;
+
+            $op_after_spp = $expenseInfo ? $expenseInfo['op_after_spp'] : 0;
+
+            $row->profit_without_ads = $op_after_spp - $row->commission_total;
+
             $row->profit_with_ads = $row->profit_without_ads - $row->advertising_costs;
 
             return $row;
@@ -152,13 +154,11 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'auc_sum' => $row->auc_sum,
                 'assoc_orders_from_other' => $row->assoc_orders_from_other,
                 'assoc_orders_from_this' => $row->assoc_orders_from_this,
-                'wb_commission' => $row->wb_commission,
+                'commission_total' => $row->commission_total,
                 'logistics_total' => $row->logistics_total,
                 'storage_total' => $row->storage_total,
                 'acquiring_total' => $row->acquiring_total,
-                'penalty_total' => $row->penalty_total,
                 'other_total' => $row->other_total,
-                'commission_total' => $row->commission_total,
                 'profit_without_ads' => $row->profit_without_ads,
                 'profit_with_ads' => $row->profit_with_ads,
                 'created_at' => now(),
@@ -210,15 +210,15 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->where('adv.shop_id', $this->shop->id)
             ->where('p.date', $this->day)
             ->where('pc.type', 9)
-            ->whereExists(function($exists) {
+            ->whereExists(function ($exists) {
                 $exists->select(DB::raw(1))
-                       ->from('wb_adv_v0_auction_adverts as aa')
-                       ->whereColumn('aa.advert_id', 'adv.advert_id')
-                       ->where('aa.bid_type', 'unified');
+                    ->from('wb_adv_v0_auction_adverts as aa')
+                    ->whereColumn('aa.advert_id', 'adv.advert_id')
+                    ->where('aa.bid_type', 'unified');
             })
-            ->join('wb_adv_v0_auction_adverts as aa', function($join) {
+            ->join('wb_adv_v0_auction_adverts as aa', function ($join) {
                 $join->on('adv.advert_id', '=', 'aa.advert_id')
-                     ->on('aa.nm_id', '=', DB::raw('p.nm_id'));
+                    ->on('aa.nm_id', '=', DB::raw('p.nm_id'));
             })
             ->select(
                 'p.good_id',
@@ -233,13 +233,13 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->mergeBindings($type9UnifiedQuery);
 
         return $combinedQuery->select(
-                'good_id',
-                DB::raw('ROUND(SUM(sum)) as sum'),
-                DB::raw('SUM(views) as views'),
-                DB::raw('SUM(clicks) as clicks'),
-                DB::raw('SUM(orders) as orders'),
-                DB::raw('CASE WHEN SUM(views) > 0 THEN ROUND((SUM(sum) / SUM(views)) * 1000, 2) ELSE 0 END as cpm')
-            )
+            'good_id',
+            DB::raw('ROUND(SUM(sum)) as sum'),
+            DB::raw('SUM(views) as views'),
+            DB::raw('SUM(clicks) as clicks'),
+            DB::raw('SUM(orders) as orders'),
+            DB::raw('CASE WHEN SUM(views) > 0 THEN ROUND((SUM(sum) / SUM(views)) * 1000, 2) ELSE 0 END as cpm')
+        )
             ->groupBy('good_id')
             ->get()
             ->mapWithKeys(function ($item) {
@@ -266,25 +266,25 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->where('adv.shop_id', $this->shop->id)
             ->where('p.date', $this->day)
             ->where('pc.type', 9)
-            ->whereExists(function($exists) {
+            ->whereExists(function ($exists) {
                 $exists->select(DB::raw(1))
-                       ->from('wb_adv_v0_auction_adverts as aa')
-                       ->whereColumn('aa.advert_id', 'adv.advert_id')
-                       ->where('aa.bid_type', 'manual');
+                    ->from('wb_adv_v0_auction_adverts as aa')
+                    ->whereColumn('aa.advert_id', 'adv.advert_id')
+                    ->where('aa.bid_type', 'manual');
             })
-            ->join('wb_adv_v0_auction_adverts as aa', function($join) {
+            ->join('wb_adv_v0_auction_adverts as aa', function ($join) {
                 $join->on('adv.advert_id', '=', 'aa.advert_id')
-                     ->on('aa.nm_id', '=', DB::raw('p.nm_id'));
+                    ->on('aa.nm_id', '=', DB::raw('p.nm_id'));
             });
 
         return $query->select(
-                'p.good_id',
-                DB::raw('ROUND(SUM(p.sum)) as sum'),
-                DB::raw('SUM(p.views) as views'),
-                DB::raw('SUM(p.clicks) as clicks'),
-                DB::raw('SUM(p.orders) as orders'),
-                DB::raw('CASE WHEN SUM(p.views) > 0 THEN ROUND((SUM(p.sum) / SUM(p.views)) * 1000, 2) ELSE 0 END as cpm')
-            )
+            'p.good_id',
+            DB::raw('ROUND(SUM(p.sum)) as sum'),
+            DB::raw('SUM(p.views) as views'),
+            DB::raw('SUM(p.clicks) as clicks'),
+            DB::raw('SUM(p.orders) as orders'),
+            DB::raw('CASE WHEN SUM(p.views) > 0 THEN ROUND((SUM(p.sum) / SUM(p.views)) * 1000, 2) ELSE 0 END as cpm')
+        )
             ->groupBy('p.good_id')
             ->get()
             ->mapWithKeys(function ($item) {
