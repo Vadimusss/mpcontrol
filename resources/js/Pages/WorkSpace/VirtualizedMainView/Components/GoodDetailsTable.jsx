@@ -1,8 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import notesStore from '../Stores/NotesStore';
-import { goodsStore } from '../Stores/GoodsStore';
 import '../styles.css';
 
 export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSettings, handleOpenNotes }) => {
@@ -64,7 +62,6 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
                             return '';
                         };
 
-                        // Специальная логика для отображения заметок
                         if (type === 'notes') {
                             return (
                                 <tr key={`${type}-${index}`} className="table-row">

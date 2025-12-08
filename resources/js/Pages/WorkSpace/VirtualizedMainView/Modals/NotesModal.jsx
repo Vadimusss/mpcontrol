@@ -32,7 +32,6 @@ const NotesModal = observer(() => {
 
   if (!notesStore.isOpen) return null;
 
-  console.log(notesStore.notes);
   const { date, goodId, viewId } = notesStore.currentNoteKey || {};
 
   return (

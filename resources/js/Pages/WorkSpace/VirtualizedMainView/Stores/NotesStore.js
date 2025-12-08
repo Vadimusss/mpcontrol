@@ -83,10 +83,8 @@ class NotesStore {
       });
       return data !== '';
     } catch (error) {
-      return {
-        success: false,
-        error: 'Failed isNotesExists method'
-      };
+      console.error('Failed isNotesExists method:', error);
+      return false;
     }
   };
 

@@ -44,6 +44,12 @@ class GoodsStore {
           [date]: isNotesExists
         };
       }
+      if (this.goodDetails) {
+        if (!this.goodDetails.notesData) {
+          this.goodDetails.notesData = {};
+        }
+        this.goodDetails.notesData[date] = isNotesExists;
+      }
     });
   }
 
@@ -53,28 +59,12 @@ class GoodsStore {
     });
 
     try {
-      const params = new URLSearchParams();
-      dates.forEach(date => params.append('dates[]', date));
-
-      const response = await fetch(`/api/shops/${shopId}/goods/${goodId}/details?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+      const response = await apiClient.get(`shops/${shopId}/goods/${goodId}/details`, {
+        params: { 'dates[]': dates },
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        runInAction(() => {
-          this.goodDetails = data;
-        });
-      } else {
-        console.error('Failed to load good details');
-        runInAction(() => {
-          this.goodDetails = null;
-        });
-      }
+      runInAction(() => {
+        this.goodDetails = response.data;
+      });
     } catch (error) {
       console.error('Error loading good details:', error);
       runInAction(() => {
@@ -96,3 +86,4 @@ class GoodsStore {
 }
 
 export const goodsStore = new GoodsStore();
+export default goodsStore;

@@ -1,9 +1,10 @@
 import React, { useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import { GoodDetailsTable } from '../Components/GoodDetailsTable';
 import NotesModal from './NotesModal';
 import notesStore from '../Stores/NotesStore';
+import viewStore from '../Stores/ViewStore';
 import { goodsStore } from '../Stores/GoodsStore';
 import '../styles.css';
 
@@ -15,9 +16,8 @@ export const GoodDetailsModal = observer(({
     dates,
     workSpaceSettings
 }) => {
-    // console.log(good);
 
-    const viewId = workSpaceSettings.view_id;
+    const { viewId } = viewStore;
 
     useEffect(() => {
         if (isOpen && good) {

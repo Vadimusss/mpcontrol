@@ -174,7 +174,6 @@ input[type="checkbox"]:checked {
   border-color: currentColor;
 }
 
-/* Good Details Modal Styles */
 .good-details-modal-overlay {
   position: fixed;
   inset: 0;
@@ -218,6 +217,7 @@ input[type="checkbox"]:checked {
 .good-details-modal-header {
   background-color: white;
   padding: 1rem 1rem 1rem 1rem;
+  border-radius: 0.5rem 0.5rem 0 0;
 }
 
 .good-details-modal-header-content {
@@ -353,8 +353,8 @@ input[type="checkbox"]:checked {
 }
 
 .good-details-modal .table-container {
-  height: calc(95vh - 200px);
-  max-height: calc(95vh - 200px);
+  height: calc(95vh - 100px);
+  max-height: fit-content;
 }
 
 .good-details-modal .sticky-table {
@@ -384,9 +384,16 @@ input[type="checkbox"]:checked {
   }
 }
 
-/* Notes Styles */
+.notes-cell:hover {
+  background-color: #f3f4f6;
+}
+
 .notes-cell-green {
-  background-color: #d1fae5 !important;
+  background-color: #d0f9a4 !important;
+}
+
+.notes-cell-green:hover {
+  background-color: #f3f4f6 !important;
 }
 
 .notes-button {
@@ -399,10 +406,6 @@ input[type="checkbox"]:checked {
   background: transparent;
   cursor: pointer;
   padding: 0;
-}
-
-.notes-button:hover {
-  background-color: #f3f4f6;
 }
 
 .notes-icon {

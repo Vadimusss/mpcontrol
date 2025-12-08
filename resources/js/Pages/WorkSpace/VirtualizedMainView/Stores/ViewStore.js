@@ -55,3 +55,4 @@ class ViewStore {
 }
 
 export const viewStore = new ViewStore();
+export default viewStore;

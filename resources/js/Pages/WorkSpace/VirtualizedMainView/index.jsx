@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { goodsStore } from './Stores/GoodsStore';
+import goodsStore from './Stores/GoodsStore';
 import { viewStore } from './Stores/ViewStore';
 import { TableHeader } from './Components/TableHeader';
 import { TableBody } from './Components/TableBody';
@@ -208,7 +208,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Казань',
         }
     ], [filteredGoods, viewStore]);
-    // console.log(initialGoods);
+
     const table = useReactTable({
         data: filteredGoods,
         columns,
