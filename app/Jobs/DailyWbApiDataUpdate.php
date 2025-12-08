@@ -6,7 +6,7 @@ use Illuminate\Support\Arr;
 use App\Models\Shop;
 use App\Jobs\AddWbAdvV2Fullstats;
 use App\Jobs\AddWbAdvV1PromotionCount;
-use App\Jobs\AddWbNmReportDetailHistory;
+use App\Jobs\AddWbAnalyticsV3ProductsHistory;
 use App\Jobs\AddWbAdvV1Upd;
 use App\Jobs\AddWbV1SupplierOrders;
 use App\Jobs\UpdateWbV1SupplierStocks;
@@ -60,15 +60,15 @@ class DailyWbApiDataUpdate implements ShouldQueue
             $shopGoods = $shop->goods();
             $shopNmIds = $shopGoods->pluck('nm_id')->toArray();
             $chunks = array_chunk($shopNmIds, 20);
-            $nmReportDetailHistoryJobs = array_map(function ($chunk) use ($shop, $period) {
-                return (new AddWbNmReportDetailHistory($shop, $chunk, $period))->delay(20);
+            $productsHistoryJobs = array_map(function ($chunk) use ($shop, $date) {
+                return (new AddWbAnalyticsV3ProductsHistory($shop, $chunk, $date))->delay(20);
             }, $chunks);
 
             $shop->WbNmReportDetailHistory()->where('dt', '=', $date)->delete();
 
             Bus::batch([
                 $fullstatsJobs,
-                $nmReportDetailHistoryJobs,
+                $productsHistoryJobs,
                 [new AddWbAdvV1Upd($shop, $period)],
                 [new AddWbV1SupplierOrders($shop, $date)],
                 [new UpdateWbV1SupplierStocks($shop)],
