@@ -4,9 +4,10 @@ namespace App\Services\ViewHandlers;
 
 use App\Models\Good;
 use App\Models\Shop;
-use App\Models\WbAdvV2FullstatsProduct;
+use App\Models\WbAnalyticsV3ProductsHistory;
 use App\Models\Note;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class GoodDetailsModalHandler
@@ -15,15 +16,9 @@ class GoodDetailsModalHandler
     {
         $commission = $shop->settings['commission'] ?? null;
         $logistics = $shop->settings['logistics'] ?? null;
-        
-        $advDataByType = $this->getAdvDataWithCtrCpc($shop, $dates);
-        $aacData = $advDataByType[8] ?? [];
-        $aucData = $advDataByType[9] ?? [];
 
-        // Для столбца "∑ мес." используем данные за 30 дней
         $totalsStartDate = Carbon::now()->subDays(30)->format('Y-m-d');
 
-        // Загружаем первый workspace для получения view_id
         $shop->load('workSpaces');
 
         $good->load([
@@ -33,39 +28,37 @@ class GoodDetailsModalHandler
             'salesFunnel' => function ($q) use ($dates, $totalsStartDate) {
                 $q->where(function ($query) use ($dates, $totalsStartDate) {
                     $query->whereIn('date', $dates)
-                          ->orWhere('date', '>=', $totalsStartDate);
+                        ->orWhere('date', '>=', $totalsStartDate);
                 })->orderBy('date');
             },
-            'wbNmReportDetailHistory' => function ($q) use ($dates) {
-                $q->select('good_id', 'dt', 'add_to_cart_conversion', 'cart_to_order_conversion')
-                  ->whereIn('dt', $dates);
+            'wbAnalyticsV3ProductsHistory' => function ($q) use ($dates) {
+                $q->select('good_id', 'date', 'add_to_cart_conversion', 'cart_to_order_conversion')
+                    ->whereIn('date', $dates);
             }
         ]);
 
-        // Получаем данные о заметках
         $notesData = $this->getNotesData($good, $shop, $dates);
-        
+
         $conversionMap = [];
-        foreach ($good->wbNmReportDetailHistory as $conversionData) {
-            $conversionMap[$conversionData->dt] = [
+        foreach ($good->wbAnalyticsV3ProductsHistory as $conversionData) {
+            $conversionMap[$conversionData->date] = [
                 'add_to_cart_conversion' => $conversionData->add_to_cart_conversion ?? 0,
                 'cart_to_order_conversion' => $conversionData->cart_to_order_conversion ?? 0
             ];
         }
-        
+
         $salesData = [];
-        $monthlyTotals = []; // Для столбца "∑ мес."
-        
+        $monthlyTotals = [];
+
         foreach ($good->salesFunnel as $row) {
             $conversion = $conversionMap[$row->date] ?? [
                 'add_to_cart_conversion' => 0,
                 'cart_to_order_conversion' => 0
             ];
-            
+
             $ordersProfit = $this->calculateProfit($row->orders_sum_rub, $row->orders_count, $row->advertising_costs, $good->nsi, $commission, $logistics);
             $buyoutsProfit = $this->calculateProfit($row->buyouts_sum_rub, $row->buyouts_count, $row->advertising_costs, $good->nsi, $commission, $logistics);
-            
-            // Формируем salesData только для дней из viewSettings
+
             if (in_array($row->date, $dates)) {
                 $salesData[$row->date] = [
                     'orders_count' => $row->orders_count === 0 ? '' : $row->orders_count,
@@ -90,30 +83,30 @@ class GoodDetailsModalHandler
                     'aac_clicks' => $row->aac_clicks === 0 ? '' : $row->aac_clicks,
                     'aac_sum' => $row->aac_sum === 0 ? '' : round($row->aac_sum),
                     'aac_orders' => $row->aac_orders === 0 ? '' : $row->aac_orders,
-                    'aac_ctr' => $aacData[$row->date][$row->good_id]['ctr'] ?? '',
-                    'aac_cpc' => $aacData[$row->date][$row->good_id]['cpc'] ?? '',
+                    'aac_ctr' => $this->calculateCtr($row->aac_views, $row->aac_clicks),
+                    'aac_cpc' => $this->calculateCpc($row->aac_sum, $row->aac_clicks),
 
                     'auc_cpm' => $row->auc_cpm === 0 ? '' : $row->auc_cpm,
                     'auc_views' => $row->auc_views === 0 ? '' : $row->auc_views,
                     'auc_clicks' => $row->auc_clicks === 0 ? '' : $row->auc_clicks,
                     'auc_sum' => $row->auc_sum === 0 ? '' : round($row->auc_sum),
                     'auc_orders' => $row->auc_orders === 0 ? '' : $row->auc_orders,
-                    'auc_ctr' => $aucData[$row->date][$row->good_id]['ctr'] ?? '',
-                    'auc_cpc' => $aucData[$row->date][$row->good_id]['cpc'] ?? '',
+                    'auc_ctr' => $this->calculateCtr($row->auc_views, $row->auc_clicks),
+                    'auc_cpc' => $this->calculateCpc($row->auc_sum, $row->auc_clicks),
 
                     'ad_orders' => ($row->auc_orders != 0 || $row->aac_orders != 0) ? $row->auc_orders + $row->aac_orders : '',
                     'no_ad_orders' => (($row->auc_orders != 0 || $row->aac_orders != 0) && $row->orders_count != 0) ?
                         $row->orders_count - ($row->auc_orders + $row->aac_orders) : '',
+                    'assoc_orders_from_other' => $row->assoc_orders_from_other === 0 ? '' : $row->assoc_orders_from_other,
+                    'assoc_orders_from_this' => $row->assoc_orders_from_this === 0 ? '' : $row->assoc_orders_from_this,
                 ];
             }
-            
-            // Считаем totals за 30 дней для столбца "∑ мес."
+
             if ($row->date >= $totalsStartDate) {
                 $this->accumulateMonthlyTotals($monthlyTotals, $row, $ordersProfit, $buyoutsProfit);
             }
         }
-        
-        // Рассчитываем продажи по складам за 30 дней
+
         $salesByWarehouse = $this->calculateSalesByWarehouse($shop, $totalsStartDate, [
             'elektrostal' => 'Электросталь',
             'tula' => 'Тула',
@@ -161,6 +154,8 @@ class GoodDetailsModalHandler
                 ['name' => 'Аукцион CPC', 'type' => 'auc_cpc'],
                 ['name' => 'Заказы по рекл', 'type' => 'ad_orders'],
                 ['name' => 'Заказы не по рекл', 'type' => 'no_ad_orders'],
+                ['name' => 'Заказы с других РК', 'type' => 'assoc_orders_from_other'],
+                ['name' => 'Заказы товаров с РК этого', 'type' => 'assoc_orders_from_this'],
             ]
         ];
     }
@@ -191,13 +186,11 @@ class GoodDetailsModalHandler
             }
         }
 
-        // Специальная логика для no_ad_clicks
         $noAdClicks = ($row->aac_clicks != 0 || $row->auc_clicks != 0) ? $row->open_card_count - ($row->aac_clicks + $row->auc_clicks) : 0;
         if (is_numeric($noAdClicks)) {
             $totals['no_ad_clicks'] = ($totals['no_ad_clicks'] ?? 0) + $noAdClicks;
         }
 
-        // Специальная логика для ad_orders и no_ad_orders
         $adOrders = ($row->auc_orders != 0 || $row->aac_orders != 0) ? $row->auc_orders + $row->aac_orders : 0;
         if (is_numeric($adOrders)) {
             $totals['ad_orders'] = ($totals['ad_orders'] ?? 0) + $adOrders;
@@ -230,55 +223,41 @@ class GoodDetailsModalHandler
             });
     }
 
-    private function getAdvDataWithCtrCpc(Shop $shop, array $dates): array
+    private function calculateCtr($views, $clicks): string
     {
-        $result = WbAdvV2FullstatsProduct::whereIn('wb_adv_fs_products.date', $dates)
-            ->join('wb_adv_fs_apps', 'wb_adv_fs_products.wb_adv_fs_app_id', '=', 'wb_adv_fs_apps.id')
-            ->join('wb_adv_fs_days', 'wb_adv_fs_apps.wb_adv_fs_day_id', '=', 'wb_adv_fs_days.id')
-            ->join('wb_adv_v2_fullstats_wb_adverts', 'wb_adv_fs_days.wb_adv_v2_fullstats_wb_advert_id', '=', 'wb_adv_v2_fullstats_wb_adverts.id')
-            ->join('wb_adv_v1_promotion_counts', 'wb_adv_v2_fullstats_wb_adverts.advert_id', '=', 'wb_adv_v1_promotion_counts.advert_id')
-            ->where('wb_adv_v1_promotion_counts.shop_id', $shop->id)
-            ->whereIn('wb_adv_v1_promotion_counts.type', [8, 9])
-            ->select(
-                'wb_adv_fs_products.good_id',
-                'wb_adv_fs_products.date',
-                'wb_adv_v1_promotion_counts.type',
-                'wb_adv_v2_fullstats_wb_adverts.ctr',
-                'wb_adv_v2_fullstats_wb_adverts.cpc'
-            )
-            ->get()
-            ->groupBy(['type', 'date', 'good_id'])
-            ->map(function ($typeGroup) {
-                return $typeGroup->map(function ($dateGroup) {
-                    return $dateGroup->map(function ($items) {
-                        return [
-                            'ctr' => $items->first()->ctr,
-                            'cpc' => $items->first()->cpc,
-                        ];
-                    });
-                });
-            });
-        
-        return $result->toArray();
+        if (!is_numeric($views) || !is_numeric($clicks) || $views <= 0) {
+            return '';
+        }
+        $ctr = ($clicks / $views) * 100;
+        return round($ctr, 2);
+    }
+
+    private function calculateCpc($sum, $clicks): string
+    {
+        if (!is_numeric($sum) || !is_numeric($clicks) || $clicks <= 0) {
+            return '';
+        }
+        $cpc = $sum / $clicks;
+        return round($cpc, 2);
     }
 
     private function getNotesData(Good $good, Shop $shop, array $dates): array
     {
         $notesData = [];
-        
+
         $viewId = $shop->workSpaces->first()->view_id ?? 2;
-        
+
         foreach ($dates as $date) {
             $noteKey = [
                 'good_id' => $good->id,
                 'view_id' => $viewId,
                 'date' => $date
             ];
-            
+
             $noteExists = Note::where($noteKey)->exists();
             $notesData[$date] = $noteExists;
         }
-        
+
         return $notesData;
     }
 
