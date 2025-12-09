@@ -353,7 +353,7 @@ input[type="checkbox"]:checked {
 }
 
 .good-details-modal .table-container {
-  height: calc(95vh - 100px);
+  height: calc(95vh - 90px);
   max-height: fit-content;
 }
 
