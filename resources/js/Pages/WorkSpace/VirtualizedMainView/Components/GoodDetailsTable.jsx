@@ -20,7 +20,7 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
                         </th>
                         <th colSpan={dates.length}></th>
                         <th></th>
-                        <th colSpan="5">Продажи по складам руб.</th>
+                        <th colSpan="5">Продажи по складам шт.</th>
                     </tr>
                     <tr>
                         <th className="sticky-column sticky-left"></th>
@@ -56,7 +56,7 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
                         const { name, type } = metadata;
 
                         const getWarehouseValue = (warehouseKey) => {
-                            if (type === 'orders_sum_rub') {
+                            if (type === 'orders_count') {
                                 return salesByWarehouse[warehouseKey] || 0;
                             }
                             return '';
