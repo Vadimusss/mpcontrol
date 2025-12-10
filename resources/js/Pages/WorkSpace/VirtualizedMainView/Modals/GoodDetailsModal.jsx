@@ -48,8 +48,8 @@ export const GoodDetailsModal = observer(({
                                 <div className="good-details-modal-header-left">
                                     <div className="good-details-modal-title">
                                         <div>
-                                            <p><b>{good?.article} | {good?.name} | {good?.variant} |&nbsp;
-                                                <a
+                                            <p>Артикул: <b>{good?.article}</b> | Название: <b>{good?.name}</b> | Вариант: <b>{good?.variant}</b> | Артикул WB:&nbsp;
+                                                <b><a
                                                     href={`https://www.wildberries.ru/catalog/${good?.wbArticle}/detail.aspx`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"

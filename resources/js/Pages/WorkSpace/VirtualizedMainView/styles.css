@@ -95,7 +95,7 @@
   box-sizing: border-box;
 }
 
-.sticky-table td a {
+.sticky-table td a, .good-details-modal-title a {
   color: blue;
 }
 
