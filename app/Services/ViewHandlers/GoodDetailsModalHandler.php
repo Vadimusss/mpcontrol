@@ -107,6 +107,9 @@ class GoodDetailsModalHandler
             }
         }
 
+        $monthlyTotals['finished_price'] = ($monthlyTotals['finished_price'] == 0 && $monthlyTotals['orders_count'] == 0) ?
+            '' : round($monthlyTotals['finished_price'] / $monthlyTotals['orders_count']);
+
         $salesByWarehouse = $this->calculateSalesByWarehouse($shop, $totalsStartDate, [
             'elektrostal' => 'Электросталь',
             'tula' => 'Тула',
@@ -167,7 +170,7 @@ class GoodDetailsModalHandler
             'advertising_costs' => $row->advertising_costs,
             'orders_profit' => $ordersProfit,
             'price_with_disc' => round($row->price_with_disc),
-            'finished_price' => round($row->finished_price),
+            'finished_price' => $row->finished_price * $row->orders_count,
             'orders_sum_rub' => $row->orders_sum_rub,
             'buyouts_sum_rub' => $row->buyouts_sum_rub,
             'buyouts_count' => $row->buyouts_count,
