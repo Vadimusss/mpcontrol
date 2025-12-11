@@ -110,7 +110,7 @@ class MainViewHandler implements ViewHandler
             $discountedPrice = $price * (1 - $discount / 100);
 
             $mainRowProfit = $this->calculateMainRowProfit(
-                $discountedPrice,
+                $price,
                 $commission,
                 $logistics,
                 $good->nsi->cost_with_taxes ?? null
@@ -184,14 +184,14 @@ class MainViewHandler implements ViewHandler
         }
     }
 
-    private function calculateMainRowProfit(float $discountedPrice, ?float $commission, ?float $logistics, ?float $costWithTaxes): string
+    private function calculateMainRowProfit(float $price, ?float $commission, ?float $logistics, ?float $costWithTaxes): string
     {
         try {
             if ($commission === null || $logistics === null || $costWithTaxes === null) {
                 return '?';
             }
 
-            $profit = $discountedPrice - ($discountedPrice * ($commission / 100)) - $logistics - $costWithTaxes;
+            $profit = $price - ($price * ($commission / 100)) - $logistics - $costWithTaxes;
             return round($profit) == 0 ? '0' : round($profit);
         } catch (\Exception $e) {
             return '?';
