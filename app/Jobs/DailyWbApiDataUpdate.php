@@ -57,14 +57,18 @@ class DailyWbApiDataUpdate implements ShouldQueue
 
             $fullstatsJobs = Arr::prepend($fullstatsJobs, new AddWbAdvV1PromotionCount($shop));
 
-            $shopGoods = $shop->goods();
-            $shopNmIds = $shopGoods->pluck('nm_id')->toArray();
-            $chunks = array_chunk($shopNmIds, 20);
-            $productsHistoryJobs = array_map(function ($chunk) use ($shop, $date) {
-                return (new AddWbAnalyticsV3ProductsHistory($shop, $chunk, $date))->delay(20);
-            }, $chunks);
+            $shopGoods = $shop->goods()->select('id', 'nm_id')->get();
+            $chunks = $shopGoods->chunk(20);
 
-            $shop->WbNmReportDetailHistory()->where('dt', '=', $date)->delete();
+            $productsHistoryJobs = [];
+
+            foreach ($chunks as $chunk) {
+                $productsHistoryJobs[] = (new AddWbAnalyticsV3ProductsHistory(
+                    $shop,
+                    $chunk,
+                    $date
+                ))->delay(20);
+            }
 
             Bus::batch([
                 $fullstatsJobs,

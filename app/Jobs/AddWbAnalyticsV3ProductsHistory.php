@@ -11,6 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use App\Events\JobFailed;
+use Illuminate\Support\Collection;
 use Throwable;
 
 class AddWbAnalyticsV3ProductsHistory implements ShouldQueue
@@ -19,11 +20,11 @@ class AddWbAnalyticsV3ProductsHistory implements ShouldQueue
 
     public function __construct(
         public Shop $shop,
-        public array $nmIds,
+        public Collection $goods,
         public string $date
     ) {
         $this->shop = $shop;
-        $this->nmIds = $nmIds;
+        $this->goods = $goods;
         $this->date = $date;
     }
 
@@ -33,8 +34,11 @@ class AddWbAnalyticsV3ProductsHistory implements ShouldQueue
 
     public function handle(): void
     {
+        $goodsMap = $this->goods->pluck('id', 'nm_id');
+
         $api = new WbApiService($this->shop->apiKey->key);
-        $WbAnalyticsV3ProductsHistoryData = $api->getApiAnalyticsV3SalesFunnelProductsHistory($this->nmIds, $this->date);
+        $nmIds = $goodsMap->keys()->toArray();
+        $WbAnalyticsV3ProductsHistoryData = $api->getApiAnalyticsV3SalesFunnelProductsHistory($nmIds, $this->date);
 
         if ($WbAnalyticsV3ProductsHistoryData->isNotEmpty()) {
 
@@ -45,8 +49,13 @@ class AddWbAnalyticsV3ProductsHistory implements ShouldQueue
             if ($notEmptyData->isNotEmpty()) {
                 $receivedNmIds = $notEmptyData->pluck('product.nmId')->unique()->toArray();
 
+                $receivedGoodIds = $goodsMap
+                    ->only($receivedNmIds)
+                    ->values()
+                    ->toArray();
+
                 DB::table('wb_analytics_v3_products_histories')
-                    ->whereIn('nm_id', $receivedNmIds)
+                    ->whereIn('good_id', $receivedGoodIds)
                     ->where('date', $this->date)
                     ->delete();
 
