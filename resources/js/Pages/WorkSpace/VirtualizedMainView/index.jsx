@@ -34,6 +34,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
     const viewId = workSpace.view_settings.view.id;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedGood, setSelectedGood] = useState(null);
+    const [tooltipData, setTooltipData] = useState(null);
 
     useEffect(() => {
         goodsStore.setGoods(initialGoods);
@@ -142,11 +143,11 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                 );
             },
         },
-        {
-            accessorKey: 'mainRowMetadata',
-            header: '',
-            sticky: 'left',
-        },
+        /*         {
+                    accessorKey: 'mainRowMetadata',
+                    header: '',
+                    sticky: 'left',
+                }, */
         ...dates.map((date) => {
             const formattedDate = new Date(date).toLocaleDateString('ru-RU', {
                 day: '2-digit',
@@ -239,8 +240,30 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                         tableContainerRef={tableContainerRef}
                         table={table}
                         columns={columns}
+                        onTooltip={setTooltipData}
                     />
                 </table>
+                {tooltipData && (
+                    <div className="global-tooltip" style={{
+                        position: 'fixed',
+                        left: `${tooltipData.x}px`,
+                        top: `${tooltipData.y}px`,
+                        zIndex: 99999,
+                        background: '#ffffff',
+                        color: '#000000',
+                        padding: '6px 10px',
+                        borderRadius: '4px',
+                        width: 'fit-content',
+                        whiteSpace: 'normal',
+                        fontSize: '14px',
+                        lineHeight: '1.4',
+                        pointerEvents: 'none',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                        border: '1px solid #d9d9d9',
+                    }}>
+                        {tooltipData.text}
+                    </div>
+                )}
             </div>
 
             <GoodDetailsModal

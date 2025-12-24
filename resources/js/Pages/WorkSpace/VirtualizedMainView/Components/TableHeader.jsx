@@ -11,7 +11,7 @@ export const TableHeader = ({
     return (
         <thead className={`sticky-header`}>
             <tr>
-                <th colSpan={6} className={`sticky-column sticky-left`}>
+                <th colSpan={5} className={`sticky-column sticky-left`}>
                     {`Комиссия: ${shop.settings?.commission}%,
                                 Логистика: ${shop.settings?.logistics},
                                 Коэф. процентиля: ${shop.settings?.percentile_coefficient},
@@ -38,7 +38,7 @@ export const TableHeader = ({
                 </tr>
             ))}
             <tr>
-                <th colSpan={6} className={`sticky-column sticky-left`}></th>
+                <th colSpan={5} className={`sticky-column sticky-left`}></th>
                 {Array.from({ length: workSpaceSettings.days }, (_, index) => -index).reverse().map((number, index) => (
                     <th key={index}>{number}</th>
                 ))}

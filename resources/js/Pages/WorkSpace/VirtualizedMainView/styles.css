@@ -1,7 +1,7 @@
 .table-container {
   height: 90vh;
   overflow: auto;
-  border: 1px solid #000000;
+  border: 1px solid #d9d9d9;
   position: relative;
   background: white;
 }
@@ -12,15 +12,15 @@
   border-spacing: 0;
   position: relative;
   table-layout: fixed;
-  font-family: Roboto Condensed, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol, "Noto Color Emoji";
-  font-size: 0.75rem;
+  font-family: Arial, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol, "Noto Color Emoji";
+  font-size: 14px;
   line-height: 1rem;
 }
 
 .sticky-header th {
   background: #f8f9fa;
-  border-bottom: 1px solid #000000;
-  border-right: 1px solid #000000;
+  border-bottom: 1px solid #d9d9d9;
+  border-right: 1px solid #d9d9d9;
   position: relative;
   color: #495057;
   padding: 2px 2px;
@@ -53,28 +53,23 @@
 
 .sticky-header th.sticky-left.sticky-column:nth-child(3),
 .sticky-table td.sticky-left.sticky-column:nth-child(3) {
-  left: 112px;
+  left: 132px;
 }
 
 .sticky-header th.sticky-left.sticky-column:nth-child(4),
 .sticky-table td.sticky-left.sticky-column:nth-child(4) {
-  left: 312px;
+  left: 332px;
 }
 
 .sticky-header th.sticky-left.sticky-column:nth-child(5),
 .sticky-table td.sticky-left.sticky-column:nth-child(5) {
-  left: 462px;
-}
-
-.sticky-header th.sticky-left.sticky-column:nth-child(6),
-.sticky-table td.sticky-left.sticky-column:nth-child(6) {
-  left: 526px;
+  left: 482px;
 }
 
 .sticky-header th.sticky-left.sticky-column,
 .sticky-table td.sticky-left.sticky-column {
-  border-right: 1px solid #000000;
-  box-shadow: 1px 0 1px rgba(0,0,0,1);
+  border-right: 1px solid #d9d9d9;
+  box-shadow: 1px 0 1px rgba(217,217,217,1);
 }
 
 .sticky-header .sticky-column {
@@ -82,15 +77,15 @@
   background: #f8f9fa !important;
 }
 
-
 .sticky-table td {
   padding: 2px 4px;
-  border-bottom: 1px solid #000000;
-  border-right: 1px solid #000000;
+  border-bottom: 1px solid #d9d9d9;
+  border-right: 1px solid #d9d9d9;
   text-align: left;
   background: white;
-  white-space: normal;
-  word-wrap: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   vertical-align: middle;
   box-sizing: border-box;
 }
@@ -99,7 +94,7 @@
   color: blue;
 }
 
-.sticky-table td:nth-child(n+7) {
+.sticky-table td:nth-child(n+6) {
   text-align: right;
 }
 
@@ -119,7 +114,7 @@
 }
 
 .table-row {
-  border-bottom: 1px solid #000000;
+  border-bottom: 1px solid #d9d9d9;
 }
 
 .table-container::-webkit-scrollbar {

@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { flexRender } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import '../styles.css';
 
-export const TableBody = ({ tableContainerRef, table, columns }) => {
+export const TableBody = ({ tableContainerRef, table, columns, onTooltip }) => {
     const { rows } = table.getRowModel();
+    const [activeTooltip, setActiveTooltip] = useState(null);
+    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
     const rowVirtualizer = useVirtualizer({
         count: rows.length,
@@ -20,6 +22,37 @@ export const TableBody = ({ tableContainerRef, table, columns }) => {
     const paddingBottom = virtualRows.length > 0
         ? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0)
         : 0;
+
+    const checkOverflow = (element, text) => {
+        if (!element || !text) return false;
+
+        if (text.length < 15) return false;
+        if (!isNaN(parseFloat(text)) && isFinite(text)) return false;
+        if (/^\d{4}[-\/]\d{2}[-\/]\d{2}/.test(text)) return false;
+
+        return element.scrollWidth > element.clientWidth + 2;
+    };
+
+    const handleMouseEnter = (e, cellValue) => {
+        if (!cellValue) return;
+
+        const displayText = String(cellValue);
+        const cellElement = e.currentTarget;
+
+        if (!checkOverflow(cellElement, displayText)) return;
+
+        const rect = cellElement.getBoundingClientRect();
+
+        onTooltip({
+            text: displayText,
+            x: rect.left + 40,
+            y: rect.bottom + 5
+        });
+    };
+
+    const handleMouseLeave = () => {
+        onTooltip(null);
+    };
 
     return (
         <tbody>
@@ -39,21 +72,28 @@ export const TableBody = ({ tableContainerRef, table, columns }) => {
                             height: '26px',
                         }}
                     >
-                        {row.getVisibleCells().map(cell => (
-                            <td
-                                key={cell.id}
-                                className={
-                                    cell.column.columnDef.sticky
-                                        ? `sticky-column sticky-${cell.column.columnDef.sticky}`
-                                        : ''
-                                }
-                                style={{
-                                    width: cell.column.getSize(),
-                                }}
-                            >
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </td>
-                        ))}
+                        {row.getVisibleCells().map(cell => {
+
+                            const cellValue = cell.getValue();
+                            const displayText = cellValue != null ? String(cellValue) : '';
+                            return (
+                                <td
+                                    key={cell.id}
+                                    className={
+                                        cell.column.columnDef.sticky
+                                            ? `sticky-column sticky-${cell.column.columnDef.sticky}`
+                                            : ''
+                                    }
+                                    style={{
+                                        width: cell.column.getSize(),
+                                    }}
+                                    onMouseEnter={(e) => handleMouseEnter(e, cellValue)}
+                                    onMouseLeave={handleMouseLeave}
+                                >
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </td>
+                            )
+                        })}
                     </tr>
                 );
             })}

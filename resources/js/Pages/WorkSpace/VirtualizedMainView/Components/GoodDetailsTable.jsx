@@ -10,9 +10,9 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
         <div className="table-container">
             <table className="sticky-table">
                 <colgroup>
-                    <col style={{ width: '110px' }} />
-                    {dates.map((date) => <col key={`date-${date}`} style={{ width: '40px' }} />)}
-                    {[...Array(6).keys()].map((number) => <col key={`col-${number}`} style={{ width: '50px' }} />)}
+                    <col style={{ width: '140px' }} />
+                    {dates.map((date) => <col key={`date-${date}`} style={{ width: '46px' }} />)}
+                    {[...Array(6).keys()].map((number) => <col key={`col-${number}`} style={{ width: '60px' }} />)}
                 </colgroup>
                 <thead className="sticky-header">
                     <tr>
