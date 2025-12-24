@@ -370,6 +370,10 @@ input[type="checkbox"]:checked {
   max-width: 80px;
 }
 
+.good-details-modal .sticky-table td:nth-child(n+2) {
+  text-align: right;
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);
