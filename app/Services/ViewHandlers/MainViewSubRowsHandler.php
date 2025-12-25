@@ -164,7 +164,7 @@ class MainViewSubRowsHandler
     private function calculateProfit($sum, $count, $advertising_costs, $nsi, $commission, $logistics): string
     {
         try {
-            $costWithTaxes = $nsi->cost_with_taxes ?? null;
+            $costWithTaxes = $nsi?->cost_with_taxes;
 
             if (
                 $sum === null || $commission === null ||

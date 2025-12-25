@@ -109,11 +109,13 @@ class MainViewHandler implements ViewHandler
             $discount = $good->wbListGoodRow?->discount ?? 0;
             $discountedPrice = $price * (1 - $discount / 100);
 
+            $costWithTaxes = $good->nsi?->cost_with_taxes;
+            
             $mainRowProfit = $this->calculateMainRowProfit(
                 $price,
                 $commission,
                 $logistics,
-                $good->nsi->cost_with_taxes ?? null
+                $costWithTaxes
             );
             $percent = ($mainRowProfit == '?' || $discountedPrice == 0) ? '?' : round(($mainRowProfit / $discountedPrice) * 100);
 
@@ -130,10 +132,10 @@ class MainViewHandler implements ViewHandler
                 'days_of_stock' => $this->calculateDaysOfStock($ordersCountByDate, $stocks['totals']->get($good->nm_id, 0)),
                 'article' => $good->vendor_code,
                 'prices' => [
-                    'discountedPrice' => round($discountedPrice, 2),
+                    'discountedPrice' => round($discountedPrice),
                     'price' => $price,
                     'discount' => $discount,
-                    'costWithTaxes' => $good->nsi->cost_with_taxes ?? null,
+                    'costWithTaxes' => $costWithTaxes ? round($costWithTaxes) : null,
                 ],
                 'name' => $good->nsi->name ?? '-',
                 'variant' => $good->nsi->variant ?? '-',

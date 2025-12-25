@@ -59,10 +59,10 @@ class GoodDetailsModalHandler
             $ordersProfit = $this->calculateProfit($row->orders_sum_rub, $row->orders_count, $row->advertising_costs, $good->nsi, $commission, $logistics);
             $buyoutsProfit = $this->calculateProfit($row->buyouts_sum_rub, $row->buyouts_count, $row->advertising_costs, $good->nsi, $commission, $logistics);
 
-            if (in_array($row->date, $dates)) {
+                if (in_array($row->date, $dates)) {
                 $salesData[$row->date] = [
                     'orders_count' => $row->orders_count === 0 ? '' : $row->orders_count,
-                    'advertising_costs' => $row->advertising_costs === 0 ? '' : round($row->advertising_costs / 1000),
+                    'advertising_costs' => $row->advertising_costs === 0 ? '' : round($row->advertising_costs / 1000, 1),
                     'orders_profit' => $ordersProfit,
                     'price_with_disc' => $row->price_with_disc === 0 ? '' : round($row->price_with_disc),
                     'spp' => $row->price_with_disc != 0 ? round($row->price_with_disc - $row->finished_price) : '',
@@ -78,18 +78,18 @@ class GoodDetailsModalHandler
                     'add_to_cart_conversion' => $conversion['add_to_cart_conversion'] === 0 ? '' : $conversion['add_to_cart_conversion'],
                     'cart_to_order_conversion' => $conversion['cart_to_order_conversion'] === 0 ? '' : $conversion['cart_to_order_conversion'],
 
-                    'aac_cpm' => $row->aac_cpm === 0 ? '' : $row->aac_cpm,
+                    'aac_cpm' => $row->aac_cpm === 0 ? '' : round($row->aac_cpm),
                     'aac_views' => $row->aac_views === 0 ? '' : $row->aac_views,
                     'aac_clicks' => $row->aac_clicks === 0 ? '' : $row->aac_clicks,
-                    'aac_sum' => $row->aac_sum === 0 ? '' : round($row->aac_sum),
+                    'aac_sum' => $row->aac_sum === 0 ? '' : round($row->aac_sum / 1000, 1),
                     'aac_orders' => $row->aac_orders === 0 ? '' : $row->aac_orders,
                     'aac_ctr' => $this->calculateCtr($row->aac_views, $row->aac_clicks),
                     'aac_cpc' => $this->calculateCpc($row->aac_sum, $row->aac_clicks),
 
-                    'auc_cpm' => $row->auc_cpm === 0 ? '' : $row->auc_cpm,
+                    'auc_cpm' => $row->auc_cpm === 0 ? '' : round($row->auc_cpm),
                     'auc_views' => $row->auc_views === 0 ? '' : $row->auc_views,
                     'auc_clicks' => $row->auc_clicks === 0 ? '' : $row->auc_clicks,
-                    'auc_sum' => $row->auc_sum === 0 ? '' : round($row->auc_sum),
+                    'auc_sum' => $row->auc_sum === 0 ? '' : round($row->auc_sum / 1000, 1),
                     'auc_orders' => $row->auc_orders === 0 ? '' : $row->auc_orders,
                     'auc_ctr' => $this->calculateCtr($row->auc_views, $row->auc_clicks),
                     'auc_cpc' => $this->calculateCpc($row->auc_sum, $row->auc_clicks),
@@ -110,6 +110,18 @@ class GoodDetailsModalHandler
         $monthlyTotals['finished_price'] = ($monthlyTotals['finished_price'] == 0 && $monthlyTotals['orders_count'] == 0) ?
             '' : round($monthlyTotals['finished_price'] / $monthlyTotals['orders_count']);
 
+        $monthlyTotals['advertising_costs'] = $monthlyTotals['advertising_costs'] == 0 ?
+            '' : round($monthlyTotals['advertising_costs'] / 1000, 1);
+
+        $monthlyTotals['orders_profit'] = $monthlyTotals['orders_profit'] == 0 ?
+            '' : round($monthlyTotals['orders_profit'] / 1000 * -1, 1);
+
+        $monthlyTotals['aac_sum'] = $monthlyTotals['aac_sum'] == 0 ?
+            '' : round($monthlyTotals['aac_sum'] / 1000, 1);
+
+        $monthlyTotals['auc_sum'] = $monthlyTotals['auc_sum'] == 0 ?
+            '' : round($monthlyTotals['auc_sum'] / 1000, 1);
+
         $salesByWarehouse = $this->calculateSalesByWarehouse($shop, $totalsStartDate, [
             'elektrostal' => 'Электросталь',
             'tula' => 'Тула',
@@ -126,16 +138,16 @@ class GoodDetailsModalHandler
             'notesData' => $notesData,
             'subRowsMetadata' => [
                 ['name' => 'Шт', 'type' => 'orders_count'],
-                ['name' => 'Рекл', 'type' => 'advertising_costs'],
-                ['name' => 'Приб', 'type' => 'orders_profit'],
+                ['name' => 'Рекл, т.р.', 'type' => 'advertising_costs'],
+                ['name' => 'Приб, т.р.', 'type' => 'orders_profit'],
                 ['name' => 'Цена', 'type' => 'price_with_disc'],
                 ['name' => 'СПП', 'type' => 'spp'],
                 ['name' => 'Цена СПП', 'type' => 'finished_price'],
-                ['name' => 'Заказы руб', 'type' => 'orders_sum_rub'],
-                ['name' => 'Продажи руб', 'type' => 'buyouts_sum_rub'],
+                ['name' => 'Заказы руб, т.р.', 'type' => 'orders_sum_rub'],
+                ['name' => 'Продажи руб, т.р.', 'type' => 'buyouts_sum_rub'],
                 ['name' => 'Продажи шт', 'type' => 'buyouts_count'],
                 ['name' => 'Заметки', 'type' => 'notes'],
-                ['name' => 'Приб по прод', 'type' => 'buyouts_profit'],
+                ['name' => 'Приб по прод, т.р.', 'type' => 'buyouts_profit'],
                 ['name' => 'Клики всего', 'type' => 'open_card_count'],
                 ['name' => 'Клики не рекл', 'type' => 'no_ad_clicks'],
                 ['name' => 'Корзины', 'type' => 'add_to_cart_count'],
@@ -144,17 +156,17 @@ class GoodDetailsModalHandler
                 ['name' => 'АРК CPM', 'type' => 'aac_cpm'],
                 ['name' => 'АРК Показы', 'type' => 'aac_views'],
                 ['name' => 'АРК Клики', 'type' => 'aac_clicks'],
-                ['name' => 'АРК Затраты', 'type' => 'aac_sum'],
+                ['name' => 'АРК Затраты, т.р.', 'type' => 'aac_sum'],
                 ['name' => 'АРК Зак по рекл', 'type' => 'aac_orders'],
                 ['name' => 'АРК CTR', 'type' => 'aac_ctr'],
                 ['name' => 'АРК CPC', 'type' => 'aac_cpc'],
-                ['name' => 'Аукцион CPM', 'type' => 'auc_cpm'],
-                ['name' => 'Аукцион Показы', 'type' => 'auc_views'],
-                ['name' => 'Аукцион Клики', 'type' => 'auc_clicks'],
-                ['name' => 'Аукцион Затраты', 'type' => 'auc_sum'],
-                ['name' => 'Аукцион Зак по рекл', 'type' => 'auc_orders'],
-                ['name' => 'Аукцион CTR', 'type' => 'auc_ctr'],
-                ['name' => 'Аукцион CPC', 'type' => 'auc_cpc'],
+                ['name' => 'Аук. CPM', 'type' => 'auc_cpm'],
+                ['name' => 'Аук. Показы', 'type' => 'auc_views'],
+                ['name' => 'Аук. Клики', 'type' => 'auc_clicks'],
+                ['name' => 'Аук. Затраты, т.р.', 'type' => 'auc_sum'],
+                ['name' => 'Аук. Зак по рекл', 'type' => 'auc_orders'],
+                ['name' => 'Аук. CTR', 'type' => 'auc_ctr'],
+                ['name' => 'Аук. CPC', 'type' => 'auc_cpc'],
                 ['name' => 'Заказы по рекл', 'type' => 'ad_orders'],
                 ['name' => 'Заказы не по рекл', 'type' => 'no_ad_orders'],
                 ['name' => 'Заказы с других РК', 'type' => 'assoc_orders_from_other'],
@@ -165,21 +177,23 @@ class GoodDetailsModalHandler
 
     private function accumulateMonthlyTotals(array &$totals, $row, $ordersProfit, $buyoutsProfit): void
     {
+        // Для полей, которые делятся на 1000, складываем исходные значения
+        // Потом при форматировании monthly totals будем делить на 1000
         $fields = [
             'orders_count' => $row->orders_count,
-            'advertising_costs' => $row->advertising_costs,
-            'orders_profit' => $ordersProfit,
+            'advertising_costs' => $row->advertising_costs, // будет делиться на 1000
+            'orders_profit' => $ordersProfit, // будет делиться на 1000 и умножаться на -1
             'price_with_disc' => round($row->price_with_disc),
             'finished_price' => $row->finished_price * $row->orders_count,
-            'orders_sum_rub' => $row->orders_sum_rub,
-            'buyouts_sum_rub' => $row->buyouts_sum_rub,
+            'orders_sum_rub' => $row->orders_sum_rub, // будет делиться на 1000
+            'buyouts_sum_rub' => $row->buyouts_sum_rub, // будет делиться на 1000
             'buyouts_count' => $row->buyouts_count,
-            'buyouts_profit' => $buyoutsProfit,
+            'buyouts_profit' => $buyoutsProfit, // будет делиться на 1000 и умножаться на -1
             'open_card_count' => $row->open_card_count,
             'add_to_cart_count' => $row->add_to_cart_count,
-            'aac_sum' => $row->aac_sum,
+            'aac_sum' => $row->aac_sum, // будет делиться на 1000
             'aac_orders' => $row->aac_orders,
-            'auc_sum' => $row->auc_sum,
+            'auc_sum' => $row->auc_sum, // будет делиться на 1000
             'auc_orders' => $row->auc_orders,
         ];
 
@@ -285,7 +299,7 @@ class GoodDetailsModalHandler
                 - $advertising_costs
                 - ($count * $costWithTaxes);
 
-            return round($profit, 1) == 0 ? '' : round($profit);
+            return round($profit) == 0 ? '' : round($profit / 1000 * -1, 1);
         } catch (Throwable $e) {
             return '-';
         }

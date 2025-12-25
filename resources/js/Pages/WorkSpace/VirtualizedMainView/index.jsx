@@ -11,6 +11,7 @@ import { GoodDetailsModal } from './Modals/GoodDetailsModal';
 import { useReactTable, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table';
 import { ArrowsUpDownIcon, BarsArrowUpIcon, BarsArrowDownIcon } from '@heroicons/react/24/solid';
 import { EyeIcon } from '@heroicons/react/24/outline';
+import { formatInteger, formatNumber } from './Utils/formatters';
 import './styles.css';
 
 const generateDateHeaders = (days) => {
@@ -143,11 +144,6 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                 );
             },
         },
-        /*         {
-                    accessorKey: 'mainRowMetadata',
-                    header: '',
-                    sticky: 'left',
-                }, */
         ...dates.map((date) => {
             const formattedDate = new Date(date).toLocaleDateString('ru-RU', {
                 day: '2-digit',
@@ -158,55 +154,107 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                 id: `date-${date}`,
                 header: formattedDate,
                 accessorFn: (row) => row.orders_count?.[date] ?? '',
+                cell: (info) => {
+                    const value = info.getValue();
+                    return value === '' ? '' : formatInteger(value);
+                }
             }
         }),
         {
             accessorKey: 'totalsOrdersCount',
             header: '∑ мес.',
+            cell: (info) => {
+                const value = info.getValue();
+                return formatInteger(value);
+            }
         },
         {
             accessorKey: 'prices.discountedPrice',
             header: 'Цена',
+            cell: (info) => {
+                const value = info.getValue();
+                return formatInteger(value);
+            }
         },
         {
             accessorKey: 'prices.costWithTaxes',
             header: 'C/C',
+            cell: (info) => {
+                const value = info.getValue();
+                return value === null ? '' : formatInteger(value);
+            }
         },
         {
             accessorKey: 'mainRowProfit',
             header: 'Приб.',
+            cell: (info) => {
+                const value = info.getValue();
+                return value === '?' ? value : formatInteger(value);
+            }
         },
         {
             accessorKey: 'percent',
             header: '%',
+            cell: (info) => {
+                const value = info.getValue();
+                return value === '?' ? value : formatInteger(value);
+            }
         },
         {
             accessorKey: 'stocks.totals',
             header: 'шт.',
+            cell: (info) => {
+                const value = info.getValue();
+                return formatInteger(value);
+            }
         },
         {
             accessorKey: 'days_of_stock',
             header: 'дней',
+            cell: (info) => {
+                const value = info.getValue();
+                return value === '?' ? value : formatInteger(value);
+            }
         },
         {
             accessorKey: 'stocks.elektrostal',
             header: 'Сталь',
+            cell: (info) => {
+                const value = info.getValue();
+                return formatInteger(value);
+            }
         },
         {
             accessorKey: 'stocks.tula',
             header: 'Тула',
+            cell: (info) => {
+                const value = info.getValue();
+                return formatInteger(value);
+            }
         },
         {
             accessorKey: 'stocks.nevinnomyssk',
             header: 'Нмысск',
+            cell: (info) => {
+                const value = info.getValue();
+                return formatInteger(value);
+            }
         },
         {
             accessorKey: 'stocks.krasnodar',
             header: 'Красн',
+            cell: (info) => {
+                const value = info.getValue();
+                return formatInteger(value);
+            }
         },
         {
             accessorKey: 'stocks.kazan',
             header: 'Казань',
+            cell: (info) => {
+                const value = info.getValue();
+                return formatInteger(value);
+            }
         }
     ], [filteredGoods, viewStore]);
 
