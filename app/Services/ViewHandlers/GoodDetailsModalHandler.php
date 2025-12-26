@@ -63,7 +63,7 @@ class GoodDetailsModalHandler
                 $salesData[$row->date] = [
                     'orders_count' => $row->orders_count === 0 ? '' : $row->orders_count,
                     'advertising_costs' => $row->advertising_costs === 0 ? '' : round($row->advertising_costs / 1000, 1),
-                    'orders_profit' => $ordersProfit,
+                    'orders_profit' => $ordersProfit == 0 ? '' : round($profit / 1000 * -1, 1),
                     'price_with_disc' => $row->price_with_disc === 0 ? '' : round($row->price_with_disc),
                     'spp' => $row->price_with_disc != 0 ? round($row->price_with_disc - $row->finished_price) : '',
                     'finished_price' => $row->finished_price == 0 ? '' : round($row->finished_price),
@@ -177,23 +177,21 @@ class GoodDetailsModalHandler
 
     private function accumulateMonthlyTotals(array &$totals, $row, $ordersProfit, $buyoutsProfit): void
     {
-        // Для полей, которые делятся на 1000, складываем исходные значения
-        // Потом при форматировании monthly totals будем делить на 1000
         $fields = [
             'orders_count' => $row->orders_count,
-            'advertising_costs' => $row->advertising_costs, // будет делиться на 1000
-            'orders_profit' => $ordersProfit, // будет делиться на 1000 и умножаться на -1
+            'advertising_costs' => $row->advertising_costs,
+            'orders_profit' => $ordersProfit,
             'price_with_disc' => round($row->price_with_disc),
             'finished_price' => $row->finished_price * $row->orders_count,
-            'orders_sum_rub' => $row->orders_sum_rub, // будет делиться на 1000
-            'buyouts_sum_rub' => $row->buyouts_sum_rub, // будет делиться на 1000
+            'orders_sum_rub' => $row->orders_sum_rub,
+            'buyouts_sum_rub' => $row->buyouts_sum_rub,
             'buyouts_count' => $row->buyouts_count,
-            'buyouts_profit' => $buyoutsProfit, // будет делиться на 1000 и умножаться на -1
+            'buyouts_profit' => $buyoutsProfit,
             'open_card_count' => $row->open_card_count,
             'add_to_cart_count' => $row->add_to_cart_count,
-            'aac_sum' => $row->aac_sum, // будет делиться на 1000
+            'aac_sum' => $row->aac_sum,
             'aac_orders' => $row->aac_orders,
-            'auc_sum' => $row->auc_sum, // будет делиться на 1000
+            'auc_sum' => $row->auc_sum,
             'auc_orders' => $row->auc_orders,
         ];
 
@@ -280,28 +278,21 @@ class GoodDetailsModalHandler
 
     private function calculateProfit($sum, $count, $advertising_costs, $nsi, $commission, $logistics): string
     {
-        try {
-            $costWithTaxes = $nsi->cost_with_taxes ?? null;
-
-            if (
-                $sum === null || $commission === null ||
-                $logistics === null || $advertising_costs === null ||
-                $costWithTaxes === null
-            ) {
-                return '?';
-            }
-
-            $commissionPercent = $commission / 100;
-
-            $profit = $sum
-                - ($sum * $commissionPercent)
-                - ($count * $logistics)
-                - $advertising_costs
-                - ($count * $costWithTaxes);
-
-            return round($profit) == 0 ? '' : round($profit / 1000 * -1, 1);
-        } catch (Throwable $e) {
-            return '-';
+        $costWithTaxes = $nsi->cost_with_taxes ?? null;
+        if (
+            $sum === null || $commission === null ||
+            $logistics === null || $advertising_costs === null ||
+            $costWithTaxes === null
+        ) {
+            return 0;
         }
+
+        $commissionPercent = $commission / 100;
+
+        return round($sum
+            - ($sum * $commissionPercent)
+            - ($count * $logistics)
+            - $advertising_costs
+            - ($count * $costWithTaxes));
     }
 }
