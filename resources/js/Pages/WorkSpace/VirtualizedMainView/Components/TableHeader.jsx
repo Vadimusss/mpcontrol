@@ -26,11 +26,7 @@ export const TableHeader = ({
                     {headerGroup.headers.map(header => (
                         <th
                             key={header.id}
-                            className={
-                                header.column.columnDef.sticky
-                                    ? `sticky-column sticky-${header.column.columnDef.sticky}`
-                                    : ``
-                            }
+                            className={header.column.columnDef.meta?.className || ''}
                         >
                             {flexRender(header.column.columnDef.header, header.getContext())}
                         </th>

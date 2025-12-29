@@ -4,6 +4,9 @@
   border: 1px solid #d9d9d9;
   position: relative;
   background: white;
+  font-family: Arial, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol, "Noto Color Emoji";
+  font-size: 14px;
+  line-height: 1rem;
 }
 
 .sticky-table {
@@ -12,9 +15,6 @@
   border-spacing: 0;
   position: relative;
   table-layout: fixed;
-  font-family: Arial, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol, "Noto Color Emoji";
-  font-size: 14px;
-  line-height: 1rem;
 }
 
 .sticky-header th {
@@ -88,6 +88,10 @@
   text-overflow: ellipsis;
   vertical-align: middle;
   box-sizing: border-box;
+}
+
+.sticky-table .bg-gray{
+  background: #f8f9fa;
 }
 
 .sticky-table td a, .good-details-modal-title a {
@@ -353,10 +357,16 @@ input[type="checkbox"]:checked {
 }
 
 .good-details-modal .sticky-table {
-  table-layout: fixed;
+  table-layout: auto;
 }
 
-.good-details-modal .sticky-table th:first-child,
+.good-details-modal .sticky-table td {
+  border-bottom: 1px solid #fff;
+  border-right: 1px solid #fff;
+  overflow: visible;
+}
+
+/* .good-details-modal .sticky-table th:first-child,
 .good-details-modal .sticky-table td:first-child {
   width: 110px;
   min-width: 110px;
@@ -368,7 +378,7 @@ input[type="checkbox"]:checked {
   width: 80px;
   min-width: 80px;
   max-width: 80px;
-}
+} */
 
 .good-details-modal .sticky-table td:nth-child(n+2) {
   text-align: right;
@@ -383,8 +393,12 @@ input[type="checkbox"]:checked {
   }
 }
 
+.notes-cell {
+  background-color: #efefef !important;;
+}
+
 .notes-cell:hover {
-  background-color: #f3f4f6;
+  background-color: #f3f4f6 !important;;
 }
 
 .notes-cell-green {
@@ -392,7 +406,7 @@ input[type="checkbox"]:checked {
 }
 
 .notes-cell-green:hover {
-  background-color: #f3f4f6 !important;
+  background-color: #ddfabe !important;
 }
 
 .notes-button {

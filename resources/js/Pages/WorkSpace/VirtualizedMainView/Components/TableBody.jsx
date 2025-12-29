@@ -5,8 +5,6 @@ import '../styles.css';
 
 export const TableBody = ({ tableContainerRef, table, columns, onTooltip }) => {
     const { rows } = table.getRowModel();
-    const [activeTooltip, setActiveTooltip] = useState(null);
-    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
     const rowVirtualizer = useVirtualizer({
         count: rows.length,
@@ -75,18 +73,10 @@ export const TableBody = ({ tableContainerRef, table, columns, onTooltip }) => {
                         {row.getVisibleCells().map(cell => {
 
                             const cellValue = cell.getValue();
-                            const displayText = cellValue != null ? String(cellValue) : '';
                             return (
                                 <td
                                     key={cell.id}
-                                    className={
-                                        cell.column.columnDef.sticky
-                                            ? `sticky-column sticky-${cell.column.columnDef.sticky}`
-                                            : ''
-                                    }
-                                    style={{
-                                        width: cell.column.getSize(),
-                                    }}
+                                    className={cell.column.columnDef.meta?.className || ''}
                                     onMouseEnter={(e) => handleMouseEnter(e, cellValue)}
                                     onMouseLeave={handleMouseLeave}
                                 >

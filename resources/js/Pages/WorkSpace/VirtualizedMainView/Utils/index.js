@@ -22,4 +22,17 @@ apiClient.interceptors.response.use(
   }
 );
 
-export { apiClient };
+const formatter = (value, fractionDigits = 0) => {
+  if (value === '' || value === null || value === undefined || value === 0) return '';
+  if (typeof value === 'string') return value;
+
+  const options = {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+    useGrouping: true
+  };
+
+  return new Intl.NumberFormat('ru-RU', options).format(value);
+};
+
+export { apiClient, formatter };

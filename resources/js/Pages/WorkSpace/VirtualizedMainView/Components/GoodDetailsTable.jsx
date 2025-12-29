@@ -1,63 +1,21 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { formatInteger, formatOneDecimal, formatNumber } from '../Utils/formatters';
+import { formatter } from '../Utils';
 import '../styles.css';
 
-// Функция для форматирования значения в зависимости от типа поля
 const formatValueByType = (value, type) => {
-    if (value === '' || value === null || value === undefined) return '';
-    
-    // Определяем тип форматирования на основе type
     switch (type) {
-        // Целые числа
-        case 'orders_count':
-        case 'buyouts_count':
-        case 'open_card_count':
-        case 'no_ad_clicks':
-        case 'add_to_cart_count':
-        case 'aac_views':
-        case 'aac_clicks':
-        case 'aac_orders':
-        case 'auc_views':
-        case 'auc_clicks':
-        case 'auc_orders':
-        case 'ad_orders':
-        case 'no_ad_orders':
-        case 'assoc_orders_from_other':
-        case 'assoc_orders_from_this':
-            return formatInteger(value);
-        
-        // Числа с 1 знаком после запятой
         case 'advertising_costs':
         case 'orders_profit':
-        case 'orders_sum_rub':
-        case 'buyouts_sum_rub':
         case 'buyouts_profit':
         case 'aac_sum':
         case 'auc_sum':
-        case 'aac_cpm':
-        case 'auc_cpm':
-        case 'add_to_cart_conversion':
-        case 'cart_to_order_conversion':
-            return formatOneDecimal(value);
-        
-        // CTR и CPC - 2 знака после запятой
         case 'aac_ctr':
         case 'auc_ctr':
-        case 'aac_cpc':
-        case 'auc_cpc':
-            return formatNumber(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        
-        // Цены - целые числа
-        case 'price_with_disc':
-        case 'spp':
-        case 'finished_price':
-            return formatInteger(value);
-        
-        // По умолчанию - как есть
+            return formatter(value, 1);
         default:
-            return String(value);
+            return formatter(value);
     }
 };
 
@@ -67,11 +25,11 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
     return (
         <div className="table-container">
             <table className="sticky-table">
-                <colgroup>
+{/*                 <colgroup>
                     <col style={{ width: '140px' }} />
-                    {dates.map((date) => <col key={`date-${date}`} style={{ width: '46px' }} />)}
+                    {dates.map((date) => <col key={`date-${date}`} style={{ width: '50px' }} />)}
                     {[...Array(6).keys()].map((number) => <col key={`col-${number}`} style={{ width: '60px' }} />)}
-                </colgroup>
+                </colgroup> */}
                 <thead className="sticky-header">
                     <tr>
                         <th className="sticky-column sticky-left">
@@ -127,7 +85,7 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
                                         {name}
                                     </td>
                                     {dates.map((date) => (
-                                        <td key={date} className={notesData[date] ? 'notes-cell-green' : ''}>
+                                        <td key={date} className={notesData[date] ? 'notes-cell-green' : 'notes-cell'}>
                                             <button
                                                 onClick={() => handleOpenNotes(date, goodDetails.goodId)}
                                                 className="notes-button"
@@ -136,7 +94,7 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
                                             </button>
                                         </td>
                                     ))}
-                                    <td></td>
+                                    <td className="bg-gray"></td>
                                     <td></td>
                                     <td></td>
                                     <td></td>
@@ -159,23 +117,23 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
                                         </td>
                                     );
                                 })}
-                                <td>
-                                    {formatValueByType(monthlyTotals[type] || '', type)}
+                                <td className="bg-gray">
+                                    {formatValueByType(monthlyTotals[type], type)}
                                 </td>
                                 <td>
-                                    {type === 'orders_count' ? formatInteger(getWarehouseValue('elektrostal')) : ''}
+                                    {type === 'orders_count' ? formatValueByType(getWarehouseValue('elektrostal')) : ''}
                                 </td>
                                 <td>
-                                    {type === 'orders_count' ? formatInteger(getWarehouseValue('tula')) : ''}
+                                    {type === 'orders_count' ? formatValueByType(getWarehouseValue('tula')) : ''}
                                 </td>
                                 <td>
-                                    {type === 'orders_count' ? formatInteger(getWarehouseValue('nevinnomyssk')) : ''}
+                                    {type === 'orders_count' ? formatValueByType(getWarehouseValue('nevinnomyssk')) : ''}
                                 </td>
                                 <td>
-                                    {type === 'orders_count' ? formatInteger(getWarehouseValue('krasnodar')) : ''}
+                                    {type === 'orders_count' ? formatValueByType(getWarehouseValue('krasnodar')) : ''}
                                 </td>
                                 <td>
-                                    {type === 'orders_count' ? formatInteger(getWarehouseValue('kazan')) : ''}
+                                    {type === 'orders_count' ? formatValueByType(getWarehouseValue('kazan')) : ''}
                                 </td>
                             </tr>
                         );
