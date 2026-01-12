@@ -33,7 +33,9 @@ class UpdateSalesFunnelReport implements ShouldQueue
         $fullUpdateDates = $dates->take(13);
         $generateOnlyDates = $dates->slice(13);
 
-        $shops = Shop::without(['owner', 'customers'])->get();
+        $shops = Shop::without(['owner', 'customers'])->whereHas('apiKey', function ($query) {
+            $query->where('is_active', true);
+        })->get();
 
         $shops->each(function ($shop) use ($fullUpdateDates, $generateOnlyDates) {
             $shopFullUpdateJobs = [];

@@ -31,7 +31,9 @@ class DailyWbApiDataUpdate implements ShouldQueue
 
     public function handle(): void
     {
-        $shops = Shop::without(['owner', 'customers'])->with('goods')->get();
+        $shops = Shop::without(['owner', 'customers'])->with('goods')->whereHas('apiKey', function ($query) {
+            $query->where('is_active', true);
+        })->get();
 
         $shops->each(function ($shop, int $key) {
             $date = date('Y-m-d', strtotime("-{$this->daysAgo} days"));

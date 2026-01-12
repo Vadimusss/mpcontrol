@@ -23,7 +23,9 @@ class UpdateAllSupplierWarehousesStocks implements ShouldQueue
 
     public function handle(): void
     {
-        $shops = Shop::without(['owner', 'customers'])->with(['warehouses'])->get();
+        $shops = Shop::without(['owner', 'customers'])->with(['warehouses'])->whereHas('apiKey', function ($query) {
+            $query->where('is_active', true);
+        })->get();
 
         $shops->each(function ($shop) {
             $warehouseIds = $shop->warehouses

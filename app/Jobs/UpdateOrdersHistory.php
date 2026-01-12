@@ -19,7 +19,9 @@ class UpdateOrdersHistory implements ShouldQueue
 
     public function handle(): void
     {
-        $shops = Shop::without(['owner', 'customers'])->get();
+        $shops = Shop::without(['owner', 'customers'])->whereHas('apiKey', function ($query) {
+            $query->where('is_active', true);
+        })->get();
 
         $dates = collect(range(2, 32))->map(function ($day) {
             return Carbon::now()->subDays($day)->format('Y-m-d');
