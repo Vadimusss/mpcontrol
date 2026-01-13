@@ -24,6 +24,7 @@ apiClient.interceptors.response.use(
 
 const formatter = (value, fractionDigits = 0) => {
   if (value === '' || value === null || value === undefined || value === 0) return '';
+  if (fractionDigits === 0 && value < 1) return '';
   if (typeof value === 'string') return value;
 
   const options = {

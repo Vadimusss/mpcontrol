@@ -5,7 +5,7 @@
   position: relative;
   background: white;
   font-family: Arial, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol, "Noto Color Emoji";
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1rem;
 }
 
@@ -90,8 +90,16 @@
   box-sizing: border-box;
 }
 
-.sticky-table .bg-gray{
+.sticky-table .bg-gray {
   background: #f8f9fa;
+}
+
+.sticky-table .font-large {
+   font-size: 17px;
+}
+
+.sticky-table .font-bold {
+   font-weight: bold;
 }
 
 .sticky-table td a, .good-details-modal-title a {
@@ -358,6 +366,10 @@ input[type="checkbox"]:checked {
 
 .good-details-modal .sticky-table {
   table-layout: auto;
+}
+
+.good-details-modal .sticky-column {
+  width: 120px;
 }
 
 .good-details-modal .sticky-table td {

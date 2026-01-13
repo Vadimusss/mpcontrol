@@ -59,54 +59,54 @@ class GoodDetailsModalHandler
             $ordersProfit = $this->calculateProfit($row->orders_sum_rub, $row->orders_count, $row->advertising_costs, $good->nsi, $commission, $logistics);
             // $buyoutsProfit = $this->calculateProfit($row->buyouts_sum_rub, $row->buyouts_count, $row->advertising_costs, $good->nsi, $commission, $logistics);
 
-            $spp = ($row->price_with_disc == 0 || $row->finished_price == 0) ? '' : round(($row->price_with_disc - $row->finished_price) / $row->price_with_disc * 100);
-            $advertisingCosts = $row->advertising_costs === 0 ? '' : round($row->advertising_costs / 1000, 1);
-            $ordersSumRubAfterSpp = ($row->orders_count === 0 || $row->finished_price == 0) ? '' : round(($row->orders_count * $row->finished_price) / 1000);
+            $spp = ($row->price_with_disc == 0 || $row->finished_price == 0) ? 0 : round(($row->price_with_disc - $row->finished_price) / $row->price_with_disc * 100);
+            $advertisingCosts = $row->advertising_costs == 0 ? 0 : round($row->advertising_costs / 1000, 1);
+            $ordersSumRubAfterSpp = ($row->orders_count == 0 || $row->finished_price == 0) ? 0 : round(($row->orders_count * $row->finished_price) / 1000);
 
-                if (in_array($row->date, $dates)) {
+            if (in_array($row->date, $dates)) {
                 $salesData[$row->date] = [
-                    'orders_count' => (int) $row->orders_count === 0 ? '' : $row->orders_count,
+                    'orders_count' => (int) $row->orders_count,
                     'advertising_costs' => (float) $advertisingCosts,
-                    'orders_profit' => (float) $ordersProfit == 0 ? '' : round($ordersProfit / 1000 * -1, 1),
-                    'price_with_disc' => $row->price_with_disc === 0 ? '' : round($row->price_with_disc),
+                    'orders_profit' => (float) $ordersProfit == 0 ? 0 : $ordersProfit / 1000 * -1,
+                    'price_with_disc' => (int) $row->price_with_disc == 0 ? 0 : round($row->price_with_disc),
                     'spp' => (int) $spp,
-                    'finished_price' => $row->finished_price == 0 ? '' : round($row->finished_price),
-                    'orders_sum_rub' => $row->orders_sum_rub === 0 ? '' : round($row->orders_sum_rub / 1000),
+                    'finished_price' => (int) $row->finished_price == 0 ? 0 : round($row->finished_price),
+                    'orders_sum_rub' => (int) $row->orders_sum_rub == 0 ? 0 : round($row->orders_sum_rub / 1000),
                     'orders_sum_rub_after_spp' => (float) $ordersSumRubAfterSpp,
-                    // 'buyouts_sum_rub' => $row->buyouts_sum_rub === 0 ? '' : round($row->buyouts_sum_rub / 1000),
+                    // 'buyouts_sum_rub' => $row->buyouts_sum_rub == 0 ? '' : round($row->buyouts_sum_rub / 1000),
                     'isHighlighted' => $row->advertising_costs != 0 && $row->advertising_costs > 100,
-                    // 'buyouts_count' =>(int) $row->buyouts_count === 0 ? '' : $row->buyouts_count,
+                    // 'buyouts_count' =>(int) $row->buyouts_count == 0 ? '' : $row->buyouts_count,
                     // 'buyouts_profit' => (float) $buyoutsProfit == 0 ? '' : round($buyoutsProfit / 1000 * -1, 1),
-                    'buyouts_sum_rub' => $row->buyouts_sum_rub === 0 ? '' : round($row->buyouts_sum_rub / 1000),
-                    'drr_common' => (int) ($advertisingCosts == '' || $ordersSumRubAfterSpp == '') ? '' : round($advertisingCosts / $ordersSumRubAfterSpp * 100),
-                    'buyout_percent' => (int) $row->buyout_percent == 0 ? '' : $row->buyout_percent,
-                    'open_card_count' => (int) $row->open_card_count === 0 ? '' : $row->open_card_count,
-                    'no_ad_clicks' => (int) ($row->aac_clicks != 0 || $row->auc_clicks != 0) ? $row->open_card_count - ($row->aac_clicks + $row->auc_clicks) : '',
-                    'add_to_cart_count' => (int) $row->add_to_cart_count === 0 ? '' : $row->add_to_cart_count,
-                    'add_to_cart_conversion' => $conversion['add_to_cart_conversion'] === 0 ? '' : $conversion['add_to_cart_conversion'],
-                    'cart_to_order_conversion' => $conversion['cart_to_order_conversion'] === 0 ? '' : $conversion['cart_to_order_conversion'],
-
-                    'aac_cpm' => $row->aac_cpm === 0 ? '' : round($row->aac_cpm),
-                    'aac_views' => (int) $row->aac_views === 0 ? '' : $row->aac_views,
-                    'aac_clicks' => (int) $row->aac_clicks === 0 ? '' : $row->aac_clicks,
-                    'aac_sum' => (float) $row->aac_sum === 0 ? '' : round($row->aac_sum / 1000, 1),
-                    'aac_orders' => $row->aac_orders === 0 ? '' : $row->aac_orders,
+                    'buyouts_sum_rub' => (int) $row->buyouts_sum_rub == 0 ? 0 : round($row->buyouts_sum_rub / 1000),
+                    'drr_common' => (int) ($advertisingCosts == 0 || $ordersSumRubAfterSpp == 0) ? 0 : round($advertisingCosts / $ordersSumRubAfterSpp * 100),
+                    'buyout_percent' => (int) $row->buyout_percent == 0 ? 0 : $row->buyout_percent,
+                    'profit_without_ads' => (float) $row->profit_without_ads == 0 ? 0 : $row->profit_without_ads / 1000,
+                    'open_card_count' => (int) $row->open_card_count == 0 ? 0 : $row->open_card_count,
+                    'no_ad_clicks' => (int) ($row->aac_clicks == 0 || $row->auc_clicks == 0) ? 0 : $row->open_card_count - ($row->aac_clicks + $row->auc_clicks),
+                    'add_to_cart_count' => (int) $row->add_to_cart_count == 0 ? 0 : $row->add_to_cart_count,
+                    'add_to_cart_conversion' => $conversion['add_to_cart_conversion'] == 0 ? 0 : $conversion['add_to_cart_conversion'],
+                    'cart_to_order_conversion' => $conversion['cart_to_order_conversion'] == 0 ? 0 : $conversion['cart_to_order_conversion'],
+                    'aac_cpm' => $row->aac_cpm == 0 ? 0 : round($row->aac_cpm),
+                    'aac_views' => (int) $row->aac_views == 0 ? 0 : $row->aac_views,
+                    'aac_clicks' => (int) $row->aac_clicks == 0 ? 0 : $row->aac_clicks,
+                    'aac_sum' => (float) $row->aac_sum == 0 ? 0 : $row->aac_sum / 1000,
+                    'aac_orders' => $row->aac_orders == 0 ? 0 : $row->aac_orders,
                     'aac_ctr' => (float) $this->calculateCtr($row->aac_views, $row->aac_clicks),
+                    'aac_cpo' => ($row->aac_sum == 0 || $row->aac_orders == 0) ? 0 : $row->aac_sum / $row->aac_orders,
                     // 'aac_cpc' => (float) $this->calculateCpc($row->aac_sum, $row->aac_clicks),
-
-                    'auc_cpm' => $row->auc_cpm === 0 ? '' : round($row->auc_cpm),
-                    'auc_views' => (int) $row->auc_views === 0 ? '' : $row->auc_views,
-                    'auc_clicks' => (int) $row->auc_clicks === 0 ? '' : $row->auc_clicks,
-                    'auc_sum' => (float) $row->auc_sum === 0 ? '' : round($row->auc_sum / 1000, 1),
-                    'auc_orders' => (int) $row->auc_orders === 0 ? '' : $row->auc_orders,
+                    'auc_cpm' => $row->auc_cpm == 0 ? 0 : round($row->auc_cpm),
+                    'auc_views' => (int) $row->auc_views == 0 ? 0 : $row->auc_views,
+                    'auc_clicks' => (int) $row->auc_clicks == 0 ? 0 : $row->auc_clicks,
+                    'auc_sum' => (float) $row->auc_sum == 0 ? 0 : $row->auc_sum / 1000,
+                    'auc_orders' => (int) $row->auc_orders == 0 ? 0 : $row->auc_orders,
                     'auc_ctr' => (float) $this->calculateCtr($row->auc_views, $row->auc_clicks),
+                    'auc_cpo' => ($row->auc_sum == 0 || $row->auc_orders == 0) ? 0 : $row->auc_sum / $row->auc_orders,
                     // 'auc_cpc' => (float) $this->calculateCpc($row->auc_sum, $row->auc_clicks),
-
-                    'ad_orders' => (int) ($row->auc_orders != 0 || $row->aac_orders != 0) ? $row->auc_orders + $row->aac_orders : '',
-                    'no_ad_orders' => (int) (($row->auc_orders != 0 || $row->aac_orders != 0) && $row->orders_count != 0) ?
-                        $row->orders_count - ($row->auc_orders + $row->aac_orders) : '',
-                    'assoc_orders_from_other' => (int) $row->assoc_orders_from_other === 0 ? '' : $row->assoc_orders_from_other,
-                    'assoc_orders_from_this' => (int) $row->assoc_orders_from_this === 0 ? '' : $row->assoc_orders_from_this,
+                    'ad_orders' => (int) ($row->auc_orders == 0 || $row->aac_orders == 0) ? 0 : $row->auc_orders + $row->aac_orders,
+                    'no_ad_orders' => (int) (($row->auc_orders == 0 || $row->aac_orders == 0) && $row->orders_count == 0) ?
+                        0 : $row->orders_count - ($row->auc_orders + $row->aac_orders),
+                    'assoc_orders_from_other' => (int) $row->assoc_orders_from_other == 0 ? 0 : $row->assoc_orders_from_other,
+                    'assoc_orders_from_this' => (int) $row->assoc_orders_from_this == 0 ? 0 : $row->assoc_orders_from_this,
                 ];
             }
 
@@ -116,19 +116,19 @@ class GoodDetailsModalHandler
         }
 
         $monthlyTotals['finished_price'] = ($monthlyTotals['finished_price'] == 0 && $monthlyTotals['orders_count'] == 0) ?
-            '' : round($monthlyTotals['finished_price'] / $monthlyTotals['orders_count']);
+            0 : round($monthlyTotals['finished_price'] / $monthlyTotals['orders_count']);
 
         $monthlyTotals['advertising_costs'] = $monthlyTotals['advertising_costs'] == 0 ?
-            '' : round($monthlyTotals['advertising_costs'] / 1000, 1);
+            0 : round($monthlyTotals['advertising_costs'] / 1000, 1);
 
         $monthlyTotals['orders_profit'] = $monthlyTotals['orders_profit'] == 0 ?
-            '' : round($monthlyTotals['orders_profit'] / 1000 * -1, 1);
+            0 : round($monthlyTotals['orders_profit'] / 1000 * -1, 1);
 
         $monthlyTotals['aac_sum'] = $monthlyTotals['aac_sum'] == 0 ?
-            '' : round($monthlyTotals['aac_sum'] / 1000, 1);
+            0 : round($monthlyTotals['aac_sum'] / 1000, 1);
 
         $monthlyTotals['auc_sum'] = $monthlyTotals['auc_sum'] == 0 ?
-            '' : round($monthlyTotals['auc_sum'] / 1000, 1);
+            0 : round($monthlyTotals['auc_sum'] / 1000, 1);
 
         $salesByWarehouse = $this->calculateSalesByWarehouse($shop, $totalsStartDate, [
             'elektrostal' => 'Электросталь',
@@ -159,17 +159,19 @@ class GoodDetailsModalHandler
                 ['name' => 'ДРР общ. %', 'type' => 'drr_common'],
                 ['name' => 'Выкупы, т.р. до СПП', 'type' => 'buyouts_sum_rub'],
                 ['name' => '% выкупа', 'type' => 'buyout_percent'],
+                ['name' => 'Приб по фин. отчету, т.р.', 'type' => 'profit_without_ads'],
                 ['name' => 'Клики всего', 'type' => 'open_card_count'],
                 ['name' => 'Клики не рекл', 'type' => 'no_ad_clicks'],
                 ['name' => 'Корзины', 'type' => 'add_to_cart_count'],
-                ['name' => 'Конв корз', 'type' => 'add_to_cart_conversion'],
-                ['name' => 'Конв заказ', 'type' => 'cart_to_order_conversion'],
+                ['name' => 'Конв клик-корз', 'type' => 'add_to_cart_conversion'],
+                ['name' => 'Конв корз-заказ', 'type' => 'cart_to_order_conversion'],
                 ['name' => 'АРК CPM', 'type' => 'aac_cpm'],
                 ['name' => 'АРК Показы', 'type' => 'aac_views'],
                 ['name' => 'АРК Клики', 'type' => 'aac_clicks'],
                 ['name' => 'АРК Затраты, т.р.', 'type' => 'aac_sum'],
                 ['name' => 'АРК Зак по рекл', 'type' => 'aac_orders'],
                 ['name' => 'АРК CTR', 'type' => 'aac_ctr'],
+                ['name' => 'АРК CPO', 'type' => 'aac_cpo'],
                 // ['name' => 'АРК CPC', 'type' => 'aac_cpc'],
                 ['name' => 'Аук. CPM', 'type' => 'auc_cpm'],
                 ['name' => 'Аук. Показы', 'type' => 'auc_views'],
@@ -177,11 +179,12 @@ class GoodDetailsModalHandler
                 ['name' => 'Аук. Затраты, т.р.', 'type' => 'auc_sum'],
                 ['name' => 'Аук. Зак по рекл', 'type' => 'auc_orders'],
                 ['name' => 'Аук. CTR', 'type' => 'auc_ctr'],
+                ['name' => 'Аук CPO', 'type' => 'auc_cpo'],
                 // ['name' => 'Аук. CPC', 'type' => 'auc_cpc'],
-                ['name' => 'Заказы по рекл', 'type' => 'ad_orders'],
-                ['name' => 'Заказы не по рекл', 'type' => 'no_ad_orders'],
-                ['name' => 'Заказы с других РК', 'type' => 'assoc_orders_from_other'],
-                ['name' => 'Заказы товаров с РК этого', 'type' => 'assoc_orders_from_this'],
+                ['name' => 'Зак. по рекл', 'type' => 'ad_orders'],
+                ['name' => 'Зак. не по рекл', 'type' => 'no_ad_orders'],
+                ['name' => 'Зак. этого с др. РК', 'type' => 'assoc_orders_from_other'],
+                ['name' => 'Зак. с РК др. sku', 'type' => 'assoc_orders_from_this'],
             ]
         ];
     }
@@ -291,9 +294,9 @@ class GoodDetailsModalHandler
     {
         $costWithTaxes = $nsi->cost_with_taxes ?? null;
         if (
-            $sum === null || $commission === null ||
-            $logistics === null || $advertising_costs === null ||
-            $costWithTaxes === null
+            $sum == null || $commission == null ||
+            $logistics == null || $advertising_costs == null ||
+            $costWithTaxes == null
         ) {
             return 0;
         }

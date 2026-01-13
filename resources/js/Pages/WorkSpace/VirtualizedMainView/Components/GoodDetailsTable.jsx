@@ -9,6 +9,7 @@ const formatValueByType = (value, type) => {
         case 'advertising_costs':
         case 'orders_profit':
         case 'buyouts_profit':
+        case 'profit_without_ads':
         case 'aac_sum':
         case 'auc_sum':
         case 'aac_ctr':

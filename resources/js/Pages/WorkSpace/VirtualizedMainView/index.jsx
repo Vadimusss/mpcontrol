@@ -172,7 +172,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: '∑ мес.',
             cell: (info) => formatter(info.getValue()),
             meta: {
-                className: 'bg-gray',
+                className: 'bg-gray font-large font-bold',
             }
         },
         {
