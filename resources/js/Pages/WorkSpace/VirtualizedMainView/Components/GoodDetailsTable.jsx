@@ -26,11 +26,6 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
     return (
         <div className="table-container">
             <table className="sticky-table">
-{/*                 <colgroup>
-                    <col style={{ width: '140px' }} />
-                    {dates.map((date) => <col key={`date-${date}`} style={{ width: '50px' }} />)}
-                    {[...Array(6).keys()].map((number) => <col key={`col-${number}`} style={{ width: '60px' }} />)}
-                </colgroup> */}
                 <thead className="sticky-header">
                     <tr>
                         <th className="sticky-column sticky-left">

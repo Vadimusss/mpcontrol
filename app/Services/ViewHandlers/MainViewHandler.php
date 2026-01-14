@@ -17,9 +17,10 @@ class MainViewHandler implements ViewHandler
         $dates = collect(range(0, $viewSettings->days))->map(function ($day) {
             return Carbon::now()->subDays($day)->format('Y-m-d');
         })->all();
-        
-        // Для totalsOrdersCount используем данные за 30 дней
+
         $totalsStartDate = Carbon::now()->subDays(30)->format('Y-m-d');
+
+        $currentDate = Carbon::now()->subDays(1)->format('Y-m-d');
 
         $warehouses = [
             'elektrostal' => 'Электросталь',
@@ -29,9 +30,8 @@ class MainViewHandler implements ViewHandler
             'kazan' => 'Казань'
         ];
 
-        $stocks = $this->calculateStocks($shop, $warehouses);
+        $stocks = $this->calculateStocks($shop, $warehouses, $currentDate);
 
-        // Загружаем данные за 30 дней для totalsOrdersCount
         $goodsWithTotals = $workSpace->connectedGoodLists()
             ->with([
                 'goods' => function ($query) use ($totalsStartDate) {
@@ -60,7 +60,6 @@ class MainViewHandler implements ViewHandler
             $totalsOrdersCountMap[$good->id] = $total;
         }
 
-        // Загружаем основные данные для отображения
         $goods = $workSpace->connectedGoodLists()
             ->with([
                 'goods' => function ($query) use ($dates) {
@@ -88,7 +87,7 @@ class MainViewHandler implements ViewHandler
             $dates,
             $totalsOrdersCountMap,
         ) {
- 
+
             $ordersCountByDate = [];
 
             foreach ($good->salesFunnel as $row) {
@@ -97,39 +96,39 @@ class MainViewHandler implements ViewHandler
                 }
             }
 
-            // Заполняем пропущенные даты
             foreach ($dates as $date) {
                 if (!isset($ordersCountByDate[$date])) {
                     $ordersCountByDate[$date] = '';
                 }
             }
 
-            // Calculate prices
             $price = $good->sizes->first()?->price ?? 0;
             $discount = $good->wbListGoodRow?->discount ?? 0;
             $discountedPrice = $price * (1 - $discount / 100);
 
             $costWithTaxes = $good->nsi?->cost_with_taxes;
-            
+
             $mainRowProfit = $this->calculateMainRowProfit(
                 $price,
                 $commission,
                 $logistics,
                 $costWithTaxes
             );
-            $percent = ($mainRowProfit == '?' || $discountedPrice == 0) ? '?' : round(($mainRowProfit / $discountedPrice) * 100);
+            $percent = ($mainRowProfit == '' || $discountedPrice == 0) ? '' : round(($mainRowProfit / $discountedPrice) * 100);
 
             return [
                 'id' => $good->id,
                 'stocks' => [
-                    'totals' => $stocks['totals']->get($good->nm_id, 0),
+                    'totals' => $stocks['fboTotals']->get($good->nm_id, 0) + $stocks['fbsTotals']->get($good->nm_id, 0),
+                    'fboTotals' => $stocks['fboTotals']->get($good->nm_id, 0),
+                    'fbsTotals' => $stocks['fbsTotals']->get($good->nm_id, 0),
                     'elektrostal' => $stocks['elektrostal']->get($good->nm_id, 0),
                     'kazan' => $stocks['kazan']->get($good->nm_id, 0),
                     'krasnodar' => $stocks['krasnodar']->get($good->nm_id, 0),
                     'nevinnomyssk' => $stocks['nevinnomyssk']->get($good->nm_id, 0),
                     'tula' => $stocks['tula']->get($good->nm_id, 0),
                 ],
-                'days_of_stock' => $this->calculateDaysOfStock($ordersCountByDate, $stocks['totals']->get($good->nm_id, 0)),
+                'days_of_stock' => $this->calculateDaysOfStock($ordersCountByDate, $stocks['fboTotals']->get($good->nm_id, 0)),
                 'article' => $good->vendor_code,
                 'prices' => [
                     'discountedPrice' => round($discountedPrice),
@@ -143,7 +142,7 @@ class MainViewHandler implements ViewHandler
                 'mainRowMetadata' => 'Шт.',
                 'totalsOrdersCount' => $totalsOrdersCountMap[$good->id] ?? 0,
                 'orders_count' => $ordersCountByDate,
-                'mainRowProfit' => $mainRowProfit == '?' ? $mainRowProfit : round($mainRowProfit),
+                'mainRowProfit' => $mainRowProfit == '' ? $mainRowProfit : round($mainRowProfit),
                 'percent' => $percent,
             ];
         })->toArray();
@@ -151,53 +150,43 @@ class MainViewHandler implements ViewHandler
 
     private function calculateDaysOfStock(array $ordersCountByDate, float $totalStock): string
     {
-        try {
-            $salesByDay = array_filter($ordersCountByDate, 'is_numeric');
+        $salesByDay = array_filter($ordersCountByDate, 'is_numeric');
 
-            if (count($salesByDay) < 3) {
-                throw new \Exception('Not enough data');
-            }
-
-            $recentSales = array_slice($salesByDay, 0, 3);
-            $olderSales = array_slice($salesByDay, 3, 7);
-
-            $percentile = function ($values, $percentile) {
-                if (empty($values)) return 0;
-                sort($values);
-                $index = ($percentile / 100) * (count($values) - 1);
-                if (floor($index) == $index) {
-                    return $values[$index];
-                }
-                return $values[floor($index)] +
-                    ($values[ceil($index)] - $values[floor($index)]) *
-                    ($index - floor($index));
-            };
-
-            $recentPercentile = $percentile($recentSales, 80);
-            $olderPercentile = $percentile($olderSales, 80);
-
-            $dailySalesEstimate = ($recentPercentile * 0.7) + ($olderPercentile * 0.3);
-
-            return $dailySalesEstimate > 0 ?
-                round($totalStock / $dailySalesEstimate) :
-                '?';
-        } catch (\Exception $e) {
-            return '?';
+        if (count($salesByDay) < 3) {
+            return '';
         }
+
+        $recentSales = array_slice($salesByDay, 0, 3);
+        $olderSales = array_slice($salesByDay, 3, 7);
+
+        $percentile = function ($values, $percentile) {
+            if (empty($values)) return 0;
+            sort($values);
+            $index = ($percentile / 100) * (count($values) - 1);
+            if (floor($index) == $index) {
+                return $values[$index];
+            }
+            return $values[floor($index)] +
+                ($values[ceil($index)] - $values[floor($index)]) *
+                ($index - floor($index));
+        };
+
+        $recentPercentile = $percentile($recentSales, 80);
+        $olderPercentile = $percentile($olderSales, 80);
+
+        $dailySalesEstimate = ($recentPercentile * 0.7) + ($olderPercentile * 0.3);
+
+        return $dailySalesEstimate > 0 ? round($totalStock / $dailySalesEstimate) : '';
     }
 
     private function calculateMainRowProfit(float $price, ?float $commission, ?float $logistics, ?float $costWithTaxes): string
     {
-        try {
-            if ($commission === null || $logistics === null || $costWithTaxes === null) {
-                return '?';
-            }
-
-            $profit = $price - ($price * ($commission / 100)) - $logistics - $costWithTaxes;
-            return round($profit) == 0 ? '0' : round($profit);
-        } catch (\Exception $e) {
-            return '?';
+        if ($commission === null || $logistics === null || $costWithTaxes === null) {
+            return '';
         }
+
+        $profit = $price - ($price * ($commission / 100)) - $logistics - $costWithTaxes;
+        return round($profit) == 0 ? '' : round($profit);
     }
 
     public function getDefaultViewState(): array
@@ -214,10 +203,16 @@ class MainViewHandler implements ViewHandler
         return 'VirtualizedMainView';
     }
 
-    private function calculateStocks($shop, $warehouses): array
+    private function calculateStocks($shop, $warehouses, $date): array
     {
-        $totals = $shop->stocks()
+        $fboTotals = $shop->stocks()
             ->selectRaw('nm_id, sum(quantity) as total')
+            ->groupBy('nm_id')
+            ->pluck('total', 'nm_id');
+
+        $fbsTotals = $shop->fbsStocks()
+            ->where('date', '=', $date)
+            ->selectRaw('nm_id, sum(amount) as total')
             ->groupBy('nm_id')
             ->pluck('total', 'nm_id');
 
@@ -230,7 +225,8 @@ class MainViewHandler implements ViewHandler
                 return [$item->nm_id => $item];
             });
 
-        $result = ['totals' => $totals];
+        $result['fboTotals'] = $fboTotals;
+        $result['fbsTotals'] = $fbsTotals;
         foreach ($warehouses as $key => $name) {
             $result[$key] = $warehouseStocks->map(function ($items) use ($name) {
                 return $items->firstWhere('warehouse_name', $name)?->quantity ?? 0;

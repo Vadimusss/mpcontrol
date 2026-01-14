@@ -95,6 +95,11 @@ class Shop extends Model
         return $this->hasMany(WbV1SupplierStocks::class);
     }
 
+    public function fbsStocks(): HasMany
+    {
+        return $this->hasMany(SupplierWarehousesStocks::class);
+    }
+
     public function salesFunnel(): HasManyThrough
     {
         return $this->hasManyThrough(SalesFunnel::class, Good::class);

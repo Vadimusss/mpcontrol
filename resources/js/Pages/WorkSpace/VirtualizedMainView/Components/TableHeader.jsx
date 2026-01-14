@@ -17,9 +17,11 @@ export const TableHeader = ({
                                 Коэф. процентиля: ${shop.settings?.percentile_coefficient},
                                 Коэф. веса: ${shop.settings?.weight_coefficient}`}
                 </th>
-                <th colSpan={dates.length + 5}></th>
-                <th colSpan={2}>Остаток</th>
-                <th colSpan={5}>Остаток по складам</th>
+                <th colSpan={dates.length + 3}></th>
+                <th colSpan={3}>Цена сейчас</th>
+                <th colSpan={3}>Юнитка</th>
+                <th colSpan={5}>Остаток</th>
+                <th colSpan={7}>Остаток по складам</th>
             </tr>
             {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>
@@ -38,7 +40,7 @@ export const TableHeader = ({
                 {Array.from({ length: workSpaceSettings.days }, (_, index) => -index).reverse().map((number, index) => (
                     <th key={index}>{number}</th>
                 ))}
-                <th colSpan={12}></th>
+                <th colSpan={21}></th>
             </tr>
         </thead>
     );

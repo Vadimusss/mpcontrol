@@ -192,8 +192,18 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             }
         },
         {
-            accessorKey: 'prices.discountedPrice',
+            accessorKey: 'prices.price',
             header: 'Цена',
+            cell: (info) => formatter(info.getValue())
+        },
+        {
+            accessorKey: 'prices.discount',
+            header: 'ск',
+            cell: (info) => formatter(info.getValue())
+        },
+        {
+            accessorKey: 'prices.discountedPrice',
+            header: 'Цена ск',
             cell: (info) => formatter(info.getValue())
         },
         {
@@ -202,14 +212,55 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             cell: (info) => formatter(info.getValue())
         },
         {
-            accessorKey: 'stocks.totals',
-            header: 'шт.',
+            // accessorKey: 'prices.costWithTaxes',
+            header: 'Приб',
+            cell: (info) => formatter(info.getValue())
+        },
+        {
+            // accessorKey: 'prices.costWithTaxes',
+            header: '%',
             cell: (info) => formatter(info.getValue())
         },
         {
             accessorKey: 'days_of_stock',
             header: 'дней',
             cell: (info) => formatter(info.getValue())
+        },
+        {
+            accessorKey: 'stocks.totals',
+            header: 'ВБ',
+            cell: (info) => formatter(info.getValue())
+        },
+        {
+            // accessorKey: 'stocks.totals',
+            header: 'ТП',
+            cell: (info) => formatter(info.getValue())
+        },
+        {
+            // accessorKey: 'stocks.totals',
+            header: 'ЦС',
+            cell: (info) => formatter(info.getValue())
+        },
+        {
+            // accessorKey: 'stocks.totals',
+            header: 'Зак',
+            cell: (info) => formatter(info.getValue())
+        },
+        {
+            accessorKey: 'stocks.fbsTotals',
+            header: 'FBS',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                className: 'font-large font-bold',
+            }
+        },
+        {
+            accessorKey: 'stocks.fboTotals',
+            header: 'FBO',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                className: 'font-large font-bold',
+            }
         },
         {
             accessorKey: 'stocks.elektrostal',
