@@ -61,7 +61,6 @@ class GenerateSalesFunnelReport implements ShouldQueue
         $aacData = $this->getAacData();
         $aucData = $this->getAucData();
         $allData = $this->getAllAdvData();
-        $assocFromThisData = $this->getAssocFromThisData();
 
         $nmIds = $WbAnalyticsV3ProductsHistory->pluck('nm_id')->toArray();
         $expenseData = WbRealizationReport::getExpenseData($this->day, $this->shop->id, $nmIds);
@@ -86,6 +85,8 @@ class GenerateSalesFunnelReport implements ShouldQueue
             })
             ->toArray();
 
+        $assocFromThisData = $this->getAssocFromThisData($avgPricesByDay);
+
         $report = $WbAnalyticsV3ProductsHistory->map(function ($row) use ($advCostsSumByGoodId, $aacData, $aucData, $allData, $assocFromThisData, $avgPricesByDay, $expenseData) {
             $row->advertising_costs = array_key_exists($row->good_id, $advCostsSumByGoodId) ? $advCostsSumByGoodId[$row->good_id] : 0;
             $row->finished_price = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['finished_price'] : 0;
@@ -108,6 +109,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
             $aucOrders = array_key_exists($row->good_id, $aucData) ? $aucData[$row->good_id]['orders'] : 0;
             $row->assoc_orders_from_other = $allOrders - ($aacOrders + $aucOrders);
             $row->assoc_orders_from_this = array_key_exists($row->good_id, $assocFromThisData) ? $assocFromThisData[$row->good_id]['orders'] : 0;
+            $row->assoc_orders_from_this_sum = array_key_exists($row->good_id, $assocFromThisData) ? $assocFromThisData[$row->good_id]['sum'] : 0;
 
             $expenseInfo = array_key_exists($row->nm_id, $expenseData) ? $expenseData[$row->nm_id] : null;
             $row->commission_total = $expenseInfo ? $expenseInfo['commission_total'] : 0;
@@ -154,6 +156,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'auc_sum' => $row->auc_sum,
                 'assoc_orders_from_other' => $row->assoc_orders_from_other,
                 'assoc_orders_from_this' => $row->assoc_orders_from_this,
+                'assoc_orders_from_this_sum' => $row->assoc_orders_from_this_sum,
                 'commission_total' => $row->commission_total,
                 'logistics_total' => $row->logistics_total,
                 'storage_total' => $row->storage_total,
@@ -322,7 +325,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->toArray();
     }
 
-    private function getAssocFromThisData(): array
+    private function getAssocFromThisData(array $avgPricesByDay): array
     {
         $shopAdverts = DB::table('wb_adv_v3_fullstats_wb_adverts as adv')
             ->join('wb_adv_v3_fs_days as d', 'adv.id', '=', 'd.wb_adv_v3_fullstats_wb_advert_id')
@@ -373,18 +376,35 @@ class GenerateSalesFunnelReport implements ShouldQueue
 
         $result = [];
         foreach ($advertIdsWithCurrentGood as $currentGoodId => $advertIds) {
-            $ordersFromThis = DB::table('wb_adv_v3_fs_products as p')
+            $ordersData = DB::table('wb_adv_v3_fs_products as p')
                 ->join('wb_adv_v3_fs_apps as a', 'p.wb_adv_v3_fs_app_id', '=', 'a.id')
                 ->join('wb_adv_v3_fs_days as d', 'a.wb_adv_v3_fs_day_id', '=', 'd.id')
                 ->join('wb_adv_v3_fullstats_wb_adverts as adv', 'd.wb_adv_v3_fullstats_wb_advert_id', '=', 'adv.id')
                 ->whereIn('adv.advert_id', $advertIds)
                 ->where('p.date', $this->day)
                 ->where('p.good_id', '!=', $currentGoodId)
-                ->select(DB::raw('SUM(p.orders) as orders'))
-                ->value('orders') ?? 0;
+                ->select('p.nm_id', DB::raw('SUM(p.orders) as orders'))
+                ->groupBy('p.nm_id')
+                ->get();
+
+            $totalOrders = 0;
+            $totalSum = 0;
+
+            foreach ($ordersData as $row) {
+                $row = (object)$row;
+                $orders = (int)$row->orders;
+                $totalOrders += $orders;
+
+                $price = array_key_exists($row->nm_id, $avgPricesByDay) 
+                    ? $avgPricesByDay[$row->nm_id]['finished_price'] 
+                    : 0;
+                
+                $totalSum += (int)round($orders * $price);
+            }
 
             $result[$currentGoodId] = [
-                'orders' => (int)$ordersFromThis
+                'orders' => $totalOrders,
+                'sum'    => $totalSum,
             ];
         }
 

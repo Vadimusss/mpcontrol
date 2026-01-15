@@ -35,6 +35,7 @@ class SalesFunnel extends Model
         'auc_sum',
         'assoc_orders_from_other',
         'assoc_orders_from_this',
+        'assoc_orders_from_this_sum',
         'commission_total',
         'logistics_total',
         'storage_total',
