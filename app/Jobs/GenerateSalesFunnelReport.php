@@ -60,6 +60,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
 
         $aacData = $this->getAacData();
         $aucData = $this->getAucData();
+        $aucAdvIds = $this->getAucAdvIds();
         $allData = $this->getAllAdvData();
 
         $nmIds = $WbAnalyticsV3ProductsHistory->pluck('nm_id')->toArray();
@@ -87,7 +88,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
 
         $assocFromThisData = $this->getAssocFromThisData($avgPricesByDay);
 
-        $report = $WbAnalyticsV3ProductsHistory->map(function ($row) use ($advCostsSumByGoodId, $aacData, $aucData, $allData, $assocFromThisData, $avgPricesByDay, $expenseData) {
+        $report = $WbAnalyticsV3ProductsHistory->map(function ($row) use ($advCostsSumByGoodId, $aacData, $aucData, $aucAdvIds, $allData, $assocFromThisData, $avgPricesByDay, $expenseData) {
             $row->advertising_costs = array_key_exists($row->good_id, $advCostsSumByGoodId) ? $advCostsSumByGoodId[$row->good_id] : 0;
             $row->finished_price = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['finished_price'] : 0;
             $row->price_with_disc = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['price_with_disc'] : 0;
@@ -121,8 +122,11 @@ class GenerateSalesFunnelReport implements ShouldQueue
             $op_after_spp = $expenseInfo ? $expenseInfo['op_after_spp'] : 0;
 
             $row->profit_without_ads = $op_after_spp - $row->commission_total;
-
             $row->profit_with_ads = $row->profit_without_ads - $row->advertising_costs;
+
+            $row->aac_cpm_id = array_key_exists($row->good_id, $aacData) ? $aacData[$row->good_id]['advert_id'] : 0;
+            $row->auc_cpm_id = array_key_exists($row->good_id, $aucAdvIds) && $aucAdvIds[$row->good_id]['cpmAdvId'] ? $aucAdvIds[$row->good_id]['cpmAdvId'] : 0;
+            $row->auc_cpc_id = array_key_exists($row->good_id, $aucAdvIds) && $aucAdvIds[$row->good_id]['cpcAdvId'] ? $aucAdvIds[$row->good_id]['cpcAdvId'] : 0;
 
             return $row;
         });
@@ -164,6 +168,9 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'other_total' => $row->other_total,
                 'profit_without_ads' => $row->profit_without_ads,
                 'profit_with_ads' => $row->profit_with_ads,
+                'aac_cpm_id' => $row->aac_cpm_id,
+                'auc_cpm_id' => $row->auc_cpm_id,
+                'auc_cpc_id' => $row->auc_cpc_id,
                 'created_at' => now(),
                 'updated_at' => now()
             ];
@@ -202,7 +209,8 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'p.sum',
                 'p.views',
                 'p.clicks',
-                'p.orders'
+                'p.orders',
+                'pc.advert_id'
             );
 
         $type9UnifiedQuery = DB::table('wb_adv_v3_fs_products as p')
@@ -217,7 +225,8 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 $exists->select(DB::raw(1))
                     ->from('wb_adv_v0_auction_adverts as aa')
                     ->whereColumn('aa.advert_id', 'adv.advert_id')
-                    ->where('aa.bid_type', 'unified');
+                    ->where('aa.bid_type', 'unified')
+                    ->where('aa.payment_type', 'cpm');
             })
             ->join('wb_adv_v0_auction_adverts as aa', function ($join) {
                 $join->on('adv.advert_id', '=', 'aa.advert_id')
@@ -228,7 +237,8 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 'p.sum',
                 'p.views',
                 'p.clicks',
-                'p.orders'
+                'p.orders',
+                'pc.advert_id'
             );
 
         $combinedQuery = DB::table(DB::raw("({$type8Query->toSql()} UNION ALL {$type9UnifiedQuery->toSql()}) as combined"))
@@ -237,6 +247,7 @@ class GenerateSalesFunnelReport implements ShouldQueue
 
         return $combinedQuery->select(
             'good_id',
+            DB::raw('MAX(advert_id) as advert_id'),
             DB::raw('ROUND(SUM(sum)) as sum'),
             DB::raw('SUM(views) as views'),
             DB::raw('SUM(clicks) as clicks'),
@@ -248,11 +259,12 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->mapWithKeys(function ($item) {
                 return [
                     $item->good_id => [
-                        'sum' => (int)$item->sum,
-                        'views' => (int)$item->views,
-                        'clicks' => (int)$item->clicks,
-                        'orders' => (int)$item->orders,
-                        'cpm' => (float)$item->cpm
+                        'advert_id' => (int) $item->advert_id,
+                        'sum' => (int) $item->sum,
+                        'views' => (int) $item->views,
+                        'clicks' => (int) $item->clicks,
+                        'orders' => (int) $item->orders,
+                        'cpm' => (float) $item->cpm
                     ]
                 ];
             })
@@ -293,15 +305,56 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->mapWithKeys(function ($item) {
                 return [
                     $item->good_id => [
-                        'sum' => (int)$item->sum,
-                        'views' => (int)$item->views,
-                        'clicks' => (int)$item->clicks,
-                        'orders' => (int)$item->orders,
-                        'cpm' => (float)$item->cpm
+                        'sum' => (int) $item->sum,
+                        'views' => (int) $item->views,
+                        'clicks' => (int) $item->clicks,
+                        'orders' => (int) $item->orders,
+                        'cpm' => (float) $item->cpm
                     ]
                 ];
             })
             ->toArray();
+    }
+
+    private function getAucAdvIds(): array
+    {
+        $results = DB::table('wb_adv_v3_fs_products as p')
+            ->join('wb_adv_v3_fs_apps as a', 'p.wb_adv_v3_fs_app_id', '=', 'a.id')
+            ->join('wb_adv_v3_fs_days as d', 'a.wb_adv_v3_fs_day_id', '=', 'd.id')
+            ->join('wb_adv_v3_fullstats_wb_adverts as adv', 'd.wb_adv_v3_fullstats_wb_advert_id', '=', 'adv.id')
+            ->join('wb_adv_v0_auction_adverts as aa', function ($join) {
+                $join->on('adv.advert_id', '=', 'aa.advert_id')
+                    ->on('aa.nm_id', '=', DB::raw('p.nm_id'))
+                    ->where('aa.bid_type', 'manual');
+            })
+            ->where('adv.shop_id', $this->shop->id)
+            ->where('p.date', $this->day)
+            ->select(
+                'p.good_id',
+                'adv.advert_id',
+                'aa.payment_type'
+            )
+            ->distinct('p.good_id', 'adv.advert_id', 'aa.payment_type')
+            ->get();
+
+        $grouped = $results->groupBy('good_id');
+
+        return $grouped->map(function ($items) {
+            $result = [
+                'cpmAdvId' => false,
+                'cpcAdvId' => false
+            ];
+
+            foreach ($items as $item) {
+                if ($item->payment_type === 'cpm') {
+                    $result['cpmAdvId'] = (int) $item->advert_id;
+                } elseif ($item->payment_type === 'cpc') {
+                    $result['cpcAdvId'] = (int) $item->advert_id;
+                }
+            }
+
+            return $result;
+        })->toArray();
     }
 
     private function getAllAdvData(): array
@@ -395,10 +448,10 @@ class GenerateSalesFunnelReport implements ShouldQueue
                 $orders = (int)$row->orders;
                 $totalOrders += $orders;
 
-                $price = array_key_exists($row->nm_id, $avgPricesByDay) 
-                    ? $avgPricesByDay[$row->nm_id]['finished_price'] 
+                $price = array_key_exists($row->nm_id, $avgPricesByDay)
+                    ? $avgPricesByDay[$row->nm_id]['finished_price']
                     : 0;
-                
+
                 $totalSum += (int)round($orders * $price);
             }
 

@@ -68,6 +68,9 @@ class ReportExport implements FromCollection, WithHeadings, WithStrictNullCompar
             'other_total',
             'profit_without_ads',
             'profit_with_ads',
+            'aac_cpm_id',
+            'auc_cpm_id',
+            'auc_cpc_id',
         )->whereBetween('date', [$this->begin, $this->end])->whereIn('sales_funnels.nm_id', $goodListNmIds)->get();
 
         return $selectedData;
@@ -110,6 +113,9 @@ class ReportExport implements FromCollection, WithHeadings, WithStrictNullCompar
             'other_total',
             'profit_without_ads',
             'profit_with_ads',
+            'aac_cpm_id',
+            'auc_cpm_id',
+            'auc_cpc_id',
         ];
     }
 }

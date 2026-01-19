@@ -43,6 +43,9 @@ class SalesFunnel extends Model
         'other_total',
         'profit_without_ads',
         'profit_with_ads',
+        'aac_cpm_id',
+        'auc_cpm_id',
+        'auc_cpc_id',
     ];
 
     protected $hidden = [
