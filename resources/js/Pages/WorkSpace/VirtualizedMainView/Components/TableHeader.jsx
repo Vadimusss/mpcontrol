@@ -6,8 +6,41 @@ export const TableHeader = ({
     shop,
     workSpaceSettings,
     dates,
-    table
+    table,
+    onTooltip
 }) => {
+
+    const checkOverflow = (element, text) => {
+        if (!element || !text) return false;
+
+        if (text.length < 6) return false;
+        if (!isNaN(parseFloat(text)) && isFinite(text)) return false;
+        if (/^\d{4}[-\/]\d{2}[-\/]\d{2}/.test(text)) return false;
+
+        return element.scrollWidth > element.clientWidth + 2;
+    };
+
+    const handleMouseEnter = (e, cellValue) => {
+        if (!cellValue) return;
+
+        const displayText = String(cellValue);
+        const cellElement = e.currentTarget;
+
+        if (!checkOverflow(cellElement, displayText)) return;
+
+        const rect = cellElement.getBoundingClientRect();
+
+        onTooltip({
+            text: displayText,
+            x: rect.left + 40,
+            y: rect.bottom + 5
+        });
+    };
+
+    const handleMouseLeave = () => {
+        onTooltip(null);
+    };
+
     return (
         <thead className={`sticky-header`}>
             <tr>
@@ -21,18 +54,23 @@ export const TableHeader = ({
                 <th colSpan={3}>Цена сейчас</th>
                 <th colSpan={3}>Юнитка</th>
                 <th colSpan={5}>Остаток</th>
-                <th colSpan={7}>Остаток по складам</th>
+                <th colSpan={23}>Остаток по складам</th>
             </tr>
             {table.getHeaderGroups().map(headerGroup => (
                 <tr key={headerGroup.id}>
-                    {headerGroup.headers.map(header => (
-                        <th
-                            key={header.id}
-                            className={header.column.columnDef.meta?.className || ''}
-                        >
-                            {flexRender(header.column.columnDef.header, header.getContext())}
-                        </th>
-                    ))}
+                    {headerGroup.headers.map(header => {
+                        const headerValue = header.column.columnDef.header;
+                        return (
+                            <th
+                                key={header.id}
+                                onMouseEnter={(e) => handleMouseEnter(e, headerValue)}
+                                onMouseLeave={handleMouseLeave}
+                                className={header.column.columnDef.meta?.thClassName || ''}
+                            >
+                                {flexRender(header.column.columnDef.header, header.getContext())}
+                            </th>)
+
+                    })}
                 </tr>
             ))}
             <tr>
@@ -40,7 +78,7 @@ export const TableHeader = ({
                 {Array.from({ length: workSpaceSettings.days }, (_, index) => -index).reverse().map((number, index) => (
                     <th key={index}>{number}</th>
                 ))}
-                <th colSpan={21}></th>
+                <th colSpan={37}></th>
             </tr>
         </thead>
     );

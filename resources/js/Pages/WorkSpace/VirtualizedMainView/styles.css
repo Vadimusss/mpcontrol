@@ -30,6 +30,16 @@
   box-sizing: border-box;
 }
 
+.sticky-header th.sticky-header-city {
+  text-align: left;
+  letter-spacing: 0.5px;
+  font-weight: normal;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .sticky-header tr:nth-child(3) th {
   text-align: right;
 }

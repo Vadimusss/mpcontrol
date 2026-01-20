@@ -94,7 +94,8 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                 </div>
             ),
             meta: {
-                className: 'sticky-column sticky-left',
+                thClassName: 'sticky-column sticky-left',
+                tdClassName: 'sticky-column sticky-left',
             },
         },
         {
@@ -117,7 +118,8 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                 </div>
             ),
             meta: {
-                className: 'sticky-column sticky-left',
+                thClassName: 'sticky-column sticky-left',
+                tdClassName: 'sticky-column sticky-left',
             },
             enableSorting: true,
         },
@@ -125,21 +127,24 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             accessorKey: 'name',
             header: 'Название',
             meta: {
-                className: 'sticky-column sticky-left',
-            },
+                thClassName: 'sticky-column sticky-left',
+                tdClassName: 'sticky-column sticky-left',
+            }
         },
         {
             accessorKey: 'variant',
             header: 'Вариант',
             meta: {
-                className: 'sticky-column sticky-left',
-            },
+                thClassName: 'sticky-column sticky-left',
+                tdClassName: 'sticky-column sticky-left',
+            }
         },
         {
             accessorKey: 'wbArticle',
             header: 'Арт. WB',
             meta: {
-                className: 'sticky-column sticky-left',
+                thClassName: 'sticky-column sticky-left',
+                tdClassName: 'sticky-column sticky-left',
             },
             cell: (info) => {
                 const article = info.getValue();
@@ -164,7 +169,10 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                 id: `date-${date}`,
                 header: formattedDate,
                 accessorFn: (row) => row.orders_count?.[date] ?? '',
-                cell: (info) => formatter(info.getValue())
+                cell: (info) => formatter(info.getValue()),
+                meta: {
+                    tdClassName: 'bg-gray font-large font-bold',
+                }
             }
         }),
         {
@@ -172,7 +180,8 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: '∑ мес.',
             cell: (info) => formatter(info.getValue()),
             meta: {
-                className: 'bg-gray font-large font-bold',
+                thClassName: 'bg-gray font-large font-bold',
+                tdClassName: 'bg-gray font-large font-bold',
             }
         },
         {
@@ -180,7 +189,8 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Приб.',
             cell: (info) => formatter(info.getValue()),
             meta: {
-                className: 'bg-gray',
+                thClassName: 'bg-gray',
+                tdClassName: 'bg-gray',
             }
         },
         {
@@ -188,7 +198,8 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: '%',
             cell: (info) => formatter(info.getValue()),
             meta: {
-                className: 'bg-gray',
+                thClassName: 'bg-gray',
+                tdClassName: 'bg-gray',
             }
         },
         {
@@ -251,7 +262,8 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'FBS',
             cell: (info) => formatter(info.getValue()),
             meta: {
-                className: 'font-large font-bold',
+                thClassName: 'font-large font-bold',
+                tdClassName: 'font-large font-bold',
             }
         },
         {
@@ -259,33 +271,177 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'FBO',
             cell: (info) => formatter(info.getValue()),
             meta: {
-                className: 'font-large font-bold',
+                thClassName: 'font-large font-bold',
+                tdClassName: 'font-large font-bold',
             }
         },
         {
             accessorKey: 'stocks.elektrostal',
             header: 'Сталь',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
         },
         {
             accessorKey: 'stocks.tula',
             header: 'Тула',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.koledino',
+            header: 'Коледино',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.ryazan',
+            header: 'Рязань',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
         },
         {
             accessorKey: 'stocks.nevinnomyssk',
             header: 'Нмысск',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
         },
         {
             accessorKey: 'stocks.krasnodar',
-            header: 'Красн',
-            cell: (info) => formatter(info.getValue())
+            header: 'Краснодар',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
         },
         {
             accessorKey: 'stocks.kazan',
             header: 'Казань',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.kotovsk',
+            header: 'Котовск',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.belyeStolby',
+            header: 'Белые Столбы',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.podolsk4',
+            header: 'Подольск 4',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.spbUtkinaZavod',
+            header: 'СПб Уткина',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.podolsk',
+            header: 'Подольск',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.ekbIspytatelej14g',
+            header: 'Екат 14',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.novosibirsk',
+            header: 'Новосибирск',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.voronezh',
+            header: 'Воронеж',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.vladimir',
+            header: 'Владимир',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.belayaDacha',
+            header: 'Белая дача',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.samara',
+            header: 'Самара',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.volgograd',
+            header: 'Волгоград',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.ekbPerspektivnyj12',
+            header: 'Екат 12',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
+        },
+        {
+            accessorKey: 'stocks.sarapul',
+            header: 'Сарапул',
+            cell: (info) => formatter(info.getValue()),
+            meta: {
+                thClassName: 'sticky-header-city',
+            }
         }
     ], [filteredGoods, viewStore]);
 
@@ -314,6 +470,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                         workSpaceSettings={workSpaceSettings}
                         dates={dates}
                         table={table}
+                        onTooltip={setTooltipData}
                     />
                     <TableBody
                         tableContainerRef={tableContainerRef}

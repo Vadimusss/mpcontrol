@@ -76,7 +76,7 @@ export const TableBody = ({ tableContainerRef, table, columns, onTooltip }) => {
                             return (
                                 <td
                                     key={cell.id}
-                                    className={cell.column.columnDef.meta?.className || ''}
+                                    className={cell.column.columnDef.meta?.tdClassName || ''}
                                     onMouseEnter={(e) => handleMouseEnter(e, cellValue)}
                                     onMouseLeave={handleMouseLeave}
                                 >
