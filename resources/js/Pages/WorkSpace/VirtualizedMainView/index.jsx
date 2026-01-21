@@ -11,7 +11,7 @@ import { GoodDetailsModal } from './Modals/GoodDetailsModal';
 import { useReactTable, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table';
 import { ArrowsUpDownIcon, BarsArrowUpIcon, BarsArrowDownIcon } from '@heroicons/react/24/solid';
 import { EyeIcon } from '@heroicons/react/24/outline';
-import { formatter } from './Utils';
+import { numericFormatter } from './Utils';
 import './styles.css';
 
 const generateDateHeaders = (days) => {
@@ -169,7 +169,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                 id: `date-${date}`,
                 header: formattedDate,
                 accessorFn: (row) => row.orders_count?.[date] ?? '',
-                cell: (info) => formatter(info.getValue()),
+                cell: (info) => numericFormatter(info.getValue()),
                 meta: {
                     tdClassName: 'bg-gray font-large font-bold',
                 }
@@ -178,7 +178,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'totalsOrdersCount',
             header: '∑ мес.',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'bg-gray font-large font-bold',
                 tdClassName: 'bg-gray font-large font-bold',
@@ -187,7 +187,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'mainRowProfit',
             header: 'Приб.',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'bg-gray',
                 tdClassName: 'bg-gray',
@@ -196,7 +196,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'percent',
             header: '%',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'bg-gray',
                 tdClassName: 'bg-gray',
@@ -205,62 +205,66 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'prices.price',
             header: 'Цена',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => numericFormatter(info.getValue())
         },
         {
             accessorKey: 'prices.discount',
             header: 'ск',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => numericFormatter(info.getValue())
         },
         {
             accessorKey: 'prices.discountedPrice',
             header: 'Цена ск',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => numericFormatter(info.getValue())
         },
         {
             accessorKey: 'prices.costWithTaxes',
             header: 'C/C',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => numericFormatter(info.getValue())
         },
         {
             // accessorKey: 'prices.costWithTaxes',
             header: 'Приб',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => numericFormatter(info.getValue())
         },
         {
             // accessorKey: 'prices.costWithTaxes',
             header: '%',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => numericFormatter(info.getValue())
         },
         {
             accessorKey: 'days_of_stock',
             header: 'дней',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => numericFormatter(info.getValue()),
+            meta: {
+                thClassName: 'bg-gray',
+                tdClassName: 'bg-gray',
+            }
         },
         {
             accessorKey: 'stocks.totals',
             header: 'ВБ',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => numericFormatter(info.getValue())
         },
         {
             // accessorKey: 'stocks.totals',
             header: 'ТП',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => numericFormatter(info.getValue())
         },
         {
             // accessorKey: 'stocks.totals',
             header: 'ЦС',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => numericFormatter(info.getValue())
         },
         {
             // accessorKey: 'stocks.totals',
             header: 'Зак',
-            cell: (info) => formatter(info.getValue())
+            cell: (info) => numericFormatter(info.getValue())
         },
         {
             accessorKey: 'stocks.fbsTotals',
             header: 'FBS',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'font-large font-bold',
                 tdClassName: 'font-large font-bold',
@@ -269,7 +273,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.fboTotals',
             header: 'FBO',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'font-large font-bold',
                 tdClassName: 'font-large font-bold',
@@ -278,7 +282,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.elektrostal',
             header: 'Сталь',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -286,7 +290,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.tula',
             header: 'Тула',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -294,7 +298,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.koledino',
             header: 'Коледино',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -302,7 +306,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.ryazan',
             header: 'Рязань',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -310,7 +314,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.nevinnomyssk',
             header: 'Нмысск',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -318,7 +322,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.krasnodar',
             header: 'Краснодар',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -326,7 +330,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.kazan',
             header: 'Казань',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -334,7 +338,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.kotovsk',
             header: 'Котовск',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -342,7 +346,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.belyeStolby',
             header: 'Белые Столбы',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -350,7 +354,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.podolsk4',
             header: 'Подольск 4',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -358,7 +362,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.spbUtkinaZavod',
             header: 'СПб Уткина',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -366,7 +370,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.podolsk',
             header: 'Подольск',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -374,7 +378,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.ekbIspytatelej14g',
             header: 'Екат 14',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -382,7 +386,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.novosibirsk',
             header: 'Новосибирск',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -390,7 +394,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.voronezh',
             header: 'Воронеж',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -398,7 +402,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.vladimir',
             header: 'Владимир',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -406,7 +410,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.belayaDacha',
             header: 'Белая дача',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -414,7 +418,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.samara',
             header: 'Самара',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -422,7 +426,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.volgograd',
             header: 'Волгоград',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -430,7 +434,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.ekbPerspektivnyj12',
             header: 'Екат 12',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }
@@ -438,7 +442,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'stocks.sarapul',
             header: 'Сарапул',
-            cell: (info) => formatter(info.getValue()),
+            cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 thClassName: 'sticky-header-city',
             }

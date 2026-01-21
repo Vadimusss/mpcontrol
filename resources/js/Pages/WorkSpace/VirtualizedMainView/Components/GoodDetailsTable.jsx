@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { formatter } from '../Utils';
+import { numericFormatter, stylingFormatter } from '../Utils';
 import '../styles.css';
 
 const formatValueByType = (value, type) => {
@@ -14,9 +14,9 @@ const formatValueByType = (value, type) => {
         case 'auc_sum':
         case 'aac_ctr':
         case 'auc_ctr':
-            return formatter(value, 1);
+            return numericFormatter(value, 1);
         default:
-            return formatter(value);
+            return numericFormatter(value);
     }
 };
 
@@ -102,18 +102,24 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
 
                         return (
                             <tr key={`${type}-${index}`} className="table-row">
-                                <td className="sticky-column sticky-left">
+                                <td className={`sticky-column sticky-left ${stylingFormatter.getStaticClass(type)}`}>
                                     {name}
                                 </td>
                                 {dates.map((date) => {
                                     const value = salesData[date]?.[type] || '';
+                                    const advertisingCosts = salesData[date]?.advertising_costs || 0;
+                                    
+                                    const staticClass = stylingFormatter.getStaticClass(type);
+                                    const dynamicClass = stylingFormatter.checkDynamicConditions(type, value, advertisingCosts);
+                                    const cellClasses = `${staticClass} ${dynamicClass}`.trim();
+                                    
                                     return (
-                                        <td key={date}>
+                                        <td key={date} className={cellClasses || undefined}>
                                             {formatValueByType(value, type)}
                                         </td>
                                     );
                                 })}
-                                <td className="bg-gray">
+                                <td className={`bg-gray ${stylingFormatter.getStaticClass(type)}`}>
                                     {formatValueByType(monthlyTotals[type], type)}
                                 </td>
                                 <td>

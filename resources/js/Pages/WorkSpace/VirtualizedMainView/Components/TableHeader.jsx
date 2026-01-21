@@ -13,7 +13,7 @@ export const TableHeader = ({
     const checkOverflow = (element, text) => {
         if (!element || !text) return false;
 
-        if (text.length < 6) return false;
+        if (text.length < 4) return false;
         if (!isNaN(parseFloat(text)) && isFinite(text)) return false;
         if (/^\d{4}[-\/]\d{2}[-\/]\d{2}/.test(text)) return false;
 

@@ -4,7 +4,7 @@ export const Colgroup = ({ dates }) => {
     return (
         <colgroup>
             <col style={{ width: '52px' }} />
-            <col style={{ width: '80px' }} />
+            <col style={{ width: '90px' }} />
             <col style={{ width: '200px' }} />
             <col style={{ width: '150px' }} />
             <col style={{ width: '90px' }} />

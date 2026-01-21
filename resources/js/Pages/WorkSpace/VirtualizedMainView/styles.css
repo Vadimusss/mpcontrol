@@ -63,17 +63,17 @@
 
 .sticky-header th.sticky-left.sticky-column:nth-child(3),
 .sticky-table td.sticky-left.sticky-column:nth-child(3) {
-  left: 132px;
+  left: 142px;
 }
 
 .sticky-header th.sticky-left.sticky-column:nth-child(4),
 .sticky-table td.sticky-left.sticky-column:nth-child(4) {
-  left: 332px;
+  left: 342px;
 }
 
 .sticky-header th.sticky-left.sticky-column:nth-child(5),
 .sticky-table td.sticky-left.sticky-column:nth-child(5) {
-  left: 482px;
+  left: 492px;
 }
 
 .sticky-header th.sticky-left.sticky-column,
@@ -451,4 +451,46 @@ input[type="checkbox"]:checked {
 
 .notes-button:hover .notes-icon {
   color: #374151;
+}
+
+/* Условное форматирование для таблицы деталей товара */
+.bg-yellow {
+  background-color: #fff9c4 !important;
+}
+
+.bg-red {
+  background-color: #ea9999 !important;
+}
+
+.bg-green {
+  color: #38761d !important;
+}
+
+.bg-purple {
+  color: #b4a7d6 !important;
+}
+
+.text-gray {
+  color: #6b7280 !important;
+}
+
+.text-green {
+  color: #38761d !important;
+}
+
+.text-blue {
+  color: #0b5394 !important;
+}
+
+.text-darkred {
+  color: #741b47 !important;
+}
+
+.italic {
+  font-style: italic !important;
+}
+
+.full-size {
+  width: 100% !important;
+  height: 100% !important;
 }
