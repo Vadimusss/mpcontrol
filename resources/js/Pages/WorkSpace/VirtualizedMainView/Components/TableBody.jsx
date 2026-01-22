@@ -73,6 +73,7 @@ export const TableBody = ({ tableContainerRef, table, columns, onTooltip }) => {
                         {row.getVisibleCells().map(cell => {
 
                             const cellValue = cell.getValue();
+
                             return (
                                 <td
                                     key={cell.id}

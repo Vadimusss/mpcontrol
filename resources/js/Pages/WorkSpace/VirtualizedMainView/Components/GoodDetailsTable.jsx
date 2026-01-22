@@ -4,8 +4,9 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { numericFormatter, stylingFormatter } from '../Utils';
 import '../styles.css';
 
-const formatValueByType = (value, type) => {
-    switch (type) {
+const formatValueByType = (value, type, subtype = '') => {
+
+    switch (`${type}${subtype}`) {
         case 'advertising_costs':
         case 'orders_profit':
         case 'buyouts_profit':
@@ -15,13 +16,17 @@ const formatValueByType = (value, type) => {
         case 'aac_ctr':
         case 'auc_ctr':
             return numericFormatter(value, 1);
+        case 'orders_profit_total':
+            return numericFormatter(value);
+        case 'advertising_costs_percent':
+            return numericFormatter(value);
         default:
             return numericFormatter(value);
     }
 };
 
 export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSettings, handleOpenNotes }) => {
-    const { salesData, monthlyTotals, salesByWarehouse, subRowsMetadata, notesData } = goodDetails;
+    const { salesData, monthlyTotals, prcentColumn, salesByWarehouse, subRowsMetadata, notesData } = goodDetails;
 
     return (
         <div className="table-container">
@@ -32,7 +37,8 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
                         </th>
                         <th colSpan={dates.length}></th>
                         <th></th>
-                        <th colSpan="5">Продажи по складам шт.</th>
+                        <th></th>
+                        <th colSpan="5">Продажи по складам, шт. ∑ мес.</th>
                     </tr>
                     <tr>
                         <th className="sticky-column sticky-left"></th>
@@ -48,6 +54,7 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
                             );
                         })}
                         <th>∑ мес.</th>
+                        <th>%</th>
                         <th>Сталь</th>
                         <th>Тула</th>
                         <th>Нмысск</th>
@@ -59,6 +66,7 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
                         {Array.from({ length: workSpaceSettings.days }, (_, index) => -index).reverse().map((number, index) => (
                             <th key={index}>{number}</th>
                         ))}
+                        <th></th>
                         <th></th>
                         <th colSpan="5"></th>
                     </tr>
@@ -91,6 +99,7 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
                                         </td>
                                     ))}
                                     <td className="bg-gray"></td>
+                                    <td className="bg-gray"></td>
                                     <td></td>
                                     <td></td>
                                     <td></td>
@@ -108,11 +117,11 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
                                 {dates.map((date) => {
                                     const value = salesData[date]?.[type] || '';
                                     const advertisingCosts = salesData[date]?.advertising_costs || 0;
-                                    
+
                                     const staticClass = stylingFormatter.getStaticClass(type);
                                     const dynamicClass = stylingFormatter.checkDynamicConditions(type, value, advertisingCosts);
                                     const cellClasses = `${staticClass} ${dynamicClass}`.trim();
-                                    
+
                                     return (
                                         <td key={date} className={cellClasses || undefined}>
                                             {formatValueByType(value, type)}
@@ -120,7 +129,10 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
                                     );
                                 })}
                                 <td className={`bg-gray ${stylingFormatter.getStaticClass(type)}`}>
-                                    {formatValueByType(monthlyTotals[type], type)}
+                                    {formatValueByType(monthlyTotals[type], type, '_total')}
+                                </td>
+                                <td className="bg-gray">
+                                    {prcentColumn[type] === undefined || prcentColumn[type] === 0 ? '' : `${formatValueByType(prcentColumn[type], type, '_percent')}%`}
                                 </td>
                                 <td>
                                     {type === 'orders_count' ? formatValueByType(getWarehouseValue('elektrostal')) : ''}

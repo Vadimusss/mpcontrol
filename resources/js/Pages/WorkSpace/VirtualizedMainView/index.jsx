@@ -235,7 +235,19 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         {
             accessorKey: 'days_of_stock',
             header: 'дней',
-            cell: (info) => numericFormatter(info.getValue()),
+            cell: (info) => {
+                const value = info.getValue();
+                const bgClass = value <= 10 ? 'bg-red'
+                    : value <= 20 ? 'bg-yellow'
+                        : value <= 99 ? 'bg-green'
+                            : 'bg-purple';
+
+                return (
+                    <div className={`full-bg ${bgClass}`}>
+                        {numericFormatter(value)}
+                    </div>
+                );
+            },
             meta: {
                 thClassName: 'bg-gray',
                 tdClassName: 'bg-gray',
@@ -248,7 +260,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         },
         {
             // accessorKey: 'stocks.totals',
-            header: 'ТП',
+            header: 'ТР',
             cell: (info) => numericFormatter(info.getValue())
         },
         {
