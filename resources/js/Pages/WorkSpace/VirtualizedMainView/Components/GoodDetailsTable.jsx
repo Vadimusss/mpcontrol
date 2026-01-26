@@ -4,8 +4,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { numericFormatter, stylingFormatter } from '../Utils';
 import '../styles.css';
 
-const formatValueByType = (value, type, subtype = '') => {
-
+const formatValueByType = (value, type, subtype = '', addString = '') => {
     switch (`${type}${subtype}`) {
         case 'advertising_costs':
         case 'orders_profit':
@@ -19,7 +18,8 @@ const formatValueByType = (value, type, subtype = '') => {
         case 'orders_profit_total':
             return numericFormatter(value);
         case 'advertising_costs_percent':
-            return numericFormatter(value);
+        case 'orders_profit_percent':
+            return numericFormatter(value, 0, addString);
         default:
             return numericFormatter(value);
     }
@@ -132,7 +132,7 @@ export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSetting
                                     {formatValueByType(monthlyTotals[type], type, '_total')}
                                 </td>
                                 <td className="bg-gray">
-                                    {prcentColumn[type] === undefined || prcentColumn[type] === 0 ? '' : `${formatValueByType(prcentColumn[type], type, '_percent')}%`}
+                                    {formatValueByType(prcentColumn[type], type, '_percent', '%')}
                                 </td>
                                 <td>
                                     {type === 'orders_count' ? formatValueByType(getWarehouseValue('elektrostal')) : ''}

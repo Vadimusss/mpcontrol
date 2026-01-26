@@ -22,7 +22,7 @@ apiClient.interceptors.response.use(
   }
 );
 
-const numericFormatter = (value, fractionDigits = 0) => {
+const numericFormatter = (value, fractionDigits = 0, addString = '') => {
   if (value === '' || value === null || value === undefined || value === 0) return '';
   if (fractionDigits === 0 && value < 1) return '';
   if (typeof value === 'string') return value;
@@ -33,7 +33,7 @@ const numericFormatter = (value, fractionDigits = 0) => {
     useGrouping: true
   };
 
-  return new Intl.NumberFormat('ru-RU', options).format(value);
+  return `${new Intl.NumberFormat('ru-RU', options).format(value)}${addString}`;
 };
 
 const stylingFormatter = {

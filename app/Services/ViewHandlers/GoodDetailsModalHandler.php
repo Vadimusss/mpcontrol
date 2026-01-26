@@ -59,9 +59,10 @@ class GoodDetailsModalHandler
             $ordersProfit = $this->calculateProfit($row->orders_sum_rub, $row->orders_count, $row->advertising_costs, $good->nsi, $commission, $logistics);
             // $buyoutsProfit = $this->calculateProfit($row->buyouts_sum_rub, $row->buyouts_count, $row->advertising_costs, $good->nsi, $commission, $logistics);
 
-            $spp = ($row->price_with_disc == 0 || $row->finished_price == 0) ? 0 : round(($row->price_with_disc - $row->finished_price) / $row->price_with_disc * 100);
             $advertisingCosts = $row->advertising_costs == 0 ? 0 : round($row->advertising_costs / 1000, 1);
             $ordersSumRubAfterSpp = ($row->orders_count == 0 || $row->finished_price == 0) ? 0 : round(($row->orders_count * $row->finished_price));
+            $spp = ($row->price_with_disc == 0 || $row->finished_price == 0) ? 0 : round(($row->price_with_disc - $row->finished_price) / $row->price_with_disc * 100);
+            $drrCommon = ($advertisingCosts == 0 || $ordersSumRubAfterSpp == 0) ? 0 : round($advertisingCosts / ($ordersSumRubAfterSpp / 1000) * 100);
 
             if (in_array($row->date, $dates)) {
                 $salesData[$row->date] = [
@@ -78,7 +79,7 @@ class GoodDetailsModalHandler
                     // 'buyouts_count' =>(int) $row->buyouts_count == 0 ? '' : $row->buyouts_count,
                     // 'buyouts_profit' => (float) $buyoutsProfit == 0 ? '' : round($buyoutsProfit / 1000 * -1, 1),
                     'buyouts_sum_rub' => (int) $row->buyouts_sum_rub == 0 ? 0 : round($row->buyouts_sum_rub / 1000),
-                    'drr_common' => (int) ($advertisingCosts == 0 || $ordersSumRubAfterSpp == 0) ? 0 : round($advertisingCosts / ($ordersSumRubAfterSpp / 1000) * 100),
+                    'drr_common' => (int) $drrCommon,
                     'buyout_percent' => (int) $row->buyout_percent == 0 ? 0 : $row->buyout_percent,
                     'profit_without_ads' => (float) $row->profit_without_ads == 0 ? 0 : $row->profit_without_ads / 1000,
                     'open_card_count' => (int) $row->open_card_count == 0 ? 0 : $row->open_card_count,
@@ -110,9 +111,8 @@ class GoodDetailsModalHandler
                 ];
             }
 
-            if ($row->date >= $totalsStartDate) {
-                $this->accumulateMonthlyTotals($monthlyTotals, $row, $ordersProfit, $ordersSumRubAfterSpp);
-            }
+
+            $this->accumulateMonthlyTotals($row->date, $monthlyTotals, $row, $ordersProfit, $ordersSumRubAfterSpp, $spp, $drrCommon);
         }
 
         $salesByWarehouse = $this->calculateSalesByWarehouse($shop, $totalsStartDate, [
@@ -175,14 +175,16 @@ class GoodDetailsModalHandler
         ];
     }
 
-    private function accumulateMonthlyTotals(array &$totals, $row, $ordersProfit, $ordersSumRubAfterSpp): void
+    private function accumulateMonthlyTotals($processedDate, &$totals, $row, $ordersProfit, $ordersSumRubAfterSpp, $spp, $drrCommon): void
     {
         $fields = [
             'orders_count' => $row->orders_count,
             'advertising_costs' => $row->advertising_costs,
             'orders_profit' => $ordersProfit,
-            'price_with_disc' => round($row->price_with_disc),
-            'finished_price' => $row->finished_price * $row->orders_count,
+            'price_with_disc' => $row->price_with_disc,
+            'finished_price' => $row->finished_price,
+            'spp' => $spp,
+            'drr_common' => $drrCommon,
             'orders_sum_rub' => $row->orders_sum_rub,
             'orders_sum_rub_after_spp' => $ordersSumRubAfterSpp,
             'buyouts_sum_rub' => $row->buyouts_sum_rub,
@@ -197,9 +199,23 @@ class GoodDetailsModalHandler
         ];
 
         foreach ($fields as $field => $value) {
-            if (is_numeric($value)) {
-                $totals[$field] = ($totals[$field] ?? 0) + $value;
+            if (is_numeric($value) && $value != 0) {
+                switch ($field) {
+                    case 'spp':
+                        $totals[$field][] = $value;
+                        break;
+                    case 'drr_common':
+                        $totals[$field][] = $value;
+                        break;
+                    default:
+                        $totals[$field] = ($totals[$field] ?? 0) + $value;
+                }
             }
+        }
+
+        $date = Carbon::parse($processedDate);
+        if ($date->lt(Carbon::now()->subDays(9))) {
+            $totals['buyout_percent'][] = $row->buyout_percent;
         }
 
         $noAdClicks = ($row->aac_clicks != 0 || $row->auc_clicks != 0) ? $row->open_card_count - ($row->aac_clicks + $row->auc_clicks) : 0;
@@ -223,20 +239,29 @@ class GoodDetailsModalHandler
     {
         $prepared = $monthlyTotals;
 
-        $prepared['finished_price'] = ($monthlyTotals['finished_price'] == 0 && $monthlyTotals['orders_count'] == 0) ?
-            0 : round($monthlyTotals['finished_price'] / $monthlyTotals['orders_count']);
-
         $prepared['advertising_costs'] = $monthlyTotals['advertising_costs'] == 0 ?
-            0 : round($monthlyTotals['advertising_costs']);
+            0 : $monthlyTotals['advertising_costs'];
 
         $prepared['orders_profit'] = $monthlyTotals['orders_profit'] == 0 ?
-            0 : round($monthlyTotals['orders_profit']);
+            0 : $monthlyTotals['orders_profit'];
+
+        $prepared['price_with_disc'] = ($monthlyTotals['price_with_disc'] == 0 && $monthlyTotals['orders_count'] == 0) ?
+            0 : $monthlyTotals['orders_sum_rub'] / $monthlyTotals['orders_count'];
+
+        $prepared['finished_price'] = ($monthlyTotals['finished_price'] == 0 && $monthlyTotals['orders_count'] == 0) ?
+            0 : $monthlyTotals['orders_sum_rub_after_spp'] / $monthlyTotals['orders_count'];
+
+        $prepared['spp'] = count($monthlyTotals['spp']) === 0 ? 0 : array_sum($monthlyTotals['spp']) / count($monthlyTotals['spp']);
+
+        $prepared['drr_common'] = count($monthlyTotals['drr_common']) === 0 ? 0 : array_sum($monthlyTotals['drr_common']) / count($monthlyTotals['drr_common']);
+
+        $prepared['buyout_percent'] = count($monthlyTotals['buyout_percent']) === 0 ? 0 : array_sum($monthlyTotals['buyout_percent']) / count($monthlyTotals['buyout_percent']);
 
         $prepared['orders_sum_rub'] = $monthlyTotals['orders_sum_rub'] == 0 ?
             0 : round($monthlyTotals['orders_sum_rub']);
 
         $prepared['orders_sum_rub_after_spp'] = $monthlyTotals['orders_sum_rub_after_spp'] == 0 ?
-            0 : round($monthlyTotals['orders_sum_rub_after_spp']);
+            0 : $monthlyTotals['orders_sum_rub_after_spp'];
 
         $prepared['aac_sum'] = $monthlyTotals['aac_sum'] == 0 ?
             0 : round($monthlyTotals['aac_sum'] / 1000, 1);
@@ -253,6 +278,9 @@ class GoodDetailsModalHandler
 
         $result['advertising_costs'] = $monthlyTotals['advertising_costs'] == 0 || $monthlyTotals['orders_sum_rub_after_spp'] == 0 ?
             0 : $monthlyTotals['advertising_costs'] / $monthlyTotals['orders_sum_rub_after_spp'] * 100;
+
+        $result['orders_profit'] = $monthlyTotals['orders_profit'] == 0 || $monthlyTotals['orders_sum_rub_after_spp'] == 0 ?
+            0 : $monthlyTotals['orders_profit'] / $monthlyTotals['orders_sum_rub_after_spp'] * 100;
 
         return $result;
     }
