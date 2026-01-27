@@ -50,7 +50,7 @@ class GoodDetailsModalHandler
         $salesData = [];
         $monthlyTotals = [
             'spp' => [],
-            'drr_common' => []
+            'drr_common' => [],
         ];
 
         foreach ($good->salesFunnel as $row) {
@@ -209,12 +209,12 @@ class GoodDetailsModalHandler
             $totals['buyout_percent'][] = $row->buyout_percent;
         }
 
-        if (is_numeric($spp) && $spp != 0) {
-            $totals['spp'][] = $value;
+        if (is_numeric($spp) && $spp > 0) {
+            $totals['spp'][] = $spp;
         }
 
-        if (is_numeric($drrCommon) && $drrCommon != 0) {
-            $totals['drr_common'][] = $value;
+        if (is_numeric($drrCommon) && $drrCommon > 0) {
+            $totals['drr_common'][] = $drrCommon;
         }
 
         $noAdClicks = ($row->aac_clicks != 0 || $row->auc_clicks != 0) ? $row->open_card_count - ($row->aac_clicks + $row->auc_clicks) : 0;
