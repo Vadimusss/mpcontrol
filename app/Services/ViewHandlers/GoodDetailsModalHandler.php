@@ -114,7 +114,7 @@ class GoodDetailsModalHandler
                 ];
             }
 
-            $this->accumulateMonthlyTotals($row->date, $monthlyTotals, $row, $ordersProfit, $ordersSumRubAfterSpp, $spp, $drrCommon);
+            $this->accumulateMonthlyTotals($row->date, $monthlyTotals, $row, $ordersProfit, $ordersSumRubAfterSpp, $spp, $drrCommon, $conversion);
         }
 
         $salesByWarehouse = $this->calculateSalesByWarehouse($shop, $totalsStartDate, [
@@ -177,7 +177,7 @@ class GoodDetailsModalHandler
         ];
     }
 
-    private function accumulateMonthlyTotals($processedDate, &$totals, $row, $ordersProfit, $ordersSumRubAfterSpp, $spp, $drrCommon): void
+    private function accumulateMonthlyTotals($processedDate, &$totals, $row, $ordersProfit, $ordersSumRubAfterSpp, $spp, $drrCommon, $conversion): void
     {
         $fields = [
             'orders_count' => $row->orders_count,
@@ -188,12 +188,18 @@ class GoodDetailsModalHandler
             'orders_sum_rub' => $row->orders_sum_rub,
             'orders_sum_rub_after_spp' => $ordersSumRubAfterSpp,
             'buyouts_sum_rub' => $row->buyouts_sum_rub,
+            'profit_without_ads' => $row->profit_without_ads,
             'buyouts_count' => $row->buyouts_count,
-            // 'buyouts_profit' => $buyoutsProfit,
             'open_card_count' => $row->open_card_count,
             'add_to_cart_count' => $row->add_to_cart_count,
+            'aac_cpm' => $row->aac_cpm,
+            'aac_views' => $row->aac_views,
+            'aac_clicks' => $row->aac_clicks,
             'aac_sum' => $row->aac_sum,
             'aac_orders' => $row->aac_orders,
+            'auc_cpm' => $row->auc_cpm,
+            'auc_views' => $row->auc_views,
+            'auc_clicks' => $row->auc_clicks,
             'auc_sum' => $row->auc_sum,
             'auc_orders' => $row->auc_orders,
         ];
@@ -215,6 +221,14 @@ class GoodDetailsModalHandler
 
         if (is_numeric($drrCommon) && $drrCommon > 0) {
             $totals['drr_common'][] = $drrCommon;
+        }
+
+        if (is_numeric($conversion['add_to_cart_conversion']) && $conversion['add_to_cart_conversion'] > 0) {
+            $totals['add_to_cart_conversion'][] = $conversion['add_to_cart_conversion'];
+        }
+
+        if (is_numeric($conversion['cart_to_order_conversion']) && $conversion['cart_to_order_conversion'] > 0) {
+            $totals['cart_to_order_conversion'][] = $conversion['cart_to_order_conversion'];
         }
 
         $noAdClicks = ($row->aac_clicks != 0 || $row->auc_clicks != 0) ? $row->open_card_count - ($row->aac_clicks + $row->auc_clicks) : 0;
@@ -255,6 +269,12 @@ class GoodDetailsModalHandler
         $prepared['drr_common'] = count($monthlyTotals['drr_common']) == 0 ? 0 : array_sum($monthlyTotals['drr_common']) / count($monthlyTotals['drr_common']);
 
         $prepared['buyout_percent'] = count($monthlyTotals['buyout_percent']) === 0 ? 0 : array_sum($monthlyTotals['buyout_percent']) / count($monthlyTotals['buyout_percent']);
+
+        $prepared['add_to_cart_conversion'] = count($monthlyTotals['add_to_cart_conversion']) === 0 ?
+            0 : array_sum($monthlyTotals['add_to_cart_conversion']) / count($monthlyTotals['add_to_cart_conversion']);
+
+        $prepared['cart_to_order_conversion'] = count($monthlyTotals['cart_to_order_conversion']) === 0 ?
+            0 : array_sum($monthlyTotals['cart_to_order_conversion']) / count($monthlyTotals['cart_to_order_conversion']);
 
         $prepared['orders_sum_rub'] = $monthlyTotals['orders_sum_rub'] == 0 ?
             0 : round($monthlyTotals['orders_sum_rub']);
