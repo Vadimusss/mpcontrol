@@ -15,6 +15,7 @@ class SupplierWarehousesStocks extends Model
         'warehouse_id',
         'nm_id',
         'vendor_code',
+        'chrt_id',
         'barcode',
         'amount',
     ];

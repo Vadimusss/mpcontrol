@@ -196,12 +196,13 @@ class Shop extends Model
 
             $nmId = $size->cardsList->nm_id;
             $vendorCode = $size->cardsList->vendor_code;
-
+   
             foreach ($barcodes as $barcode) {
                 if (!empty($barcode)) {
                     $barcodesWithMetadata[$barcode] = [
                         'nm_id' => $nmId,
                         'vendor_code' => $vendorCode,
+                        'chrt_id' => $size->chrt_id,
                     ];
                 }
             }
