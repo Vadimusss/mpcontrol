@@ -60,6 +60,7 @@ class AddSupplierWarehousesStocks implements ShouldQueue
                         'warehouse_id' => $this->warehouseId,
                         'nm_id' => $this->barcodesData[$barcode]['nm_id'] ?? null,
                         'vendor_code' => $this->barcodesData[$barcode]['vendor_code'] ?? null,
+                        'chrt_id' => $this->barcodesData[$barcode]['chrt_id'] ?? null,
                         'barcode' => $stock['sku'],
                         'amount' => $stock['amount'],
                     ]);

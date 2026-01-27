@@ -185,7 +185,7 @@ class Shop extends Model
             ->with(['cardsList' => function ($query) {
                 $query->select('id', 'nm_id', 'vendor_code');
             }])
-            ->get(['wb_cards_sizes.id', 'wb_cards_sizes.skus_text', 'wb_cards_sizes.wb_cards_list_id']);
+            ->get(['wb_cards_sizes.id', 'wb_cards_sizes.skus_text', 'wb_cards_sizes.chrt_id', 'wb_cards_sizes.wb_cards_list_id']);
 
         foreach ($sizes as $size) {
             if (!$size->cardsList) {
@@ -208,5 +208,32 @@ class Shop extends Model
         }
 
         return $barcodesWithMetadata;
+    }
+
+    public function chrtIdsWitchMetadata(): array
+    {
+        $chrtIdsWithMetadata = [];
+
+        $sizes = $this->wbContentV2CardsListSizes()
+            ->with(['cardsList' => function ($query) {
+                $query->select('id', 'nm_id', 'vendor_code');
+            }])
+            ->get(['wb_cards_sizes.id', 'wb_cards_sizes.chrt_id', 'wb_cards_sizes.wb_cards_list_id']);
+
+        foreach ($sizes as $size) {
+            if (!$size->cardsList) {
+                continue;
+            }
+
+            $nmId = $size->cardsList->nm_id;
+            $vendorCode = $size->cardsList->vendor_code;
+
+            $chrtIdsWithMetadata[$size->chrt_id] = [
+                'nm_id' => $nmId,
+                'vendor_code' => $vendorCode,
+            ];
+        }
+
+        return $chrtIdsWithMetadata;
     }
 }
