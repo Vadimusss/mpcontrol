@@ -32,14 +32,14 @@ class UpdateAllSupplierWarehousesStocks implements ShouldQueue
                 ->pluck('warehouse_id');
             
             $warehouseIds->each(function ($warehouseId) use ($shop) {
-                $barcodesChunks = array_chunk($shop->barcodesWitchMetadata(), 1000, true);
+                $chrtIdsChunks = array_chunk($shop->chrtIdsWitchMetadata(), 1000, true);
                 $jobsChain = array_map(function ($chunk) use ($shop, $warehouseId) {
                     return (new AddSupplierWarehousesStocks(
                         $shop,
                         $this->date,
                         $chunk,
                         $warehouseId))->delay(Carbon::now()->addMilliseconds(200));
-                }, $barcodesChunks);
+                }, $chrtIdsChunks);
 
                 Bus::chain($jobsChain)->dispatch();
             });

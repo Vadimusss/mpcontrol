@@ -18,12 +18,12 @@ class AddSupplierWarehousesStocks implements ShouldQueue
     public function __construct(
         public Shop $shop,
         public string $date,
-        public array $barcodesData,
+        public array $chrtIdsData,
         public int $warehouseId
     ) {
         $this->shop = $shop;
         $this->date = $date;
-        $this->barcodesData = $barcodesData;
+        $this->chrtIdsData = $chrtIdsData;
         $this->warehouseId = $warehouseId;
     }
 
@@ -31,17 +31,17 @@ class AddSupplierWarehousesStocks implements ShouldQueue
     {
         $api = new WbApiService($this->shop->apiKey->key);
 
-        $stringBarcodes = array_map(function ($barcode) {
-            return (string) $barcode;
-        }, array_keys($this->barcodesData));
+        $chrtIds = array_map(function ($chrtId) {
+            return $chrtId;
+        }, array_keys($this->chrtIdsData));
 
-        $stocksData = $api->getApiV3Stocks($this->warehouseId, $stringBarcodes);
+        $stocksData = $api->getApiV3Stocks($this->warehouseId, $chrtIds);
 
         if ($stocksData->isNotEmpty()) {
             SupplierWarehousesStocks::where('shop_id', $this->shop->id)
                 ->where('date', $this->date)
                 ->where('warehouse_id', $this->warehouseId)
-                ->whereIn('barcode', $stringBarcodes)
+                ->whereIn('chrt_id', $chrtIds)
                 ->delete();
 
             $warehouse = $this->shop->warehouses()
@@ -50,7 +50,7 @@ class AddSupplierWarehousesStocks implements ShouldQueue
 
             $stocksData->each(function ($stock) use ($warehouse) {
                 if ($stock['amount'] != 0) {
-                    $barcode = $stock['sku'];
+                    $chrtId = $stock['chrtId'];
 
                     SupplierWarehousesStocks::create([
                         'shop_id' => $this->shop->id,
@@ -58,9 +58,9 @@ class AddSupplierWarehousesStocks implements ShouldQueue
                         'office_id' => $warehouse->office_id,
                         'warehouse_name' => $warehouse->name,
                         'warehouse_id' => $this->warehouseId,
-                        'nm_id' => $this->barcodesData[$barcode]['nm_id'] ?? null,
-                        'vendor_code' => $this->barcodesData[$barcode]['vendor_code'] ?? null,
-                        'chrt_id' => $this->barcodesData[$barcode]['chrt_id'] ?? null,
+                        'nm_id' => $this->chrtIdsData[$chrtId]['nm_id'],
+                        'vendor_code' => $this->chrtIdsData[$chrtId]['vendor_code'],
+                        'chrt_id' => $chrtId,
                         'barcode' => $stock['sku'],
                         'amount' => $stock['amount'],
                     ]);

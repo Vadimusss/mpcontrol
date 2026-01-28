@@ -242,12 +242,12 @@ class WbApiService
         return $response->collect();
     }
 
-    public function getApiV3Stocks(int $warehouseId, array $skus)
+    public function getApiV3Stocks(int $warehouseId, array $chrtIds)
     {
         $response = Http::withToken($this->apiKey)
             ->retry(3, 1000)
             ->post("https://marketplace-api.wildberries.ru/api/v3/stocks/{$warehouseId}", [
-                'skus' => $skus
+                'chrtIds' => $chrtIds
             ]);
 
         $response->throw();
