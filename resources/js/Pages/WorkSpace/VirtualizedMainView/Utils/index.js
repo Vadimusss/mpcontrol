@@ -89,6 +89,14 @@ const stylingFormatter = {
       classes.push('bg-yellow');
     }
 
+    if (rowType === 'aac_sum' && value * 1000 > 100) {
+      classes.push('bg-yellow');
+    }
+
+    if (rowType === 'auc_sum' && value * 1000 > 100) {
+      classes.push('bg-yellow');
+    }
+
     return classes.join(' ');
   }
 };

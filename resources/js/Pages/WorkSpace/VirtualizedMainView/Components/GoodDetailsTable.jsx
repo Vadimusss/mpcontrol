@@ -19,6 +19,7 @@ const formatValueByType = (value, type, subtype = '', addString = '') => {
             return numericFormatter(value);
         case 'advertising_costs_percent':
         case 'orders_profit_percent':
+        case 'no_ad_clicks_percent':
             return numericFormatter(value, 0, addString);
         default:
             return numericFormatter(value);
