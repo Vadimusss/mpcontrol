@@ -118,11 +118,14 @@ class GoodDetailsModalHandler
             'kazan' => 'Казань'
         ]);
 
+        $preparedMonthlyTotals = $this->prepareMonthlyTotals($monthlyTotals);
+        $percentData = $this->calculatePercentData($preparedMonthlyTotals);
+
         return [
             'goodId' => $good->id,
             'salesData' => $salesData,
-            'monthlyTotals' => $this->prepareMonthlyTotals($monthlyTotals),
-            'prcentColumn' => $this->calculatePercentData($monthlyTotals),
+            'monthlyTotals' => $preparedMonthlyTotals,
+            'prcentColumn' => $percentData,
             'salesByWarehouse' => $salesByWarehouse->get($good->nm_id, []),
             'notesData' => $notesData,
             'subRowsMetadata' => [
@@ -280,7 +283,7 @@ class GoodDetailsModalHandler
         $prepared['aac_ctr'] = $monthlyTotals['aac_views'] == 0 || $monthlyTotals['aac_clicks'] == 0 ?
             0 : $monthlyTotals['aac_clicks'] / $monthlyTotals['aac_views'] * 100;
 
-        $prepared['aac_cpo'] = $monthlyTotals['aac_sum'] == 0 || $monthlyTotals['aac_orders'] == 0 ?
+        $prepared['aac_cpo'] = $monthlyTotals['finished_price'] == 0 || $monthlyTotals['aac_orders'] == 0 ?
             0 : $monthlyTotals['aac_sum'] / $monthlyTotals['aac_orders'];
 
         $prepared['auc_cpm'] = $monthlyTotals['auc_sum'] == 0 || $monthlyTotals['auc_views'] == 0 ?
@@ -310,6 +313,39 @@ class GoodDetailsModalHandler
 
         $result['no_ad_clicks'] = $monthlyTotals['no_ad_clicks'] == 0 || $monthlyTotals['open_card_count'] == 0 ?
             0 : $monthlyTotals['no_ad_clicks'] / $monthlyTotals['open_card_count'] * 100;
+
+        $adViewsTotal = $monthlyTotals['aac_views'] + $monthlyTotals['auc_views'];
+
+        $result['aac_views'] = $adViewsTotal == 0 ? 0 : $monthlyTotals['aac_views'] / $adViewsTotal * 100;
+
+        $result['auc_views'] = $adViewsTotal == 0 ? 0 : $monthlyTotals['auc_views'] / $adViewsTotal * 100;
+
+        $adClicksTotal = $monthlyTotals['aac_clicks'] + $monthlyTotals['auc_clicks'];
+
+        $result['aac_clicks'] = $adViewsTotal == 0 ? 0 : $monthlyTotals['aac_clicks'] / $adClicksTotal * 100;
+
+        $result['auc_clicks'] = $adViewsTotal == 0 ? 0 : $monthlyTotals['auc_clicks'] / $adClicksTotal * 100;
+
+        $adSumTotal = $monthlyTotals['aac_sum'] + $monthlyTotals['auc_sum'];
+
+        $result['aac_sum'] = $adViewsTotal == 0 ? 0 : $monthlyTotals['aac_sum'] / $adSumTotal * 100;
+
+        $result['auc_sum'] = $adViewsTotal == 0 ? 0 : $monthlyTotals['auc_sum'] / $adSumTotal * 100;
+
+        $result['aac_orders'] = $monthlyTotals['orders_count'] == 0 ? 0 : $monthlyTotals['aac_orders'] / $monthlyTotals['orders_count'] * 100;
+
+        $result['auc_orders'] = $monthlyTotals['orders_count'] == 0 ? 0 : $monthlyTotals['auc_orders'] / $monthlyTotals['orders_count'] * 100;
+
+        $result['aac_cpo'] = $monthlyTotals['aac_sum'] == 0 || $monthlyTotals['aac_orders'] == 0 || $monthlyTotals['finished_price'] == 0 ?
+            0 : $monthlyTotals['aac_sum'] / $monthlyTotals['aac_orders'] / $monthlyTotals['finished_price'];
+
+        $result['aac_cpo'] = $monthlyTotals['finished_price'] == 0 ? 0 : $monthlyTotals['aac_cpo'] / $monthlyTotals['finished_price'] * 100;
+
+        $result['auc_cpo'] = $monthlyTotals['finished_price'] == 0 ? 0 : $monthlyTotals['auc_cpo'] / $monthlyTotals['finished_price'] * 100;
+
+        $result['ad_orders'] = $monthlyTotals['orders_count'] == 0 ? 0 : $monthlyTotals['ad_orders'] / $monthlyTotals['orders_count'] * 100;
+
+        $result['no_ad_orders'] = $monthlyTotals['orders_count'] == 0 ? 0 : $monthlyTotals['no_ad_orders'] / $monthlyTotals['orders_count'] * 100;
 
         return $result;
     }

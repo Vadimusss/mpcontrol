@@ -20,6 +20,17 @@ const formatValueByType = (value, type, subtype = '', addString = '') => {
         case 'advertising_costs_percent':
         case 'orders_profit_percent':
         case 'no_ad_clicks_percent':
+        case 'aac_views_percent':
+        case 'aac_clicks_percent':
+        case 'aac_sum_percent':
+        case 'aac_orders_percent':
+        case 'aac_cpo_percent':
+        case 'auc_views_percent':
+        case 'auc_clicks_percent':
+        case 'auc_sum_percent':
+        case 'auc_orders_percent':
+        case 'ad_orders_percent':
+        case 'no_ad_orders_percent':
             return numericFormatter(value, 0, addString);
         default:
             return numericFormatter(value);
