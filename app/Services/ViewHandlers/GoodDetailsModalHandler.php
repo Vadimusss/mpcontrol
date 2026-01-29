@@ -322,15 +322,15 @@ class GoodDetailsModalHandler
 
         $adClicksTotal = $monthlyTotals['aac_clicks'] + $monthlyTotals['auc_clicks'];
 
-        $result['aac_clicks'] = $adViewsTotal == 0 ? 0 : $monthlyTotals['aac_clicks'] / $adClicksTotal * 100;
+        $result['aac_clicks'] = $adClicksTotal == 0 ? 0 : $monthlyTotals['aac_clicks'] / $adClicksTotal * 100;
 
-        $result['auc_clicks'] = $adViewsTotal == 0 ? 0 : $monthlyTotals['auc_clicks'] / $adClicksTotal * 100;
+        $result['auc_clicks'] = $adClicksTotal == 0 ? 0 : $monthlyTotals['auc_clicks'] / $adClicksTotal * 100;
 
         $adSumTotal = $monthlyTotals['aac_sum'] + $monthlyTotals['auc_sum'];
 
-        $result['aac_sum'] = $adViewsTotal == 0 ? 0 : $monthlyTotals['aac_sum'] / $adSumTotal * 100;
+        $result['aac_sum'] = $adSumTotal == 0 ? 0 : $monthlyTotals['aac_sum'] / $adSumTotal * 100;
 
-        $result['auc_sum'] = $adViewsTotal == 0 ? 0 : $monthlyTotals['auc_sum'] / $adSumTotal * 100;
+        $result['auc_sum'] = $adSumTotal == 0 ? 0 : $monthlyTotals['auc_sum'] / $adSumTotal * 100;
 
         $result['aac_orders'] = $monthlyTotals['orders_count'] == 0 ? 0 : $monthlyTotals['aac_orders'] / $monthlyTotals['orders_count'] * 100;
 
