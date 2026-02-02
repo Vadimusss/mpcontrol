@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use Illuminate\Support\Arr;
 use App\Models\Shop;
+use App\Jobs\UpdateWbApiAdvertV2Advert;
 use App\Jobs\AddWbAnalyticsV3ProductsHistory;
 use App\Jobs\AddWbAdvV1PromotionCount;
 use App\Jobs\AddWbNmReportDetailHistory;
@@ -34,7 +35,7 @@ class TestJob implements ShouldQueue
         $shops = Shop::without(['owner', 'customers'])->with('goods')->get();
 
         $shops->each(function ($shop, int $key) {
-            $date = date('Y-m-d', strtotime("-{$this->daysAgo} days"));
+            /*             $date = date('Y-m-d', strtotime("-{$this->daysAgo} days"));
 
             $shopGoods = $shop->goods();
             $shopNmIds = $shopGoods->pluck('nm_id')->toArray();
@@ -48,7 +49,9 @@ class TestJob implements ShouldQueue
                 $nmReportDetailHistoryJobs,
             ])->then(function () {
 
-            })->allowFailures()->dispatch();
+            })->allowFailures()->dispatch(); */
+
+            UpdateWbApiAdvertV2Advert::dispatch($shop->id)->onQueue('main');
         });
     }
 

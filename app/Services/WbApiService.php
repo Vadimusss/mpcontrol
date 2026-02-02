@@ -358,4 +358,19 @@ class WbApiService
 
         return $response->collect();
     }
+
+    public function getWbApiAdvertV2Advert(array $advertIds)
+    {
+        $response = Http::withToken($this->apiKey)
+            ->timeout(90)
+            ->connectTimeout(60)
+            ->retry(3, 1000)
+            ->get('https://advert-api.wildberries.ru/api/advert/v2/adverts', [
+                'ids' => implode(',', $advertIds)
+            ]);
+
+        $response->throw();
+
+        return $response->collect('adverts');
+    }
 }
