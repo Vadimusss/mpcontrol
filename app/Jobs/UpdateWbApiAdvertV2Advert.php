@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Shop;
 use App\Models\WbApiAdvertV2Advert;
+use App\Models\WbApiAdvertV2AdvertNm;
 use App\Services\WbApiService;
 use Illuminate\Support\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -68,14 +69,17 @@ class UpdateWbApiAdvertV2Advert implements ShouldQueue
             ->delete();
 
         $insertData = [];
+        $nmsData = [];
 
         foreach ($adverts as $advertData) {
+            $advertId = $advertData['id'];
             $settings = $advertData['settings'];
             $timestamps = $advertData['timestamps'];
+            $nmSettings = $advertData['nm_settings'];
 
             $insertData[] = [
                 'shop_id' => $shop->id,
-                'advert_id' => $advertData['id'],
+                'advert_id' => $advertId,
                 'bid_type' => $advertData['bid_type'],
                 'status' => $advertData['status'],
                 'settings_name' => $settings['name'],
@@ -89,10 +93,52 @@ class UpdateWbApiAdvertV2Advert implements ShouldQueue
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
+
+            if (!empty($nmSettings)) {
+                foreach ($nmSettings as $nm) {
+                    $nmsData[$advertId][] = $nm;
+                }
+            }
         }
 
         if (!empty($insertData)) {
             WbApiAdvertV2Advert::insert($insertData);
+
+            $insertedAdverts = WbApiAdvertV2Advert::where('shop_id', $shop->id)
+                ->whereIn('advert_id', $advertIds)
+                ->get()
+                ->keyBy('advert_id');
+
+            $this->insertRelatedData($insertedAdverts, $nmsData);
+        }
+    }
+
+    protected function insertRelatedData($insertedAdverts, $nmsData): void
+    {
+        $nmsInsertData = [];
+
+        foreach ($insertedAdverts as $advertId => $advert) {
+            if (isset($nmsData[$advertId])) {
+                foreach ($nmsData[$advertId] as $nm) {
+                    $bidsKopecks = $nm['bids_kopecks'];
+                    $subject = $nm['subject'];
+
+                    $nmsInsertData[] = [
+                        'wb_api_advert_v2_advert_id' => $advert->id,
+                        'bids_kopecks_search' => $bidsKopecks['search'],
+                        'bids_kopecks_recommendations' => $bidsKopecks['recommendations'],
+                        'nm_id' => $nm['nm_id'],
+                        'subject_id' => $subject['id'],
+                        'subject_name' => $subject['name'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
+        }
+
+        if (!empty($nmsInsertData)) {
+            WbApiAdvertV2AdvertNm::insert($nmsInsertData);
         }
     }
 
