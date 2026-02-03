@@ -193,68 +193,28 @@ class GenerateSalesFunnelReport implements ShouldQueue
 
     private function getAacData(): array
     {
-        $type8Query = DB::table('wb_adv_v3_fs_products as p')
+        return DB::table('wb_adv_v3_fs_products as p')
             ->join('wb_adv_v3_fs_apps as a', 'p.wb_adv_v3_fs_app_id', '=', 'a.id')
             ->join('wb_adv_v3_fs_days as d', 'a.wb_adv_v3_fs_day_id', '=', 'd.id')
             ->join('wb_adv_v3_fullstats_wb_adverts as adv', 'd.wb_adv_v3_fullstats_wb_advert_id', '=', 'adv.id')
-            ->join('wb_adv_v1_promotion_counts as pc', 'adv.advert_id', '=', 'pc.advert_id')
+            ->join('wb_api_advert_v2_adverts as a2', 'adv.advert_id', '=', 'a2.advert_id')
             ->where('adv.shop_id', $this->shop->id)
             ->where('p.date', $this->day)
-            ->where('pc.type', 8)
-            ->join('wb_adv_v1_promotion_adverts as pa', 'adv.advert_id', '=', 'pa.advert_id')
-            ->join('wb_adv_v1_promo_nms as pn', 'pa.id', '=', 'pn.wb_adv_v1_promotion_adverts_id')
-            ->where('pn.nm', '=', DB::raw('p.nm_id'))
-            ->select(
-                'p.good_id',
-                'p.sum',
-                'p.views',
-                'p.clicks',
-                'p.orders',
-                'pc.advert_id'
-            );
-
-        $type9UnifiedQuery = DB::table('wb_adv_v3_fs_products as p')
-            ->join('wb_adv_v3_fs_apps as a', 'p.wb_adv_v3_fs_app_id', '=', 'a.id')
-            ->join('wb_adv_v3_fs_days as d', 'a.wb_adv_v3_fs_day_id', '=', 'd.id')
-            ->join('wb_adv_v3_fullstats_wb_adverts as adv', 'd.wb_adv_v3_fullstats_wb_advert_id', '=', 'adv.id')
-            ->join('wb_adv_v1_promotion_counts as pc', 'adv.advert_id', '=', 'pc.advert_id')
-            ->where('adv.shop_id', $this->shop->id)
-            ->where('p.date', $this->day)
-            ->where('pc.type', 9)
-            ->whereExists(function ($exists) {
-                $exists->select(DB::raw(1))
-                    ->from('wb_adv_v0_auction_adverts as aa')
-                    ->whereColumn('aa.advert_id', 'adv.advert_id')
-                    ->where('aa.bid_type', 'unified')
-                    ->where('aa.payment_type', 'cpm');
-            })
-            ->join('wb_adv_v0_auction_adverts as aa', function ($join) {
-                $join->on('adv.advert_id', '=', 'aa.advert_id')
-                    ->on('aa.nm_id', '=', DB::raw('p.nm_id'));
+            ->where('a2.bid_type', 'unified')
+            ->join('wb_api_advert_v2_advert_nms as an', function ($join) {
+                $join->on('a2.id', '=', 'an.wb_api_advert_v2_advert_id')
+                    ->where('an.nm_id', '=', DB::raw('p.nm_id'));
             })
             ->select(
                 'p.good_id',
-                'p.sum',
-                'p.views',
-                'p.clicks',
-                'p.orders',
-                'pc.advert_id'
-            );
-
-        $combinedQuery = DB::table(DB::raw("({$type8Query->toSql()} UNION ALL {$type9UnifiedQuery->toSql()}) as combined"))
-            ->mergeBindings($type8Query)
-            ->mergeBindings($type9UnifiedQuery);
-
-        return $combinedQuery->select(
-            'good_id',
-            DB::raw('MAX(advert_id) as advert_id'),
-            DB::raw('ROUND(SUM(sum)) as sum'),
-            DB::raw('SUM(views) as views'),
-            DB::raw('SUM(clicks) as clicks'),
-            DB::raw('SUM(orders) as orders'),
-            DB::raw('CASE WHEN SUM(views) > 0 THEN ROUND((SUM(sum) / SUM(views)) * 1000, 2) ELSE 0 END as cpm')
-        )
-            ->groupBy('good_id')
+                DB::raw('MAX(a2.advert_id) as advert_id'),
+                DB::raw('ROUND(SUM(p.sum)) as sum'),
+                DB::raw('SUM(p.views) as views'),
+                DB::raw('SUM(p.clicks) as clicks'),
+                DB::raw('SUM(p.orders) as orders'),
+                DB::raw('CASE WHEN SUM(p.views) > 0 THEN ROUND((SUM(p.sum) / SUM(p.views)) * 1000, 2) ELSE 0 END as cpm')
+            )
+            ->groupBy('p.good_id')
             ->get()
             ->mapWithKeys(function ($item) {
                 return [
@@ -273,33 +233,26 @@ class GenerateSalesFunnelReport implements ShouldQueue
 
     private function getAucData(): array
     {
-        $query = DB::table('wb_adv_v3_fs_products as p')
+        return DB::table('wb_adv_v3_fs_products as p')
             ->join('wb_adv_v3_fs_apps as a', 'p.wb_adv_v3_fs_app_id', '=', 'a.id')
             ->join('wb_adv_v3_fs_days as d', 'a.wb_adv_v3_fs_day_id', '=', 'd.id')
             ->join('wb_adv_v3_fullstats_wb_adverts as adv', 'd.wb_adv_v3_fullstats_wb_advert_id', '=', 'adv.id')
-            ->join('wb_adv_v1_promotion_counts as pc', 'adv.advert_id', '=', 'pc.advert_id')
+            ->join('wb_api_advert_v2_adverts as a2', 'adv.advert_id', '=', 'a2.advert_id')
             ->where('adv.shop_id', $this->shop->id)
             ->where('p.date', $this->day)
-            ->where('pc.type', 9)
-            ->whereExists(function ($exists) {
-                $exists->select(DB::raw(1))
-                    ->from('wb_adv_v0_auction_adverts as aa')
-                    ->whereColumn('aa.advert_id', 'adv.advert_id')
-                    ->where('aa.bid_type', 'manual');
+            ->where('a2.bid_type', 'manual')
+            ->join('wb_api_advert_v2_advert_nms as an', function ($join) {
+                $join->on('a2.id', '=', 'an.wb_api_advert_v2_advert_id')
+                    ->where('an.nm_id', '=', DB::raw('p.nm_id'));
             })
-            ->join('wb_adv_v0_auction_adverts as aa', function ($join) {
-                $join->on('adv.advert_id', '=', 'aa.advert_id')
-                    ->on('aa.nm_id', '=', DB::raw('p.nm_id'));
-            });
-
-        return $query->select(
-            'p.good_id',
-            DB::raw('ROUND(SUM(p.sum)) as sum'),
-            DB::raw('SUM(p.views) as views'),
-            DB::raw('SUM(p.clicks) as clicks'),
-            DB::raw('SUM(p.orders) as orders'),
-            DB::raw('CASE WHEN SUM(p.views) > 0 THEN ROUND((SUM(p.sum) / SUM(p.views)) * 1000, 2) ELSE 0 END as cpm')
-        )
+            ->select(
+                'p.good_id',
+                DB::raw('ROUND(SUM(p.sum)) as sum'),
+                DB::raw('SUM(p.views) as views'),
+                DB::raw('SUM(p.clicks) as clicks'),
+                DB::raw('SUM(p.orders) as orders'),
+                DB::raw('CASE WHEN SUM(p.views) > 0 THEN ROUND((SUM(p.sum) / SUM(p.views)) * 1000, 2) ELSE 0 END as cpm')
+            )
             ->groupBy('p.good_id')
             ->get()
             ->mapWithKeys(function ($item) {
@@ -322,19 +275,20 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->join('wb_adv_v3_fs_apps as a', 'p.wb_adv_v3_fs_app_id', '=', 'a.id')
             ->join('wb_adv_v3_fs_days as d', 'a.wb_adv_v3_fs_day_id', '=', 'd.id')
             ->join('wb_adv_v3_fullstats_wb_adverts as adv', 'd.wb_adv_v3_fullstats_wb_advert_id', '=', 'adv.id')
-            ->join('wb_adv_v0_auction_adverts as aa', function ($join) {
-                $join->on('adv.advert_id', '=', 'aa.advert_id')
-                    ->on('aa.nm_id', '=', DB::raw('p.nm_id'))
-                    ->where('aa.bid_type', 'manual');
-            })
+            ->join('wb_api_advert_v2_adverts as a2', 'adv.advert_id', '=', 'a2.advert_id')
             ->where('adv.shop_id', $this->shop->id)
             ->where('p.date', $this->day)
+            ->where('a2.bid_type', 'manual')
+            ->join('wb_api_advert_v2_advert_nms as an', function ($join) {
+                $join->on('a2.id', '=', 'an.wb_api_advert_v2_advert_id')
+                    ->where('an.nm_id', '=', DB::raw('p.nm_id'));
+            })
             ->select(
                 'p.good_id',
-                'adv.advert_id',
-                'aa.payment_type'
+                'a2.advert_id',
+                'a2.settings_payment_type'
             )
-            ->distinct('p.good_id', 'adv.advert_id', 'aa.payment_type')
+            ->distinct('p.good_id', 'a2.advert_id', 'a2.settings_payment_type')
             ->get();
 
         $grouped = $results->groupBy('good_id');
@@ -346,9 +300,9 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ];
 
             foreach ($items as $item) {
-                if ($item->payment_type === 'cpm') {
+                if ($item->settings_payment_type === 'cpm') {
                     $result['cpmAdvId'] = (int) $item->advert_id;
-                } elseif ($item->payment_type === 'cpc') {
+                } elseif ($item->settings_payment_type === 'cpc') {
                     $result['cpcAdvId'] = (int) $item->advert_id;
                 }
             }
@@ -384,10 +338,14 @@ class GenerateSalesFunnelReport implements ShouldQueue
             ->join('wb_adv_v3_fs_days as d', 'adv.id', '=', 'd.wb_adv_v3_fullstats_wb_advert_id')
             ->join('wb_adv_v3_fs_apps as a', 'd.id', '=', 'a.wb_adv_v3_fs_day_id')
             ->join('wb_adv_v3_fs_products as p', 'a.id', '=', 'p.wb_adv_v3_fs_app_id')
-            ->join('wb_adv_v1_promotion_counts as pc', 'adv.advert_id', '=', 'pc.advert_id')
+            ->join('wb_api_advert_v2_adverts as a2', 'adv.advert_id', '=', 'a2.advert_id')
+            ->join('wb_api_advert_v2_advert_nms as an', function ($join) {
+                $join->on('a2.id', '=', 'an.wb_api_advert_v2_advert_id')
+                    ->where('an.nm_id', '=', DB::raw('p.nm_id'));
+            })
             ->where('adv.shop_id', $this->shop->id)
             ->where('p.date', $this->day)
-            ->select('adv.advert_id', 'pc.type', 'p.good_id', 'p.nm_id')
+            ->select('adv.advert_id', 'p.good_id', 'p.nm_id')
             ->distinct()
             ->get();
 
@@ -396,35 +354,12 @@ class GenerateSalesFunnelReport implements ShouldQueue
         foreach ($shopAdverts as $advert) {
             $advert = (object)$advert;
             $advertId = $advert->advert_id;
-            $type = $advert->type;
             $goodId = $advert->good_id;
-            $nmId = $advert->nm_id;
 
-            if (!$nmId) {
-                continue;
+            if (!isset($advertIdsWithCurrentGood[$goodId])) {
+                $advertIdsWithCurrentGood[$goodId] = [];
             }
-
-            $isMainGood = false;
-
-            if ($type == 9) {
-                $isMainGood = DB::table('wb_adv_v0_auction_adverts')
-                    ->where('advert_id', $advertId)
-                    ->where('nm_id', $nmId)
-                    ->exists();
-            } elseif ($type == 8) {
-                $isMainGood = DB::table('wb_adv_v1_promotion_adverts as pa')
-                    ->join('wb_adv_v1_promo_nms as pn', 'pa.id', '=', 'pn.wb_adv_v1_promotion_adverts_id')
-                    ->where('pa.advert_id', $advertId)
-                    ->where('pn.nm', $nmId)
-                    ->exists();
-            }
-
-            if ($isMainGood) {
-                if (!isset($advertIdsWithCurrentGood[$goodId])) {
-                    $advertIdsWithCurrentGood[$goodId] = [];
-                }
-                $advertIdsWithCurrentGood[$goodId][] = $advertId;
-            }
+            $advertIdsWithCurrentGood[$goodId][] = $advertId;
         }
 
         $result = [];
