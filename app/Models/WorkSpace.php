@@ -40,6 +40,6 @@ class WorkSpace extends Model
 
     public function viewStates(): HasMany
     {
-        return $this->hasMany(ViewState::class);
+        return $this->hasMany(ViewState::class, 'workspace_id');
     }
 }
