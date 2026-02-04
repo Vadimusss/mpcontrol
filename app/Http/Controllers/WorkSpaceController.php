@@ -28,7 +28,7 @@ class WorkSpaceController extends Controller
 
     public function store(Request $request, Shop $shop): RedirectResponse
     {
-        Gate::authorize('update', $shop);
+        // Gate::authorize('update', $shop);
 
         $validated = $request->validate([
             'name' => 'required|unique:work_spaces,name|string|max:255',
