@@ -20,7 +20,8 @@ class GenerateSalesFunnelReport implements ShouldQueue
     public function __construct(
         public Shop $shop,
         public string $day,
-        public $timeout = 1200,
+        public $timeout = 500,
+        public $tries = 1,
     ) {
         $this->day = $day;
         $this->shop = $shop;
