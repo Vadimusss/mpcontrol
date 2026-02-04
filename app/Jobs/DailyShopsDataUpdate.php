@@ -12,6 +12,7 @@ use App\Jobs\AddWbApiV3Warehouses;
 use App\Jobs\UpdateWbContentV2CardsList;
 use App\Jobs\UpdateWbAdvV0AuctionAdvert;
 use App\Jobs\UpdateWbAdvV1PromotionAdverts;
+use App\Jobs\UpdateWbApiAdvertV2Advert;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
@@ -52,9 +53,11 @@ class DailyShopsDataUpdate implements ShouldQueue
 
             AddWbApiV3Warehouses::dispatch($shop);
 
-            UpdateWbAdvV0AuctionAdvert::dispatch($shop);
+            UpdateWbApiAdvertV2Advert::dispatch($shop->id);
 
-            UpdateWbAdvV1PromotionAdverts::dispatch($shop);
+            // UpdateWbAdvV0AuctionAdvert::dispatch($shop);
+
+            // UpdateWbAdvV1PromotionAdverts::dispatch($shop);
 
             UpdateWbContentV2CardsList::dispatch($shop);
 
