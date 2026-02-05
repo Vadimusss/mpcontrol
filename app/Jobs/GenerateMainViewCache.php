@@ -190,7 +190,7 @@ class GenerateMainViewCache implements ShouldQueue
 
     private function calculateTotalsOrdersCount(string $startDate): array
     {
-        return SalesFunnel::where('good_id', 'in', function ($query) {
+        return SalesFunnel::whereIn('good_id', function ($query) {
                 $query->select('id')
                     ->from('goods')
                     ->where('shop_id', $this->shop->id);
