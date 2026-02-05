@@ -1,37 +1,55 @@
 <?php
 
-namespace App\Services\ViewHandlers;
+namespace App\Jobs;
 
-use App\Models\WorkSpace;
-use App\Services\MainViewCacheService;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Bus\Batchable;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Models\Shop;
+use App\Models\Good;
+use App\Models\SalesFunnel;
+use App\Models\WbV1SupplierStocks;
+use App\Models\SupplierWarehousesStocks;
 use Carbon\Carbon;
+use Throwable;
 
-class MainViewHandler implements ViewHandler
+class GenerateMainViewCache implements ShouldQueue
 {
-    public function prepareData(WorkSpace $workSpace): array
-    {
-        $cacheService = app(MainViewCacheService::class);
-        $cachedData = $cacheService->getForWorkspace($workSpace);
-        
-        if ($cachedData !== null) {
-            return $cachedData;
-        }
-        
-        return $this->prepareDataWithoutCache($workSpace);
+    use Batchable, Queueable;
+
+    public function __construct(
+        public Shop $shop,
+        public $timeout = 60,
+        public $tries = 1,
+    ) {
+        $this->shop = $shop;
     }
 
-    public function prepareDataWithoutCache(WorkSpace $workSpace): array
+    public function handle(): void
     {
-        $shop = $workSpace->shop;
+        $startTime = microtime(true);
+
+        $data = $this->calculateDataForAllGoods();
+
+        $cacheKey = "main_view_cache:shop_{$this->shop->id}";
+        Cache::put($cacheKey, $data, 86400);
+
+        $duration = microtime(true) - $startTime;
+        Log::info("MainView cache generated for shop {$this->shop->id} in {$duration}s");
+    }
+
+    private function calculateDataForAllGoods(): array
+    {
+        $shop = $this->shop;
         $commission = $shop->settings['commission'] ?? null;
         $logistics = $shop->settings['logistics'] ?? null;
 
-        $viewSettings = json_decode($workSpace->viewSettings->settings);
-        $dates = collect(range(0, $viewSettings->days))->map(function ($day) {
+        $dates = collect(range(0, 29))->map(function ($day) {
             return Carbon::now()->subDays($day)->format('Y-m-d');
         })->all();
-
-        $totalsStartDate = Carbon::now()->subDays(30)->format('Y-m-d');
 
         $currentDate = Carbon::now()->subDays(1)->format('Y-m-d');
 
@@ -59,65 +77,32 @@ class MainViewHandler implements ViewHandler
             'sarapul' => 'Сарапул',
         ];
 
-        $stocks = $this->calculateStocks($shop, $warehouses, $currentDate);
+        $stocks = $this->calculateStocks($warehouses, $currentDate);
 
-        $goodsWithTotals = $workSpace->connectedGoodLists()
+        $goods = Good::where('shop_id', $shop->id)
             ->with([
-                'goods' => function ($query) use ($totalsStartDate) {
-                    $query->with([
-                        'salesFunnel' => function ($q) use ($totalsStartDate) {
-                            $q->where('date', '>=', $totalsStartDate)
-                                ->select('good_id', 'orders_count');
-                        }
-                    ]);
+                'nsi:good_id,name,variant,cost_with_taxes',
+                'sizes:good_id,price',
+                'wbListGoodRow:good_id,discount',
+                'salesFunnel' => function ($q) use ($dates) {
+                    $q->whereIn('date', $dates)
+                        ->select('good_id', 'date', 'orders_count')
+                        ->orderBy('date');
                 }
             ])
-            ->get()
-            ->flatMap(function ($list) {
-                return $list->goods;
-            });
+            ->get(['id', 'nm_id', 'vendor_code']);
 
-        $totalsOrdersCountMap = [];
-        foreach ($goodsWithTotals as $good) {
-            $total = 0;
-            foreach ($good->salesFunnel as $row) {
-                if (is_numeric($row->orders_count)) {
-                    $total += $row->orders_count;
-                }
-            }
-            $totalsOrdersCountMap[$good->id] = $total;
-        }
+        $totalsStartDate = Carbon::now()->subDays(30)->format('Y-m-d');
+        $totalsOrdersCountMap = $this->calculateTotalsOrdersCount($totalsStartDate);
 
-        $goods = $workSpace->connectedGoodLists()
-            ->with([
-                'goods' => function ($query) use ($dates) {
-                    $query->with([
-                        'nsi:good_id,name,variant,cost_with_taxes',
-                        'sizes:good_id,price',
-                        'wbListGoodRow:good_id,discount',
-                        'salesFunnel' => function ($q) use ($dates) {
-                            $q->whereIn('date', $dates)
-                                ->select('good_id', 'date', 'orders_count')
-                                ->orderBy('date');
-                        }
-                    ]);
-                }
-            ])
-            ->get()
-            ->flatMap(function ($list) {
-                return $list->goods;
-            });
-
-        return $goods->map(function ($good) use (
+        $result = $goods->map(function ($good) use (
             $commission,
             $logistics,
             $stocks,
             $dates,
             $totalsOrdersCountMap,
         ) {
-
             $ordersCountByDate = [];
-
             foreach ($good->salesFunnel as $row) {
                 if (is_numeric($row->orders_count)) {
                     $ordersCountByDate[$row->date] = $row->orders_count === 0 ? '' : $row->orders_count;
@@ -129,6 +114,8 @@ class MainViewHandler implements ViewHandler
                     $ordersCountByDate[$date] = '';
                 }
             }
+
+            krsort($ordersCountByDate);
 
             $price = $good->sizes->first()?->price ?? 0;
             $discount = $good->wbListGoodRow?->discount ?? 0;
@@ -190,6 +177,29 @@ class MainViewHandler implements ViewHandler
                 'percent' => $percent,
             ];
         })->toArray();
+
+        return [
+            'goods' => $result,
+            'calculated_at' => now()->toDateTimeString(),
+            'shop_settings' => [
+                'commission' => $commission,
+                'logistics' => $logistics,
+            ]
+        ];
+    }
+
+    private function calculateTotalsOrdersCount(string $startDate): array
+    {
+        return SalesFunnel::where('good_id', 'in', function ($query) {
+                $query->select('id')
+                    ->from('goods')
+                    ->where('shop_id', $this->shop->id);
+            })
+            ->where('date', '>=', $startDate)
+            ->select('good_id', DB::raw('SUM(orders_count) as total'))
+            ->groupBy('good_id')
+            ->pluck('total', 'good_id')
+            ->toArray();
     }
 
     private function calculateDaysOfStock(array $ordersCountByDate, float $totalStock): string
@@ -233,34 +243,20 @@ class MainViewHandler implements ViewHandler
         return round($profit) == 0 ? '' : round($profit);
     }
 
-    public function getDefaultViewState(): array
+    private function calculateStocks(array $warehouses, string $date): array
     {
-        return [
-            'expandedRows' => [],
-            'selectedItems' => [],
-            'showOnlySelected' => false,
-        ];
-    }
-
-    public function getComponent(): string
-    {
-        return 'VirtualizedMainView';
-    }
-
-    private function calculateStocks($shop, $warehouses, $date): array
-    {
-        $fboTotals = $shop->stocks()
+        $fboTotals = WbV1SupplierStocks::where('shop_id', $this->shop->id)
             ->selectRaw('nm_id, sum(quantity) as total')
             ->groupBy('nm_id')
             ->pluck('total', 'nm_id');
 
-        $fbsTotals = $shop->fbsStocks()
+        $fbsTotals = SupplierWarehousesStocks::where('shop_id', $this->shop->id)
             ->where('date', '=', $date)
             ->selectRaw('nm_id, sum(amount) as total')
             ->groupBy('nm_id')
             ->pluck('total', 'nm_id');
 
-        $warehouseStocks = $shop->stocks()
+        $warehouseStocks = WbV1SupplierStocks::where('shop_id', $this->shop->id)
             ->whereIn('warehouse_name', array_values($warehouses))
             ->selectRaw('nm_id, warehouse_name, sum(quantity) as quantity')
             ->groupBy('nm_id', 'warehouse_name')
@@ -278,5 +274,13 @@ class MainViewHandler implements ViewHandler
         }
 
         return $result;
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        Log::error("GenerateMainViewCacheJob failed for shop {$this->shop->id}", [
+            'error' => $exception->getMessage(),
+            'trace' => $exception->getTraceAsString(),
+        ]);
     }
 }
