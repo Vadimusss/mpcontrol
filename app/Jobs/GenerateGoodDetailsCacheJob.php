@@ -1,57 +1,107 @@
 <?php
 
-namespace App\Services\ViewHandlers;
+namespace App\Jobs;
 
-use App\Models\Good;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Bus\Batchable;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Shop;
+use App\Models\Good;
+use App\Models\SalesFunnel;
 use App\Models\WbAnalyticsV3ProductsHistory;
 use App\Models\Note;
-use App\Services\GoodDetailsCacheService;
+use App\Models\StocksAndOrders;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Throwable;
 
-class GoodDetailsModalHandler
+class GenerateGoodDetailsCacheJob implements ShouldQueue
 {
-    public function prepareGoodDetailsData(Good $good, Shop $shop, array $dates): array
-    {
-        $cacheService = app(GoodDetailsCacheService::class);
-        $cachedData = $cacheService->getForGood($good, $shop, $dates);
-        
-        if ($cachedData !== null) {
-            return $cachedData;
-        }
-        
-        return $this->prepareGoodDetailsDataWithoutCache($good, $shop, $dates);
+    use Batchable, Queueable;
+
+    public function __construct(
+        public Shop $shop,
+        public $timeout = 1200, // 20 минут для большого магазина
+        public $tries = 1,
+    ) {
+        $this->shop = $shop;
     }
 
-    public function prepareGoodDetailsDataWithoutCache(Good $good, Shop $shop, array $dates): array
+    public function handle(): void
     {
+        $startTime = microtime(true);
+
+        // Получаем все товары магазина
+        $goods = Good::where('shop_id', $this->shop->id)
+            ->get(['id', 'nm_id']);
+
+        $processed = 0;
+        $total = $goods->count();
+
+        // Собираем данные для всех товаров
+        $shopData = [
+            'goods' => [],
+            'shop_settings' => [
+                'commission' => $this->shop->settings['commission'] ?? null,
+                'logistics' => $this->shop->settings['logistics'] ?? null,
+            ],
+            'calculated_at' => now()->toDateTimeString(),
+        ];
+
+        foreach ($goods as $good) {
+            $goodData = $this->calculateGoodData($good);
+            if ($goodData) {
+                $shopData['goods'][$good->id] = $goodData;
+            }
+            
+            $processed++;
+
+            // Логируем прогресс каждые 100 товаров
+            if ($processed % 100 === 0) {
+                Log::info("GoodDetails cache progress for shop {$this->shop->id}: {$processed}/{$total}");
+            }
+        }
+
+        // Сохраняем все данные магазина одним ключом
+        $cacheKey = "good_details_cache:shop_{$this->shop->id}";
+        Cache::put($cacheKey, $shopData, 86400);
+
+        $duration = microtime(true) - $startTime;
+        Log::info("GoodDetails cache generated for shop {$this->shop->id} in {$duration}s, processed {$processed} goods, cached " . count($shopData['goods']) . " goods");
+    }
+
+    private function calculateGoodData(Good $good): ?array
+    {
+        $shop = $this->shop;
         $commission = $shop->settings['commission'] ?? null;
         $logistics = $shop->settings['logistics'] ?? null;
 
+        // Генерируем даты за последние 30 дней
+        $dates = collect(range(0, 29))->map(function ($day) {
+            return Carbon::now()->subDays($day)->format('Y-m-d');
+        })->all();
+
         $totalsStartDate = Carbon::now()->subDays(30)->format('Y-m-d');
 
-        $shop->load('workSpaces');
-
+        // Загружаем данные товара
         $good->load([
-            'nsi:good_id,name,variant,fg_1,cost_with_taxes',
+            'nsi:good_id,cost_with_taxes',
             'sizes:good_id,price',
             'wbListGoodRow:good_id,discount',
-            'salesFunnel' => function ($q) use ($dates, $totalsStartDate) {
-                $q->where(function ($query) use ($dates, $totalsStartDate) {
-                    $query->whereIn('date', $dates)
-                        ->orWhere('date', '>=', $totalsStartDate);
-                })->orderBy('date');
+            'salesFunnel' => function ($q) use ($totalsStartDate) {
+                $q->where('date', '>=', $totalsStartDate)->orderBy('date');
             },
-            'wbAnalyticsV3ProductsHistory' => function ($q) use ($dates) {
+            'wbAnalyticsV3ProductsHistory' => function ($q) use ($totalsStartDate) {
                 $q->select('good_id', 'date', 'add_to_cart_conversion', 'cart_to_order_conversion')
-                    ->whereIn('date', $dates);
+                    ->where('date', '>=', $totalsStartDate);
             }
         ]);
 
-        $notesData = $this->getNotesData($good, $shop, $dates);
+        $costWithTaxes = $good->nsi->cost_with_taxes ?? null;
 
+        // Создаем карту конверсий
         $conversionMap = [];
         foreach ($good->wbAnalyticsV3ProductsHistory as $conversionData) {
             $conversionMap[$conversionData->date] = [
@@ -64,7 +114,25 @@ class GoodDetailsModalHandler
         $monthlyTotals = [
             'spp' => [],
             'drr_common' => [],
+            'buyout_percent' => [],
+            'add_to_cart_conversion' => [],
+            'cart_to_order_conversion' => [],
         ];
+
+        // Инициализируем все поля monthlyTotals
+        $monthlyFields = [
+            'orders_count', 'advertising_costs', 'orders_profit', 'price_with_disc',
+            'finished_price', 'orders_sum_rub', 'orders_sum_rub_after_spp',
+            'buyouts_sum_rub', 'profit_without_ads', 'buyouts_count',
+            'open_card_count', 'add_to_cart_count', 'aac_views', 'aac_clicks',
+            'aac_sum', 'aac_orders', 'auc_views', 'auc_clicks', 'auc_sum',
+            'auc_orders', 'assoc_orders_from_other', 'assoc_orders_from_this',
+            'no_ad_clicks', 'ad_orders', 'no_ad_orders'
+        ];
+
+        foreach ($monthlyFields as $field) {
+            $monthlyTotals[$field] = 0;
+        }
 
         foreach ($good->salesFunnel as $row) {
             $conversion = $conversionMap[$row->date] ?? [
@@ -72,113 +140,138 @@ class GoodDetailsModalHandler
                 'cart_to_order_conversion' => 0
             ];
 
-            $ordersProfit = $this->calculateProfit($row->orders_sum_rub, $row->orders_count, $row->advertising_costs, $good->nsi, $commission, $logistics);
+            $ordersProfit = $this->calculateProfit(
+                $row->orders_sum_rub,
+                $row->orders_count,
+                $row->advertising_costs,
+                $costWithTaxes,
+                $commission,
+                $logistics
+            );
+
             $advertisingCosts = $row->advertising_costs == 0 ? 0 : round($row->advertising_costs / 1000, 1);
             $ordersSumRubAfterSpp = ($row->orders_count == 0 || $row->finished_price == 0) ? 0 : round(($row->orders_count * $row->finished_price));
             $spp = ($row->price_with_disc == 0 || $row->finished_price == 0) ? 0 : round(($row->price_with_disc - $row->finished_price) / $row->price_with_disc * 100);
             $drrCommon = ($advertisingCosts == 0 || $ordersSumRubAfterSpp == 0) ? 0 : round($advertisingCosts / ($ordersSumRubAfterSpp / 1000) * 100);
 
-            if (in_array($row->date, $dates)) {
-                $salesData[$row->date] = [
-                    'orders_count' => (int) $row->orders_count,
-                    'advertising_costs' => (float) $advertisingCosts,
-                    'orders_profit' => (float) $ordersProfit == 0 ? 0 : $ordersProfit / 1000 * -1,
-                    'price_with_disc' => (int) $row->price_with_disc == 0 ? 0 : round($row->price_with_disc),
-                    'spp' => (int) $spp,
-                    'finished_price' => (int) $row->finished_price == 0 ? 0 : round($row->finished_price),
-                    'orders_sum_rub' => (int) $row->orders_sum_rub == 0 ? 0 : round($row->orders_sum_rub / 1000),
-                    'orders_sum_rub_after_spp' => (float) $ordersSumRubAfterSpp / 1000,
-                    'isHighlighted' => $row->advertising_costs != 0 && $row->advertising_costs > 100,
-                    'buyouts_sum_rub' => (int) $row->buyouts_sum_rub == 0 ? 0 : round($row->buyouts_sum_rub / 1000),
-                    'drr_common' => (int) $drrCommon,
-                    'buyout_percent' => (int) $row->buyout_percent == 0 ? 0 : $row->buyout_percent,
-                    'profit_without_ads' => (float) $row->profit_without_ads == 0 ? 0 : $row->profit_without_ads / 1000,
-                    'open_card_count' => (int) $row->open_card_count == 0 ? 0 : $row->open_card_count,
-                    'no_ad_clicks' => (int) ($row->aac_clicks == 0 || $row->auc_clicks == 0) ? 0 : $row->open_card_count - ($row->aac_clicks + $row->auc_clicks),
-                    'add_to_cart_count' => (int) $row->add_to_cart_count == 0 ? 0 : $row->add_to_cart_count,
-                    'add_to_cart_conversion' => $conversion['add_to_cart_conversion'] == 0 ? 0 : $conversion['add_to_cart_conversion'],
-                    'cart_to_order_conversion' => $conversion['cart_to_order_conversion'] == 0 ? 0 : $conversion['cart_to_order_conversion'],
-                    'aac_cpm' => $row->aac_cpm == 0 ? 0 : round($row->aac_cpm),
-                    'aac_views' => (int) $row->aac_views == 0 ? 0 : $row->aac_views,
-                    'aac_clicks' => (int) $row->aac_clicks == 0 ? 0 : $row->aac_clicks,
-                    'aac_sum' => (float) $row->aac_sum == 0 ? 0 : $row->aac_sum / 1000,
-                    'aac_orders' => $row->aac_orders == 0 ? 0 : $row->aac_orders,
-                    'aac_ctr' => (float) $this->calculateCtr($row->aac_views, $row->aac_clicks),
-                    'aac_cpo' => ($row->aac_sum == 0 || $row->aac_orders == 0) ? 0 : $row->aac_sum / $row->aac_orders,
-                    'auc_cpm' => $row->auc_cpm == 0 ? 0 : round($row->auc_cpm),
-                    'auc_views' => (int) $row->auc_views == 0 ? 0 : $row->auc_views,
-                    'auc_clicks' => (int) $row->auc_clicks == 0 ? 0 : $row->auc_clicks,
-                    'auc_sum' => (float) $row->auc_sum == 0 ? 0 : $row->auc_sum / 1000,
-                    'auc_orders' => (int) $row->auc_orders == 0 ? 0 : $row->auc_orders,
-                    'auc_ctr' => (float) $this->calculateCtr($row->auc_views, $row->auc_clicks),
-                    'auc_cpo' => ($row->auc_sum == 0 || $row->auc_orders == 0) ? 0 : $row->auc_sum / $row->auc_orders,
-                    'ad_orders' => (int) ($row->auc_orders == 0 || $row->aac_orders == 0) ? 0 : $row->auc_orders + $row->aac_orders,
-                    'no_ad_orders' => (int) (($row->auc_orders == 0 || $row->aac_orders == 0) && $row->orders_count == 0) ?
-                        0 : $row->orders_count - ($row->auc_orders + $row->aac_orders),
-                    'assoc_orders_from_other' => (int) $row->assoc_orders_from_other == 0 ? 0 : $row->assoc_orders_from_other,
-                    'assoc_orders_from_this' => (int) $row->assoc_orders_from_this == 0 ? 0 : $row->assoc_orders_from_this,
-                ];
-            }
+            $salesData[$row->date] = [
+                'orders_count' => (int) $row->orders_count,
+                'advertising_costs' => (float) $advertisingCosts,
+                'orders_profit' => (float) ($ordersProfit == 0 ? 0 : $ordersProfit / 1000 * -1),
+                'price_with_disc' => (int) $row->price_with_disc == 0 ? 0 : round($row->price_with_disc),
+                'spp' => (int) $spp,
+                'finished_price' => (int) $row->finished_price == 0 ? 0 : round($row->finished_price),
+                'orders_sum_rub' => (int) $row->orders_sum_rub == 0 ? 0 : round($row->orders_sum_rub / 1000),
+                'orders_sum_rub_after_spp' => (float) $ordersSumRubAfterSpp / 1000,
+                'isHighlighted' => $row->advertising_costs != 0 && $row->advertising_costs > 100,
+                'buyouts_sum_rub' => (int) $row->buyouts_sum_rub == 0 ? 0 : round($row->buyouts_sum_rub / 1000),
+                'drr_common' => (int) $drrCommon,
+                'buyout_percent' => (int) $row->buyout_percent == 0 ? 0 : $row->buyout_percent,
+                'profit_without_ads' => (float) $row->profit_without_ads == 0 ? 0 : $row->profit_without_ads / 1000,
+                'open_card_count' => (int) $row->open_card_count == 0 ? 0 : $row->open_card_count,
+                'no_ad_clicks' => (int) ($row->aac_clicks == 0 || $row->auc_clicks == 0) ? 0 : $row->open_card_count - ($row->aac_clicks + $row->auc_clicks),
+                'add_to_cart_count' => (int) $row->add_to_cart_count == 0 ? 0 : $row->add_to_cart_count,
+                'add_to_cart_conversion' => $conversion['add_to_cart_conversion'] == 0 ? 0 : $conversion['add_to_cart_conversion'],
+                'cart_to_order_conversion' => $conversion['cart_to_order_conversion'] == 0 ? 0 : $conversion['cart_to_order_conversion'],
+                'aac_cpm' => $row->aac_cpm == 0 ? 0 : round($row->aac_cpm),
+                'aac_views' => (int) $row->aac_views == 0 ? 0 : $row->aac_views,
+                'aac_clicks' => (int) $row->aac_clicks == 0 ? 0 : $row->aac_clicks,
+                'aac_sum' => (float) $row->aac_sum == 0 ? 0 : $row->aac_sum / 1000,
+                'aac_orders' => $row->aac_orders == 0 ? 0 : $row->aac_orders,
+                'aac_ctr' => (float) $this->calculateCtr($row->aac_views, $row->aac_clicks),
+                'aac_cpo' => ($row->aac_sum == 0 || $row->aac_orders == 0) ? 0 : $row->aac_sum / $row->aac_orders,
+                'auc_cpm' => $row->auc_cpm == 0 ? 0 : round($row->auc_cpm),
+                'auc_views' => (int) $row->auc_views == 0 ? 0 : $row->auc_views,
+                'auc_clicks' => (int) $row->auc_clicks == 0 ? 0 : $row->auc_clicks,
+                'auc_sum' => (float) $row->auc_sum == 0 ? 0 : $row->auc_sum / 1000,
+                'auc_orders' => (int) $row->auc_orders == 0 ? 0 : $row->auc_orders,
+                'auc_ctr' => (float) $this->calculateCtr($row->auc_views, $row->auc_clicks),
+                'auc_cpo' => ($row->auc_sum == 0 || $row->auc_orders == 0) ? 0 : $row->auc_sum / $row->auc_orders,
+                'ad_orders' => (int) ($row->auc_orders == 0 || $row->aac_orders == 0) ? 0 : $row->auc_orders + $row->aac_orders,
+                'no_ad_orders' => (int) (($row->auc_orders == 0 || $row->aac_orders == 0) && $row->orders_count == 0) ?
+                    0 : $row->orders_count - ($row->auc_orders + $row->aac_orders),
+                'assoc_orders_from_other' => (int) $row->assoc_orders_from_other == 0 ? 0 : $row->assoc_orders_from_other,
+                'assoc_orders_from_this' => (int) $row->assoc_orders_from_this == 0 ? 0 : $row->assoc_orders_from_this,
+            ];
 
             $this->accumulateMonthlyTotals($row->date, $monthlyTotals, $row, $ordersProfit, $ordersSumRubAfterSpp, $spp, $drrCommon, $conversion);
         }
 
-        $salesByWarehouse = $this->calculateSalesByWarehouse($shop, $totalsStartDate, [
+        // Заполняем пропущенные даты пустыми массивами
+        $filledSalesData = [];
+        foreach ($dates as $date) {
+            $filledSalesData[$date] = $salesData[$date] ?? [
+                'orders_count' => 0,
+                'advertising_costs' => 0,
+                'orders_profit' => 0,
+                'price_with_disc' => 0,
+                'spp' => 0,
+                'finished_price' => 0,
+                'orders_sum_rub' => 0,
+                'orders_sum_rub_after_spp' => 0,
+                'isHighlighted' => false,
+                'buyouts_sum_rub' => 0,
+                'drr_common' => 0,
+                'buyout_percent' => 0,
+                'profit_without_ads' => 0,
+                'open_card_count' => 0,
+                'no_ad_clicks' => 0,
+                'add_to_cart_count' => 0,
+                'add_to_cart_conversion' => 0,
+                'cart_to_order_conversion' => 0,
+                'aac_cpm' => 0,
+                'aac_views' => 0,
+                'aac_clicks' => 0,
+                'aac_sum' => 0,
+                'aac_orders' => 0,
+                'aac_ctr' => 0,
+                'aac_cpo' => 0,
+                'auc_cpm' => 0,
+                'auc_views' => 0,
+                'auc_clicks' => 0,
+                'auc_sum' => 0,
+                'auc_orders' => 0,
+                'auc_ctr' => 0,
+                'auc_cpo' => 0,
+                'ad_orders' => 0,
+                'no_ad_orders' => 0,
+                'assoc_orders_from_other' => 0,
+                'assoc_orders_from_this' => 0,
+            ];
+        }
+
+        // Продажи по складам за 30 дней
+        $warehouses = [
             'elektrostal' => 'Электросталь',
             'tula' => 'Тула',
             'nevinnomyssk' => 'Невинномысск',
             'krasnodar' => 'Краснодар',
             'kazan' => 'Казань'
-        ]);
+        ];
+
+        $warehouseSales = StocksAndOrders::where('shop_id', $shop->id)
+            ->where('nm_id', $good->nm_id)
+            ->where('date', '>=', $totalsStartDate)
+            ->whereIn('warehouse_name', array_values($warehouses))
+            ->selectRaw('warehouse_name, SUM(orders_count) as total_orders')
+            ->groupBy('warehouse_name')
+            ->get()
+            ->pluck('total_orders', 'warehouse_name')
+            ->toArray();
+
+        $formattedWarehouseSales = [];
+        foreach ($warehouses as $key => $name) {
+            $formattedWarehouseSales[$key] = $warehouseSales[$name] ?? 0;
+        }
 
         $preparedMonthlyTotals = $this->prepareMonthlyTotals($monthlyTotals);
         $percentData = $this->calculatePercentData($preparedMonthlyTotals);
 
         return [
-            'goodId' => $good->id,
-            'salesData' => $salesData,
+            'salesData' => $filledSalesData,
             'monthlyTotals' => $preparedMonthlyTotals,
             'prcentColumn' => $percentData,
-            'salesByWarehouse' => $salesByWarehouse->get($good->nm_id, []),
-            'notesData' => $notesData,
-            'subRowsMetadata' => [
-                ['name' => 'Заказы шт.', 'type' => 'orders_count'],
-                ['name' => 'Рекл, т.р.', 'type' => 'advertising_costs'],
-                ['name' => 'Приб, т.р.', 'type' => 'orders_profit'],
-                ['name' => 'Цена до СПП', 'type' => 'price_with_disc'],
-                ['name' => 'Цена после СПП', 'type' => 'finished_price'],
-                ['name' => 'СПП %', 'type' => 'spp'],
-                ['name' => 'Заказы т.р. до СПП', 'type' => 'orders_sum_rub'],
-                ['name' => 'Заказы т.р. после СПП', 'type' => 'orders_sum_rub_after_spp'],
-                ['name' => 'Заметки', 'type' => 'notes'],
-                ['name' => 'ДРР общ. %', 'type' => 'drr_common'],
-                ['name' => 'Выкупы, т.р. до СПП', 'type' => 'buyouts_sum_rub'],
-                ['name' => '% выкупа', 'type' => 'buyout_percent'],
-                ['name' => 'Приб по фин. отчету, т.р.', 'type' => 'profit_without_ads'],
-                ['name' => 'Клики всего', 'type' => 'open_card_count'],
-                ['name' => 'Клики не рекл', 'type' => 'no_ad_clicks'],
-                ['name' => 'Корзины', 'type' => 'add_to_cart_count'],
-                ['name' => 'Конв клик-корз', 'type' => 'add_to_cart_conversion'],
-                ['name' => 'Конв корз-заказ', 'type' => 'cart_to_order_conversion'],
-                ['name' => 'АРК CPM', 'type' => 'aac_cpm'],
-                ['name' => 'АРК Показы', 'type' => 'aac_views'],
-                ['name' => 'АРК Клики', 'type' => 'aac_clicks'],
-                ['name' => 'АРК Затраты, т.р.', 'type' => 'aac_sum'],
-                ['name' => 'АРК Зак по рекл', 'type' => 'aac_orders'],
-                ['name' => 'АРК CTR', 'type' => 'aac_ctr'],
-                ['name' => 'АРК CPO', 'type' => 'aac_cpo'],
-                ['name' => 'Аук. CPM', 'type' => 'auc_cpm'],
-                ['name' => 'Аук. Показы', 'type' => 'auc_views'],
-                ['name' => 'Аук. Клики', 'type' => 'auc_clicks'],
-                ['name' => 'Аук. Затраты, т.р.', 'type' => 'auc_sum'],
-                ['name' => 'Аук. Зак по рекл', 'type' => 'auc_orders'],
-                ['name' => 'Аук. CTR', 'type' => 'auc_ctr'],
-                ['name' => 'Аук CPO', 'type' => 'auc_cpo'],
-                ['name' => 'Зак. по рекл', 'type' => 'ad_orders'],
-                ['name' => 'Зак. не по рекл', 'type' => 'no_ad_orders'],
-                ['name' => 'Зак. этого с др. РК', 'type' => 'assoc_orders_from_other'],
-                ['name' => 'Зак. с РК др. sku', 'type' => 'assoc_orders_from_this'],
-            ]
+            'salesByWarehouse' => $formattedWarehouseSales,
         ];
     }
 
@@ -211,7 +304,7 @@ class GoodDetailsModalHandler
 
         foreach ($fields as $field => $value) {
             if (is_numeric($value)) {
-                $totals[$field] = ($totals[$field] ?? 0) + $value;
+                $totals[$field] += $value;
             }
         }
 
@@ -238,18 +331,18 @@ class GoodDetailsModalHandler
 
         $noAdClicks = ($row->aac_clicks != 0 || $row->auc_clicks != 0) ? $row->open_card_count - ($row->aac_clicks + $row->auc_clicks) : 0;
         if (is_numeric($noAdClicks)) {
-            $totals['no_ad_clicks'] = ($totals['no_ad_clicks'] ?? 0) + $noAdClicks;
+            $totals['no_ad_clicks'] += $noAdClicks;
         }
 
         $adOrders = ($row->auc_orders != 0 || $row->aac_orders != 0) ? $row->auc_orders + $row->aac_orders : 0;
         if (is_numeric($adOrders)) {
-            $totals['ad_orders'] = ($totals['ad_orders'] ?? 0) + $adOrders;
+            $totals['ad_orders'] += $adOrders;
         }
 
         $noAdOrders = (($row->auc_orders != 0 || $row->aac_orders != 0) && $row->orders_count != 0) ?
             $row->orders_count - ($row->auc_orders + $row->aac_orders) : 0;
         if (is_numeric($noAdOrders)) {
-            $totals['no_ad_orders'] = ($totals['no_ad_orders'] ?? 0) + $noAdOrders;
+            $totals['no_ad_orders'] += $noAdOrders;
         }
     }
 
@@ -363,26 +456,6 @@ class GoodDetailsModalHandler
         return $result;
     }
 
-    private function calculateSalesByWarehouse(Shop $shop, string $startDate, array $warehouses)
-    {
-        return $shop->stocksAndOrders()
-            ->where('date', '>=', $startDate)
-            ->selectRaw('nm_id, warehouse_name, sum(orders_count) as total_orders')
-            ->whereIn('warehouse_name', array_values($warehouses))
-            ->groupBy('nm_id', 'warehouse_name')
-            ->get()
-            ->mapToGroups(function ($item) {
-                return [$item->nm_id => $item];
-            })
-            ->map(function ($items) use ($warehouses) {
-                $result = [];
-                foreach ($warehouses as $key => $name) {
-                    $result[$key] = $items->firstWhere('warehouse_name', $name)?->total_orders ?? 0;
-                }
-                return $result;
-            });
-    }
-
     private function calculateCtr($views, $clicks): string
     {
         if (!is_numeric($views) || !is_numeric($clicks) || $views <= 0 || $clicks <= 0) {
@@ -392,29 +465,8 @@ class GoodDetailsModalHandler
         return $ctr;
     }
 
-    private function getNotesData(Good $good, Shop $shop, array $dates): array
+    private function calculateProfit($sum, $count, $advertising_costs, $costWithTaxes, $commission, $logistics): string
     {
-        $notesData = [];
-
-        $viewId = $shop->workSpaces->first()->view_id ?? 2;
-
-        foreach ($dates as $date) {
-            $noteKey = [
-                'good_id' => $good->id,
-                'view_id' => $viewId,
-                'date' => $date
-            ];
-
-            $noteExists = Note::where($noteKey)->exists();
-            $notesData[$date] = $noteExists;
-        }
-
-        return $notesData;
-    }
-
-    private function calculateProfit($sum, $count, $advertising_costs, $nsi, $commission, $logistics): string
-    {
-        $costWithTaxes = $nsi->cost_with_taxes ?? null;
         if (
             $sum == null || $commission == null ||
             $logistics == null || $advertising_costs == null ||
@@ -430,5 +482,13 @@ class GoodDetailsModalHandler
             - ($count * $logistics)
             - $advertising_costs
             - ($count * $costWithTaxes));
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        Log::error("GenerateGoodDetailsCacheJob failed for shop {$this->shop->id}", [
+            'error' => $exception->getMessage(),
+            'trace' => $exception->getTraceAsString(),
+        ]);
     }
 }
