@@ -94,7 +94,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                 </div>
             ),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-column sticky-left',
                 tdClassName: 'sticky-column sticky-left',
             },
@@ -119,7 +119,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                 </div>
             ),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-column sticky-left',
                 tdClassName: 'sticky-column sticky-left',
             },
@@ -129,7 +129,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             accessorKey: 'name',
             header: 'Название',
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-column sticky-left',
                 tdClassName: 'sticky-column sticky-left',
             }
@@ -138,7 +138,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             accessorKey: 'variant',
             header: 'Вариант',
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-column sticky-left',
                 tdClassName: 'sticky-column sticky-left',
             }
@@ -147,7 +147,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             accessorKey: 'wbArticle',
             header: 'Арт. WB',
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-column sticky-left',
                 tdClassName: 'sticky-column sticky-left',
             },
@@ -176,7 +176,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                 accessorFn: (row) => row.orders_count?.[date] ?? '',
                 cell: (info) => numericFormatter(info.getValue()),
                 meta: {
-                    isClassNameStatic: false,
+                    isClassNameDynamic: true,
                     tdClassName: (row) => {
                         const isHighlighted = row.isHighlighted?.[date];
                         return isHighlighted 
@@ -191,7 +191,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: '∑ мес.',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'bg-gray font-large font-bold',
                 tdClassName: 'bg-gray font-large font-bold',
             }
@@ -201,7 +201,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Приб.',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'bg-gray',
                 tdClassName: 'bg-gray',
             }
@@ -211,7 +211,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: '%',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'bg-gray',
                 tdClassName: 'bg-gray',
             }
@@ -263,7 +263,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                 );
             },
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'bg-gray',
                 tdClassName: 'bg-gray',
             }
@@ -293,7 +293,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'FBS',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'font-large font-bold',
                 tdClassName: 'font-large font-bold',
             }
@@ -303,7 +303,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'FBO',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'font-large font-bold',
                 tdClassName: 'font-large font-bold',
             }
@@ -313,7 +313,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Сталь',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -322,7 +322,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Тула',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -331,7 +331,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Коледино',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -340,7 +340,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Рязань',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -349,7 +349,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Нмысск',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -358,7 +358,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Краснодар',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -367,7 +367,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Казань',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -376,7 +376,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Котовск',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -385,7 +385,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Белые Столбы',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -394,7 +394,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Подольск 4',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -403,7 +403,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'СПб Уткина',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -412,7 +412,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Подольск',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -421,7 +421,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Екат 14',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -430,7 +430,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Новосибирск',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -439,7 +439,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Воронеж',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -448,7 +448,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Владимир',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -457,7 +457,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Белая дача',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -466,7 +466,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Самара',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -475,7 +475,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Волгоград',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -484,7 +484,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Екат 12',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         },
@@ -493,7 +493,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
             header: 'Сарапул',
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
-                isClassNameStatic: true,
+                isClassNameDynamic: false,
                 thClassName: 'sticky-header-city',
             }
         }

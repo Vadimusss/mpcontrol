@@ -73,9 +73,10 @@ export const TableBody = ({ tableContainerRef, table, columns, onTooltip }) => {
                         {row.getVisibleCells().map(cell => {
 
                             const cellValue = cell.getValue();
+                            const isClassNameDynamic = cell.column.columnDef.meta?.isClassNameDynamic;
                             const tdClassName = cell.column.columnDef.meta?.tdClassName;
-                            const className = typeof tdClassName === 'function'
-                                ? tdClassName(row.original) 
+                            const className = isClassNameDynamic
+                                ? tdClassName(row.original)
                                 : tdClassName || '';
 
                             return (
