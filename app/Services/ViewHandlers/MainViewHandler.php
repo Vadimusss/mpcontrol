@@ -12,11 +12,11 @@ class MainViewHandler implements ViewHandler
     {
         $cacheService = app(MainViewCacheService::class);
         $cachedData = $cacheService->getForWorkspace($workSpace);
-        
+
         if ($cachedData !== null) {
             return $cachedData;
         }
-        
+
         return $this->prepareDataWithoutCache($workSpace);
     }
 
@@ -97,7 +97,7 @@ class MainViewHandler implements ViewHandler
                         'wbListGoodRow:good_id,discount',
                         'salesFunnel' => function ($q) use ($dates) {
                             $q->whereIn('date', $dates)
-                                ->select('good_id', 'date', 'orders_count')
+                                ->select('good_id', 'date', 'orders_count', 'advertising_costs')
                                 ->orderBy('date');
                         }
                     ]);
@@ -117,16 +117,23 @@ class MainViewHandler implements ViewHandler
         ) {
 
             $ordersCountByDate = [];
+            $isHighlightedByDate = [];
 
             foreach ($good->salesFunnel as $row) {
                 if (is_numeric($row->orders_count)) {
-                    $ordersCountByDate[$row->date] = $row->orders_count === 0 ? '' : $row->orders_count;
+                    $ordersCountByDate[$row->date] = $row->orders_count === 0 ? 0 : $row->orders_count;
+                }
+                if (is_numeric($row->advertising_costs)) {
+                    $isHighlightedByDate[$row->date] = $row->advertising_costs < 100 ? false : true;
                 }
             }
 
             foreach ($dates as $date) {
                 if (!isset($ordersCountByDate[$date])) {
-                    $ordersCountByDate[$date] = '';
+                    $ordersCountByDate[$date] = 0;
+                }
+                if (!isset($isHighlightedByDate[$date])) {
+                    $isHighlightedByDate[$date] = false;
                 }
             }
 
@@ -186,6 +193,7 @@ class MainViewHandler implements ViewHandler
                 'mainRowMetadata' => 'Шт.',
                 'totalsOrdersCount' => $totalsOrdersCountMap[$good->id] ?? 0,
                 'orders_count' => $ordersCountByDate,
+                'isHighlighted' => $isHighlightedByDate,
                 'mainRowProfit' => $mainRowProfit == '' ? $mainRowProfit : round($mainRowProfit),
                 'percent' => $percent,
             ];

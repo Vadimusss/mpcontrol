@@ -73,11 +73,15 @@ export const TableBody = ({ tableContainerRef, table, columns, onTooltip }) => {
                         {row.getVisibleCells().map(cell => {
 
                             const cellValue = cell.getValue();
+                            const tdClassName = cell.column.columnDef.meta?.tdClassName;
+                            const className = typeof tdClassName === 'function'
+                                ? tdClassName(row.original) 
+                                : tdClassName || '';
 
                             return (
                                 <td
                                     key={cell.id}
-                                    className={cell.column.columnDef.meta?.tdClassName || ''}
+                                    className={className}
                                     onMouseEnter={(e) => handleMouseEnter(e, cellValue)}
                                     onMouseLeave={handleMouseLeave}
                                 >

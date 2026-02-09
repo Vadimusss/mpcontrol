@@ -171,7 +171,12 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                 accessorFn: (row) => row.orders_count?.[date] ?? '',
                 cell: (info) => numericFormatter(info.getValue()),
                 meta: {
-                    tdClassName: 'bg-gray font-large font-bold',
+                    tdClassName: (row) => {
+                        const isHighlighted = row.isHighlighted?.[date];
+                        return isHighlighted 
+                            ? 'bg-yellow font-large font-bold'
+                            : 'bg-gray font-large font-bold';
+                    },
                 }
             }
         }),
