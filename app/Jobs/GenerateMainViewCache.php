@@ -86,7 +86,7 @@ class GenerateMainViewCache implements ShouldQueue
                 'wbListGoodRow:good_id,discount',
                 'salesFunnel' => function ($q) use ($dates) {
                     $q->whereIn('date', $dates)
-                        ->select('good_id', 'date', 'orders_count')
+                        ->select('good_id', 'date', 'orders_count', 'advertising_costs')
                         ->orderBy('date');
                 }
             ])
@@ -103,15 +103,22 @@ class GenerateMainViewCache implements ShouldQueue
             $totalsOrdersCountMap,
         ) {
             $ordersCountByDate = [];
+            $isHighlightedByDate = [];
             foreach ($good->salesFunnel as $row) {
                 if (is_numeric($row->orders_count)) {
-                    $ordersCountByDate[$row->date] = $row->orders_count === 0 ? '' : $row->orders_count;
+                    $ordersCountByDate[$row->date] = $row->orders_count === 0 ? 0 : $row->orders_count;
+                }
+                if (is_numeric($row->advertising_costs)) {
+                    $isHighlightedByDate[$row->date] = $row->advertising_costs < 100 ? false : true;
                 }
             }
 
             foreach ($dates as $date) {
                 if (!isset($ordersCountByDate[$date])) {
-                    $ordersCountByDate[$date] = '';
+                    $ordersCountByDate[$date] = 0;
+                }
+                if (!isset($isHighlightedByDate[$date])) {
+                    $isHighlightedByDate[$date] = false;
                 }
             }
 
@@ -173,6 +180,7 @@ class GenerateMainViewCache implements ShouldQueue
                 'mainRowMetadata' => 'Шт.',
                 'totalsOrdersCount' => $totalsOrdersCountMap[$good->id] ?? 0,
                 'orders_count' => $ordersCountByDate,
+                'isHighlighted' => $isHighlightedByDate,
                 'mainRowProfit' => $mainRowProfit == '' ? $mainRowProfit : round($mainRowProfit),
                 'percent' => $percent,
             ];
@@ -191,10 +199,10 @@ class GenerateMainViewCache implements ShouldQueue
     private function calculateTotalsOrdersCount(string $startDate): array
     {
         return SalesFunnel::whereIn('good_id', function ($query) {
-                $query->select('id')
-                    ->from('goods')
-                    ->where('shop_id', $this->shop->id);
-            })
+            $query->select('id')
+                ->from('goods')
+                ->where('shop_id', $this->shop->id);
+        })
             ->where('date', '>=', $startDate)
             ->select('good_id', DB::raw('SUM(orders_count) as total'))
             ->groupBy('good_id')
