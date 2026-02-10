@@ -118,7 +118,8 @@ return [
     ],
 
     'ignore_commands' => [
-        //
+        'App\Jobs\GenerateGoodDetailsCacheJobOptimized',
+        'App\Jobs\GenerateGoodDetailsCacheJob',
     ],
 
     /*
@@ -136,7 +137,7 @@ return [
         Watchers\BatchWatcher::class => env('TELESCOPE_BATCH_WATCHER', true),
 
         Watchers\CacheWatcher::class => [
-            'enabled' => env('TELESCOPE_CACHE_WATCHER', true),
+            'enabled' => env('TELESCOPE_CACHE_WATCHER', false),
             'hidden' => [],
         ],
 
