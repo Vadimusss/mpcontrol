@@ -6,18 +6,16 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Bus\Batchable;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Shop;
 use App\Models\Good;
 use App\Models\SalesFunnel;
 use App\Models\WbAnalyticsV3ProductsHistory;
-use App\Models\Note;
 use App\Models\StocksAndOrders;
 use Carbon\Carbon;
 use Throwable;
 
-class GenerateGoodDetailsCacheJobOptimized implements ShouldQueue
+class GenerateGoodDetailsCache implements ShouldQueue
 {
     use Batchable, Queueable;
 

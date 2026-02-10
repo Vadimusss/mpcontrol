@@ -4,8 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Shop;
 use App\Jobs\GenerateMainViewCache;
-use App\Jobs\GenerateGoodDetailsCacheJob;
-use App\Jobs\GenerateGoodDetailsCacheJobOptimized;
+use App\Jobs\GenerateGoodDetailsCache;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use App\Events\JobFailed;
@@ -26,7 +25,7 @@ class UpdateAllShopMainViewCache implements ShouldQueue
 
         $shops->each(function ($shop) {
             GenerateMainViewCache::dispatch($shop);
-            GenerateGoodDetailsCacheJobOptimized::dispatch($shop);
+            GenerateGoodDetailsCache::dispatch($shop);
         });
     }
 
