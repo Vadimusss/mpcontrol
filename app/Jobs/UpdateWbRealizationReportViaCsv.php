@@ -114,8 +114,9 @@ class UpdateWbRealizationReportViaCsv implements ShouldQueue
         // Используем COPY TO STDOUT для получения CSV данных
         // Важно: порядок колонок должен соответствовать порядку в таблице wb_realization_report
         // Экранируем значения для безопасности
-        $cabinet = (int)$this->shop->id;
+        $cabinet = (string)$this->shop->id; // cabinet - character varying в PostgreSQL
         $date = $externalConnection->getPdo()->quote($this->date);
+        $cabinetQuoted = $externalConnection->getPdo()->quote($cabinet);
         
         $copyQuery = "
             COPY (
@@ -203,7 +204,7 @@ class UpdateWbRealizationReportViaCsv implements ShouldQueue
                     order_uid,
                     payment_schedule
                 FROM wb.wb_realization_report 
-                WHERE cabinet = {$cabinet} AND date_from = {$date}
+                WHERE cabinet::text = {$cabinetQuoted} AND date_from = {$date}
                 ORDER BY rrd_id
             ) TO STDOUT WITH CSV HEADER
         ";
@@ -354,9 +355,12 @@ class UpdateWbRealizationReportViaCsv implements ShouldQueue
     private function loadDataFromCsv(string $csvFilePath): int
     {
         try {
+            // Экранируем путь к файлу для SQL
+            $escapedPath = DB::getPdo()->quote($csvFilePath);
+            
             // SQL для LOAD DATA INFILE с преобразованием типов
             $loadDataSql = "
-                LOAD DATA LOCAL INFILE ?
+                LOAD DATA LOCAL INFILE {$escapedPath}
                 INTO TABLE wb_realization_reports 
                 CHARACTER SET utf8mb4
                 FIELDS TERMINATED BY ',' 
@@ -502,7 +506,7 @@ class UpdateWbRealizationReportViaCsv implements ShouldQueue
             ";
             
             // Выполняем LOAD DATA INFILE
-            $affectedRows = DB::affectingStatement($loadDataSql, [$csvFilePath]);
+            $affectedRows = DB::affectingStatement($loadDataSql);
             
             Log::info("UpdateWbRealizationReportViaCsv: Загружено записей через LOAD DATA INFILE: {$affectedRows}");
             
@@ -510,8 +514,7 @@ class UpdateWbRealizationReportViaCsv implements ShouldQueue
             
         } catch (\Exception $e) {
             Log::error("UpdateWbRealizationReportViaCsv: Ошибка загрузки данных через LOAD DATA INFILE", [
-                'error' => $e->getMessage(),
-                'sql' => $loadDataSql
+                'error' => $e->getMessage()
             ]);
             
             // Fallback: используем обычную вставку если LOAD DATA не работает
