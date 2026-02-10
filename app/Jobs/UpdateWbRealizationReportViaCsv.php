@@ -113,6 +113,10 @@ class UpdateWbRealizationReportViaCsv implements ShouldQueue
     {
         // Используем COPY TO STDOUT для получения CSV данных
         // Важно: порядок колонок должен соответствовать порядку в таблице wb_realization_report
+        // Экранируем значения для безопасности
+        $cabinet = (int)$this->shop->id;
+        $date = $externalConnection->getPdo()->quote($this->date);
+        
         $copyQuery = "
             COPY (
                 SELECT 
@@ -199,16 +203,15 @@ class UpdateWbRealizationReportViaCsv implements ShouldQueue
                     order_uid,
                     payment_schedule
                 FROM wb.wb_realization_report 
-                WHERE cabinet = ? AND date_from = ?
+                WHERE cabinet = {$cabinet} AND date_from = {$date}
                 ORDER BY rrd_id
             ) TO STDOUT WITH CSV HEADER
         ";
         
         try {
-            // Выполняем COPY запрос через PDO
+            // Выполняем COPY запрос через PDO (непараметризованный)
             $pdo = $externalConnection->getPdo();
-            $stmt = $pdo->prepare($copyQuery);
-            $stmt->execute([$this->shop->id, $this->date]);
+            $stmt = $pdo->query($copyQuery);
             
             $csvData = '';
             while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
@@ -321,7 +324,7 @@ class UpdateWbRealizationReportViaCsv implements ShouldQueue
                 } elseif (is_string($value)) {
                     // Убираем часовой пояс и микросекунды
                     $tzPos = strpos($value, '+');
-                    if ($tzPos === false) {
+                    if ($tzPos === false && strlen($value) > 11) {
                         $tzPos = strpos($value, '-', 11);
                     }
                     
