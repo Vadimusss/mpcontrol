@@ -167,6 +167,11 @@ class Shop extends Model
         );
     }
 
+    public function wbRealizationReport(): HasMany
+    {
+        return $this->HasMany(WbRealizationReport::class, 'cabinet');
+    }
+
     public function barcodes(): array
     {
         $barcodes = $this->wbContentV2CardsListSizes->reduce(function (array $skus, $size) {
@@ -196,7 +201,7 @@ class Shop extends Model
 
             $nmId = $size->cardsList->nm_id;
             $vendorCode = $size->cardsList->vendor_code;
-   
+
             foreach ($barcodes as $barcode) {
                 if (!empty($barcode)) {
                     $barcodesWithMetadata[$barcode] = [
