@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Log;
 use App\Events\JobSucceeded;
 use App\Events\JobFailed;
 use Throwable;
-use Carbon\Carbon;
 
 class UpdateWbRealizationReport implements ShouldQueue
 {
