@@ -30,74 +30,46 @@ class UpdateWbRealizationReport implements ShouldQueue
     public function handle(): void
     {
         $startTime = microtime(true);
-        Log::info("UpdateWbRealizationReportViaCsv: Начало обработки для магазина {$this->shop->id} ({$this->shop->name}) за дату {$this->date}");
 
-        try {
-            $externalConnection = DB::connection('ozon_api');
+        $externalConnection = DB::connection('ozon_api');
 
-            Log::info("UpdateWbRealizationReportViaCsv: Получение количества записей за date_from={$this->date}, cabinet={$this->shop->id}");
-            $totalRecords = $externalConnection->table('wb_realization_report')
-                ->where('cabinet', $this->shop->id)
-                ->where('date_from', $this->date)
-                ->count();
+        $totalRecords = $externalConnection->table('wb_realization_report')
+            ->where('cabinet', $this->shop->id)
+            ->where('date_from', $this->date)
+            ->count();
 
-            Log::info("UpdateWbRealizationReportViaCsv: Всего записей за {$this->date}: {$totalRecords}");
-
-            if ($totalRecords === 0) {
-                $message = "Нет данных WbRealizationReport для магазина {$this->shop->name} за {$this->date}";
-                Log::info($message);
-
-                $duration = microtime(true) - $startTime;
-                Log::info("UpdateWbRealizationReportViaCsv: Задание выполнено за " . round($duration, 2) . " секунд");
-                JobSucceeded::dispatch('UpdateWbRealizationReportViaCsv', $duration, $message);
-                return;
-            }
-
-            Log::info("UpdateWbRealizationReportViaCsv: Очистка старых данных за {$this->date}");
-            $deleted = DB::table('wb_realization_reports')
-                ->where('cabinet', $this->shop->id)
-                ->where('date_from', $this->date)
-                ->delete();
-            Log::info("UpdateWbRealizationReportViaCsv: Удалено записей: {$deleted}");
-
-            Log::info("UpdateWbRealizationReportViaCsv: Экспорт данных в CSV");
-            $csvData = $this->exportDataViaSelect($externalConnection);
-
-            if (empty($csvData)) {
-                throw new Throwable("Не удалось экспортировать данные в CSV");
-            }
-
-            // Сохраняем CSV во временный файл
-            $tempFile = tempnam(sys_get_temp_dir(), 'wb_report_' . $this->shop->id . '_' . $this->date . '_');
-            Log::info("UpdateWbRealizationReportViaCsv: Сохранение CSV во временный файл: {$tempFile}");
-
-            file_put_contents($tempFile, $csvData);
-            $fileSize = filesize($tempFile);
-            Log::info("UpdateWbRealizationReportViaCsv: Размер CSV файла: " . round($fileSize / 1024 / 1024, 2) . " MB");
-
-            // Загружаем данные в MySQL через LOAD DATA INFILE
-            Log::info("UpdateWbRealizationReportViaCsv: Загрузка данных в MySQL через LOAD DATA INFILE");
-            $loadedCount = $this->loadDataFromCsv($tempFile);
-
-            // Удаляем временный файл
-            unlink($tempFile);
-            Log::info("UpdateWbRealizationReportViaCsv: Временный файл удален");
-
-            $message = "Данные WbRealizationReport для магазина {$this->shop->name} за {$this->date} успешно загружены. Записей: {$loadedCount}";
-            Log::info($message);
+        if ($totalRecords === 0) {
+            $message = "Нет данных WbRealizationReport для магазина {$this->shop->name} за {$this->date}";
 
             $duration = microtime(true) - $startTime;
-            $recordsPerSecond = $loadedCount > 0 ? round($loadedCount / $duration, 2) : 0;
-            Log::info("UpdateWbRealizationReportViaCsv: Задание выполнено за " . round($duration, 2) . " секунд, скорость: " . $recordsPerSecond . " записей/сек");
-
-            JobSucceeded::dispatch('UpdateWbRealizationReportViaCsv', $duration, $message);
-        } catch (Throwable $e) {
-            Log::error("UpdateWbRealizationReportViaCsv: Ошибка выполнения", [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            $this->failed($e);
+            JobSucceeded::dispatch('UpdateWbRealizationReport', $duration, $message);
+            return;
         }
+
+        DB::table('wb_realization_reports')
+            ->where('cabinet', $this->shop->id)
+            ->where('date_from', $this->date)
+            ->delete();
+
+        $csvData = $this->exportDataViaSelect($externalConnection);
+
+        if (empty($csvData)) {
+            throw new Throwable("Не удалось экспортировать данные в CSV");
+        }
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'wb_report_' . $this->shop->id . '_' . $this->date . '_');
+
+        file_put_contents($tempFile, $csvData);
+
+        $loadedCount = $this->loadDataFromCsv($tempFile);
+
+        unlink($tempFile);
+
+        $message = "Данные WbRealizationReport для магазина {$this->shop->name} за {$this->date} успешно загружены. Записей: {$loadedCount}";
+
+        $duration = microtime(true) - $startTime;
+
+        JobSucceeded::dispatch('UpdateWbRealizationReport', $duration, $message);
     }
 
     private function exportDataViaSelect($externalConnection): string
@@ -249,11 +221,9 @@ class UpdateWbRealizationReport implements ShouldQueue
             if (isset($rowArray[$field]) && !empty($rowArray[$field])) {
                 $value = $rowArray[$field];
 
-                // Если это объект DateTime, преобразуем в строку
                 if ($value instanceof \DateTimeInterface) {
                     $rowArray[$field] = $value->format('Y-m-d H:i:s');
                 } elseif (is_string($value)) {
-                    // Убираем часовой пояс и микросекунды
                     $tzPos = strpos($value, '+');
                     if ($tzPos === false && strlen($value) > 11) {
                         $tzPos = strpos($value, '-', 11);
@@ -268,7 +238,6 @@ class UpdateWbRealizationReport implements ShouldQueue
                         }
                     }
 
-                    // Для полей date оставляем только дату
                     if (in_array($field, ['date_from', 'date_to', 'create_dt', 'rr_dt', 'fix_tariff_date_from', 'fix_tariff_date_to'])) {
                         if (strlen($rowArray[$field]) > 10) {
                             $rowArray[$field] = substr($rowArray[$field], 0, 10);
@@ -281,10 +250,9 @@ class UpdateWbRealizationReport implements ShouldQueue
 
     private function loadDataFromCsv(string $csvFilePath)
     {
-        try {
-            $escapedPath = DB::getPdo()->quote($csvFilePath);
+        $escapedPath = DB::getPdo()->quote($csvFilePath);
 
-            $loadDataSql = "
+        $loadDataSql = "
                 LOAD DATA LOCAL INFILE {$escapedPath}
                 INTO TABLE wb_realization_reports 
                 CHARACTER SET utf8mb4
@@ -430,21 +398,13 @@ class UpdateWbRealizationReport implements ShouldQueue
                     updated_at = NOW()
             ";
 
-            $affectedRows = DB::affectingStatement($loadDataSql);
+        $affectedRows = DB::affectingStatement($loadDataSql);
 
-            Log::info("UpdateWbRealizationReportViaCsv: Загружено записей через LOAD DATA INFILE: {$affectedRows}");
-
-            return $affectedRows;
-        } catch (Throwable $e) {
-            Log::error("UpdateWbRealizationReportViaCsv: Ошибка загрузки данных через LOAD DATA INFILE", [
-                'error' => $e->getMessage()
-            ]);
-        }
+        return $affectedRows;
     }
 
     public function failed(Throwable $exception): void
     {
-        Log::error("UpdateWbRealizationReportViaCsv: Задание завершилось с ошибкой", ['error' => $exception->getMessage()]);
-        JobFailed::dispatch('UpdateWbRealizationReportViaCsv', $exception);
+        JobFailed::dispatch('UpdateWbRealizationReport', $exception);
     }
 }

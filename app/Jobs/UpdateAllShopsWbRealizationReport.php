@@ -2,9 +2,7 @@
 
 namespace App\Jobs;
 
-use Illuminate\Support\Arr;
 use App\Models\Shop;
-use App\Jobs\UpdateWbApiAdvertV2Advert;
 use App\Jobs\UpdateWbRealizationReport;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
