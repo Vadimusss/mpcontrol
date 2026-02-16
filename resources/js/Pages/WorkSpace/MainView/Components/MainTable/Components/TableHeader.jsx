@@ -1,5 +1,6 @@
 import React from 'react';
 import { flexRender } from '@tanstack/react-table';
+import { checkOverflow } from '../utils';
 import '../styles.css';
 
 export const TableHeader = ({
@@ -9,17 +10,6 @@ export const TableHeader = ({
     table,
     onTooltip
 }) => {
-
-    const checkOverflow = (element, text) => {
-        if (!element || !text) return false;
-
-        if (text.length < 4) return false;
-        if (!isNaN(parseFloat(text)) && isFinite(text)) return false;
-        if (/^\d{4}[-\/]\d{2}[-\/]\d{2}/.test(text)) return false;
-
-        return element.scrollWidth > element.clientWidth + 2;
-    };
-
     const handleMouseEnter = (e, cellValue) => {
         if (!cellValue) return;
 

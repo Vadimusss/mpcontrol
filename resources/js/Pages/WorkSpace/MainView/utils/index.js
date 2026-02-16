@@ -101,4 +101,20 @@ const stylingFormatter = {
   }
 };
 
-export { apiClient, numericFormatter, stylingFormatter };
+const generateDateHeaders = (days) => {
+    const result = [];
+    const currentDate = new Date();
+
+    for (let i = 0; i < days; i++) {
+        const date = new Date(currentDate);
+        date.setDate(currentDate.getDate() - i);
+
+        const dateString = date.toISOString().split("T")[0];
+
+        result.push(dateString);
+    }
+
+    return result.reverse();
+};
+
+export { apiClient, numericFormatter, stylingFormatter, generateDateHeaders };

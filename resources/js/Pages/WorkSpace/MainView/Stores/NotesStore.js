@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from 'mobx';
-import { apiClient } from '../Utils';
+import { apiClient } from '../utils';
 
 class NotesStore {
   isOpen = false;
@@ -83,10 +83,8 @@ class NotesStore {
       });
       return data !== '';
     } catch (error) {
-      return {
-        success: false,
-        error: 'Failed isNotesExists method'
-      };
+      console.error('Failed isNotesExists method:', error);
+      return false;
     }
   };
 

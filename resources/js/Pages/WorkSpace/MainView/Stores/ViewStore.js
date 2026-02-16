@@ -1,9 +1,8 @@
 import { makeAutoObservable } from 'mobx';
 import { goodsStore } from './GoodsStore';
-import { apiClient } from '../Utils';
+import { apiClient } from '../utils';
 
 class ViewStore {
-  expandedGoodId = null;
   selectedItems = [];
   showOnlySelected = false;
   apiClient = null;
@@ -37,15 +36,6 @@ class ViewStore {
     this.saveState();
   }
 
-  toggleRow(id) {
-    if (this.expandedGoodId === id) {
-      this.expandedGoodId = null;
-    } else {
-      this.expandedGoodId = id;
-    }
-    this.saveState();
-  }
-
   toggleShowOnlySelected() {
     this.showOnlySelected = !this.showOnlySelected;
     this.saveState();
@@ -53,7 +43,6 @@ class ViewStore {
 
   saveState() {
     const stateToSave = {
-      expandedRows: this.expandedGoodId ? [this.expandedGoodId] : [],
       selectedItems: this.selectedItems,
       showOnlySelected: this.showOnlySelected,
       sortField: 'article',
@@ -66,3 +55,4 @@ class ViewStore {
 }
 
 export const viewStore = new ViewStore();
+export default viewStore;

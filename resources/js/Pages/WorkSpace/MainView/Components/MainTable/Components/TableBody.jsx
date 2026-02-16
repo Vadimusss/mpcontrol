@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { flexRender } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { checkOverflow } from '../utils';
 import '../styles.css';
 
 export const TableBody = ({ tableContainerRef, table, columns, onTooltip }) => {
@@ -20,16 +21,6 @@ export const TableBody = ({ tableContainerRef, table, columns, onTooltip }) => {
     const paddingBottom = virtualRows.length > 0
         ? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0)
         : 0;
-
-    const checkOverflow = (element, text) => {
-        if (!element || !text) return false;
-
-        if (text.length < 15) return false;
-        if (!isNaN(parseFloat(text)) && isFinite(text)) return false;
-        if (/^\d{4}[-\/]\d{2}[-\/]\d{2}/.test(text)) return false;
-
-        return element.scrollWidth > element.clientWidth + 2;
-    };
 
     const handleMouseEnter = (e, cellValue) => {
         if (!cellValue) return;

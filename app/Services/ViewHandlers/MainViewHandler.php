@@ -252,7 +252,7 @@ class MainViewHandler implements ViewHandler
 
     public function getComponent(): string
     {
-        return 'VirtualizedMainView';
+        return 'MainView';
     }
 
     private function calculateStocks($shop, $warehouses, $date): array

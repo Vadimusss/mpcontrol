@@ -1,13 +1,13 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import notesStore from './NotesStore';
 import { viewStore } from './ViewStore';
-import { apiClient } from '../Utils';
+import { apiClient } from '../utils';
 
 class GoodsStore {
   goods = [];
   articleSortDirection = null;
-  loadedSubRows = new Map();
-  loadingSubRows = new Set();
+  goodDetails = null;
+  isLoadingGoodDetails = false;
 
   constructor() {
     makeAutoObservable(this);
@@ -44,47 +44,46 @@ class GoodsStore {
           [date]: isNotesExists
         };
       }
+      if (this.goodDetails) {
+        if (!this.goodDetails.notesData) {
+          this.goodDetails.notesData = {};
+        }
+        this.goodDetails.notesData[date] = isNotesExists;
+      }
     });
   }
 
-  async loadSubRows(goodId) {
-    if (this.loadingSubRows.has(goodId) || this.loadedSubRows.has(goodId)) {
-      return;
-    }
-
-    this.loadingSubRows.add(goodId);
+  async loadGoodDetails(shopId, goodId, dates) {
+    runInAction(() => {
+      this.isLoadingGoodDetails = true;
+    });
 
     try {
-      const response = await apiClient.get(`/workspaces/${viewStore.workSpaceId}/goods/${goodId}/subrows`);
-      
+      const response = await apiClient.get(`shops/${shopId}/goods/${goodId}/details`, {
+        params: { 'dates[]': dates },
+      });
       runInAction(() => {
-        this.loadedSubRows.set(goodId, response.data);
-        this.loadingSubRows.delete(goodId);
+        this.goodDetails = response.data;
       });
     } catch (error) {
+      console.error('Error loading good details:', error);
       runInAction(() => {
-        console.error('Error loading subrows:', error);
-        this.loadingSubRows.delete(goodId);
+        this.goodDetails = null;
+      });
+    } finally {
+      runInAction(() => {
+        this.isLoadingGoodDetails = false;
       });
     }
   }
 
-  getSubRows(goodId) {
-    return this.loadedSubRows.get(goodId);
-  }
-
-  hasSubRows(goodId) {
-    return this.loadedSubRows.has(goodId);
-  }
-
-  isLoadingSubRows(goodId) {
-    return this.loadingSubRows.has(goodId);
-  }
-
-  clearSubRows() {
-    this.loadedSubRows.clear();
-    this.loadingSubRows.clear();
+  clearGoodDetails() {
+    runInAction(() => {
+      this.goodDetails = null;
+      this.isLoadingGoodDetails = false;
+    });
   }
 }
 
 export const goodsStore = new GoodsStore();
+export default goodsStore;

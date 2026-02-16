@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import Modal from '@/Components/Modal';
 import { PencilIcon, TrashIcon } from '@heroicons/react/20/solid';
-import notesStore from '../Stores/NotesStore';
+import notesStore from '../../../Stores/NotesStore';
 import PrimaryButton from '@/Components/PrimaryButton';
 
 const NotesModal = observer(() => {

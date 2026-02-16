@@ -1,11 +1,11 @@
 import React, { useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { GoodDetailsTable } from '../Components/GoodDetailsTable';
-import NotesModal from './NotesModal';
-import notesStore from '../Stores/NotesStore';
-import viewStore from '../Stores/ViewStore';
-import { goodsStore } from '../Stores/GoodsStore';
+import { GoodDetailsTable } from '../../GoodDetailsTable';
+import NotesModal from '../../GoodDetailsTable/Components/NotesModal';
+import notesStore from '../../../Stores/NotesStore';
+import viewStore from '../../../Stores/ViewStore';
+import goodsStore from '../../../Stores/GoodsStore';
 import '../styles.css';
 
 export const GoodDetailsModal = observer(({
@@ -16,9 +16,7 @@ export const GoodDetailsModal = observer(({
     dates,
     workSpaceSettings
 }) => {
-
     const { viewId } = viewStore;
-
     useEffect(() => {
         if (isOpen && good) {
             goodsStore.loadGoodDetails(shop.id, good.id, dates);
