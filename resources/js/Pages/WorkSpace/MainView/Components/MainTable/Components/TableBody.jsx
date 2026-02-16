@@ -1,8 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { flexRender } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { viewStore } from '../../../Stores/ViewStore';
 import { checkOverflow } from '../utils';
 import '../styles.css';
 
