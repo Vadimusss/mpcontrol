@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { observer } from 'mobx-react-lite';
 import { flexRender } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { viewStore } from '../../../Stores/ViewStore';
 import { checkOverflow } from '../utils';
 import '../styles.css';
 
-export const TableBody = ({ tableContainerRef, table, columns, onTooltip }) => {
+export const TableBody = observer(({ tableContainerRef, table, columns, onTooltip }) => {
     const { rows } = table.getRowModel();
 
     const rowVirtualizer = useVirtualizer({
@@ -53,16 +55,16 @@ export const TableBody = ({ tableContainerRef, table, columns, onTooltip }) => {
 
             {virtualRows.map(virtualRow => {
                 const row = rows[virtualRow.index];
+                
                 return (
                     <tr
                         key={row.id}
-                        className={`table-row`}
+                        className="table-row"
                         style={{
                             height: '26px',
                         }}
                     >
                         {row.getVisibleCells().map(cell => {
-
                             const cellValue = cell.getValue();
                             const isClassNameDynamic = cell.column.columnDef.meta?.isClassNameDynamic;
                             const tdClassName = cell.column.columnDef.meta?.tdClassName;
@@ -92,4 +94,4 @@ export const TableBody = ({ tableContainerRef, table, columns, onTooltip }) => {
             )}
         </tbody>
     );
-};
+});

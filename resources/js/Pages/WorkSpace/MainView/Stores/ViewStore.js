@@ -8,6 +8,9 @@ class ViewStore {
   apiClient = null;
   workSpaceId = null;
   viewId = null;
+  searchQuery = '';
+  searchResults = [];
+  isSearchActive = false;
 
   constructor(initialState = {}, workSpaceId = null, viewId = null) {
     makeAutoObservable(this);
@@ -23,6 +26,12 @@ class ViewStore {
       sortField = 'article',
       sortDirection = 'asc'
     } = state;
+    
+    this.selectedItems = selectedItems;
+    this.showOnlySelected = showOnlySelected;
+    this.searchQuery = '';
+    this.searchResults = [];
+    this.isSearchActive = false;
   }
 
   get isExpanded() {
@@ -39,6 +48,45 @@ class ViewStore {
   toggleShowOnlySelected() {
     this.showOnlySelected = !this.showOnlySelected;
     this.saveState();
+  }
+
+  setSearchQuery(query) {
+    this.searchQuery = query;
+    this.performSearch();
+  }
+
+  performSearch() {
+    if (!this.searchQuery.trim()) {
+      this.searchResults = [];
+      this.isSearchActive = false;
+      return;
+    }
+
+    const query = this.searchQuery.toLowerCase().trim();
+    const results = [];
+
+    goodsStore.goods.forEach((good, index) => {
+      const searchFields = [
+        good.article?.toString().toLowerCase() || '',
+        good.name?.toString().toLowerCase() || '',
+        good.variant?.toString().toLowerCase() || '',
+        good.wbArticle?.toString().toLowerCase() || ''
+      ];
+
+      const found = searchFields.some(field => field.includes(query));
+      if (found) {
+        results.push(good.id);
+      }
+    });
+
+    this.searchResults = results;
+    this.isSearchActive = results.length > 0;
+  }
+
+  clearSearch() {
+    this.searchQuery = '';
+    this.searchResults = [];
+    this.isSearchActive = false;
   }
 
   saveState() {

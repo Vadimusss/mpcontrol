@@ -26,10 +26,24 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
     const tableContainerRef = useRef(null);
 
     const filteredGoods = useMemo(() => {
-        return viewStore.showOnlySelected
-            ? goodsStore.goods.filter(item => viewStore.selectedItems.includes(item.id))
-            : goodsStore.goods;
-    }, [viewStore.showOnlySelected, viewStore.selectedItems, goodsStore.goods]);
+        let result = goodsStore.goods;
+        
+        if (viewStore.showOnlySelected) {
+            result = result.filter(item => viewStore.selectedItems.includes(item.id));
+        }
+        
+        if (viewStore.searchQuery && viewStore.searchResults.length > 0) {
+            result = result.filter(item => viewStore.searchResults.includes(item.id));
+        }
+        
+        return result;
+    }, [
+        viewStore.showOnlySelected, 
+        viewStore.selectedItems, 
+        viewStore.searchQuery,
+        viewStore.searchResults,
+        goodsStore.goods
+    ]);
 
     return (
         <AuthenticatedLayout
