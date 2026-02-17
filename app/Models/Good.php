@@ -14,6 +14,7 @@ class Good extends Model
         'shop_id',
         'nm_id',
         'vendor_code',
+        'good_status_id',
     ];
 
     public function shop(): BelongsTo
@@ -24,6 +25,11 @@ class Good extends Model
     public function lists(): BelongsToMany
     {
         return $this->belongsToMany(GoodList::class);
+    }
+
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(GoodStatus::class);
     }
 
     public function wbListGoodRow(): HasOne
