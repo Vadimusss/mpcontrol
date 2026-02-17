@@ -1,11 +1,17 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import notesStore from './NotesStore';
-import { viewStore } from './ViewStore';
+import viewStore from './ViewStore';
 import { apiClient } from '../utils';
 
 class GoodsStore {
+  static sortConfig = {
+    'article': 'string',
+    'stocks.totals': 'number',
+    'totalsOrdersCount': 'number',
+    'days_of_stock': 'number'
+  }
+
   goods = [];
-  articleSortDirection = null;
   goodDetails = null;
   isLoadingGoodDetails = false;
 
@@ -15,23 +21,43 @@ class GoodsStore {
 
   setGoods(goods) {
     this.goods = goods;
-    if (this.articleSortDirection) {
-      this.sortByArticle();
-    }
   }
 
-  toggleArticleSort() {
-    this.articleSortDirection = this.articleSortDirection === 'asc' ? 'desc' : 'asc';
-    this.sortByArticle();
-    viewStore.saveState();
+  toggleSort(columnKey) {
+    viewStore.sortDirection = viewStore.sortDirection === 'asc' ? 'desc' : 'asc';
+    viewStore.sortedColumn = columnKey;
+
+    const sortType = GoodsStore.sortConfig[columnKey] || 'number';
+    this.genericSort(columnKey, sortType);
   }
 
-  sortByArticle() {
-    this.goods.sort((a, b) => {
-      return this.articleSortDirection === 'asc' 
-        ? a.article.localeCompare(b.article)
-        : b.article.localeCompare(a.article);
+  genericSort(path, sortType) {
+    const sortedGoods = [...this.goods].sort((a, b) => {
+      const valueA = this.getNestedValue(a, path);
+      const valueB = this.getNestedValue(b, path);
+
+      if (sortType === 'string') {
+        const strA = String(valueA || '');
+        const strB = String(valueB || '');
+        return viewStore.sortDirection === 'asc'
+          ? strA.localeCompare(strB)
+          : strB.localeCompare(strA);
+      } else {
+        const numA = parseFloat(valueA) || 0;
+        const numB = parseFloat(valueB) || 0;
+        return viewStore.sortDirection === 'asc'
+          ? numA - numB
+          : numB - numA;
+      }
     });
+
+    this.goods = sortedGoods;
+  }
+
+  getNestedValue(obj, path) {
+    return path.split('.').reduce((current, key) => {
+      return current && current[key] !== undefined ? current[key] : 0;
+    }, obj);
   }
 
   async updateNoteExists(date, goodId, viewId) {

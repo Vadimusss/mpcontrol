@@ -8,6 +8,8 @@ class ViewStore {
   apiClient = null;
   workSpaceId = null;
   viewId = null;
+  sortDirection = null;
+  sortedColumn = null;
   searchQuery = '';
   searchResults = [];
   isSearchActive = false;
@@ -20,15 +22,17 @@ class ViewStore {
   }
 
   setInitialState(state = {}) {
-    const { 
-      selectedItems = [], 
+    const {
+      selectedItems = [],
       showOnlySelected = false,
-      sortField = 'article',
+      sortedColumn = null,
       sortDirection = 'asc'
     } = state;
-    
+
     this.selectedItems = selectedItems;
     this.showOnlySelected = showOnlySelected;
+    this.sortedColumn = sortedColumn;
+    this.sortDirection = sortDirection;
     this.searchQuery = '';
     this.searchResults = [];
     this.isSearchActive = false;
@@ -36,6 +40,10 @@ class ViewStore {
 
   get isExpanded() {
     return this.expandedGoodId !== null;
+  }
+
+  isSortedColumn(columnKey) {
+    return columnKey === this.sortedColumn ? this.sortDirection : null;
   }
 
   toggleItemSelection(id) {
@@ -93,8 +101,8 @@ class ViewStore {
     const stateToSave = {
       selectedItems: this.selectedItems,
       showOnlySelected: this.showOnlySelected,
-      sortField: 'article',
-      sortDirection: goodsStore.articleSortDirection
+      sortedColumn: this.sortedColumn,
+      sortDirection: this.sortDirection
     };
 
     apiClient.post(`/${this.workSpaceId}/${this.viewId}`, { viewState: stateToSave })
