@@ -22,7 +22,8 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         viewStore.setInitialState(initialViewState);
     }, [initialViewState]);
 
-    const dates = generateDateHeaders(workSpaceSettings.days);
+    const displayDays = viewStore.daysDisplay || workSpaceSettings.days;
+    const dates = generateDateHeaders(displayDays);
     const tableContainerRef = useRef(null);
 
     const filteredGoods = useMemo(() => {

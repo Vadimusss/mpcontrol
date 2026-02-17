@@ -1,9 +1,9 @@
-import { numericFormatter } from '../utils';
+import { numericFormatter } from '../../../utils';
 import { ArrowsUpDownIcon, BarsArrowUpIcon, BarsArrowDownIcon, EyeIcon } from '@heroicons/react/24/outline'
 import goodsStore from '../../../Stores/GoodsStore';
 import viewStore from '../../../Stores/ViewStore';
 
-export const createColumns = (viewStore, dates, handleOpenModal) => [
+export const createColumns = (dates, handleOpenModal) => [
     {
         id: 'select',
         header: () => (

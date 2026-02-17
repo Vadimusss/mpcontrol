@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { flexRender } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { checkOverflow } from '../utils';
+import { checkOverflow } from '../../../utils';
 import '../styles.css';
 
 export const TableBody = observer(({ tableContainerRef, table, columns, onTooltip }) => {
@@ -28,8 +28,9 @@ export const TableBody = observer(({ tableContainerRef, table, columns, onToolti
 
         const displayText = String(cellValue);
         const cellElement = e.currentTarget;
+        const minTextLength = 15;
 
-        if (!checkOverflow(cellElement, displayText)) return;
+        if (!checkOverflow(cellElement, displayText, minTextLength)) return;
 
         const rect = cellElement.getBoundingClientRect();
 

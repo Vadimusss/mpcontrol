@@ -101,20 +101,70 @@ const stylingFormatter = {
   }
 };
 
-const generateDateHeaders = (days) => {
-    const result = [];
-    const currentDate = new Date();
-
-    for (let i = 0; i < days; i++) {
-        const date = new Date(currentDate);
-        date.setDate(currentDate.getDate() - i);
-
-        const dateString = date.toISOString().split("T")[0];
-
-        result.push(dateString);
-    }
-
-    return result.reverse();
+const formatValueByType = (value, type, subtype = '', addString = '') => {
+  switch (`${type}${subtype}`) {
+    case 'advertising_costs':
+    case 'orders_profit':
+    case 'buyouts_profit':
+    case 'profit_without_ads':
+    case 'aac_sum':
+    case 'auc_sum':
+    case 'aac_ctr':
+    case 'auc_ctr':
+      return numericFormatter(value, 1);
+    case 'orders_profit_total':
+      return numericFormatter(value);
+    case 'advertising_costs_percent':
+    case 'orders_profit_percent':
+    case 'no_ad_clicks_percent':
+    case 'aac_views_percent':
+    case 'aac_clicks_percent':
+    case 'aac_sum_percent':
+    case 'aac_orders_percent':
+    case 'aac_cpo_percent':
+    case 'auc_views_percent':
+    case 'auc_clicks_percent':
+    case 'auc_sum_percent':
+    case 'auc_orders_percent':
+    case 'ad_orders_percent':
+    case 'no_ad_orders_percent':
+      return numericFormatter(value, 0, addString);
+    default:
+      return numericFormatter(value);
+  }
 };
 
-export { apiClient, numericFormatter, stylingFormatter, generateDateHeaders };
+const checkOverflow = (element, text, minTextLength) => {
+  if (!element || !text) return false;
+
+  if (text.length < minTextLength) return false;
+  if (!isNaN(parseFloat(text)) && isFinite(text)) return false;
+  if (/^\d{4}[-\/]\d{2}[-\/]\d{2}/.test(text)) return false;
+
+  return element.scrollWidth > element.clientWidth + 2;
+};
+
+const generateDateHeaders = (days) => {
+  const result = [];
+  const currentDate = new Date();
+
+  for (let i = 0; i < days; i++) {
+    const date = new Date(currentDate);
+    date.setDate(currentDate.getDate() - i);
+
+    const dateString = date.toISOString().split("T")[0];
+
+    result.push(dateString);
+  }
+
+  return result.reverse();
+};
+
+export {
+  apiClient,
+  numericFormatter,
+  stylingFormatter,
+  checkOverflow,
+  generateDateHeaders,
+  formatValueByType
+};

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { GoodDetailsTable } from '../../GoodDetailsTable';
@@ -6,6 +6,7 @@ import NotesModal from '../../GoodDetailsTable/Components/NotesModal';
 import notesStore from '../../../Stores/NotesStore';
 import viewStore from '../../../Stores/ViewStore';
 import goodsStore from '../../../Stores/GoodsStore';
+import { generateDateHeaders } from '../../../utils';
 import '../styles.css';
 
 export const GoodDetailsModal = observer(({
@@ -17,14 +18,21 @@ export const GoodDetailsModal = observer(({
     workSpaceSettings
 }) => {
     const { viewId } = viewStore;
+    
+    const goodDetailsDisplayDays = viewStore.goodDetailsDaysDisplay || workSpaceSettings.days;
+    const goodDetailsDates = useMemo(() => 
+        generateDateHeaders(goodDetailsDisplayDays),
+        [goodDetailsDisplayDays]
+    );
+    
     useEffect(() => {
         if (isOpen && good) {
-            goodsStore.loadGoodDetails(shop.id, good.id, dates);
+            goodsStore.loadGoodDetails(shop.id, good.id, goodDetailsDates);
         } else {
             goodsStore.clearGoodDetails();
             notesStore.setRefreshCallback(null);
         }
-    }, [isOpen, good, shop.id, dates]);
+    }, [isOpen, good, shop.id, goodDetailsDates]);
 
     const handleOpenNotes = useCallback((date, goodId) => {
         notesStore.openModal({ date, goodId, viewId });
@@ -74,8 +82,8 @@ export const GoodDetailsModal = observer(({
                             ) : goodsStore.goodDetails ? (
                                 <GoodDetailsTable
                                     goodDetails={goodsStore.goodDetails}
-                                    dates={dates}
-                                    workSpaceSettings={workSpaceSettings}
+                                    dates={goodDetailsDates}
+                                    workSpaceSettings={{ ...workSpaceSettings, days: goodDetailsDisplayDays }}
                                     handleOpenNotes={handleOpenNotes}
                                 />
                             ) : (

@@ -69,7 +69,7 @@ export const MainTable = observer(({
     }, [filteredGoods, viewStore.searchQuery, viewStore.searchResults]);
 
     const columns = useMemo(() =>
-        createColumns(viewStore, dates, handleOpenModal),
+        createColumns(dates, handleOpenModal),
         [viewStore, dates]
     );
 
@@ -91,7 +91,6 @@ export const MainTable = observer(({
                 <TableHeader
                     shop={shop}
                     workSpaceSettings={workSpaceSettings}
-                    dates={dates}
                     table={table}
                     onTooltip={setTooltipData}
                 />

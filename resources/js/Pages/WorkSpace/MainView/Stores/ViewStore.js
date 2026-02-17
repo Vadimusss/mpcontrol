@@ -5,6 +5,8 @@ import { apiClient } from '../utils';
 class ViewStore {
   selectedItems = [];
   showOnlySelected = false;
+  daysDisplay = null;
+  goodDetailsDaysDisplay = null;
   apiClient = null;
   workSpaceId = null;
   viewId = null;
@@ -25,12 +27,16 @@ class ViewStore {
     const {
       selectedItems = [],
       showOnlySelected = false,
+      daysDisplay = null,
+      goodDetailsDaysDisplay = null,
       sortedColumn = null,
       sortDirection = 'asc'
     } = state;
 
     this.selectedItems = selectedItems;
     this.showOnlySelected = showOnlySelected;
+    this.daysDisplay = daysDisplay;
+    this.goodDetailsDaysDisplay = goodDetailsDaysDisplay;
     this.sortedColumn = sortedColumn;
     this.sortDirection = sortDirection;
     this.searchQuery = '';
@@ -55,6 +61,16 @@ class ViewStore {
 
   toggleShowOnlySelected() {
     this.showOnlySelected = !this.showOnlySelected;
+    this.saveState();
+  }
+
+  setDaysDisplay(days) {
+    this.daysDisplay = days;
+    this.saveState();
+  }
+
+  setGoodDetailsDaysDisplay(days) {
+    this.goodDetailsDaysDisplay = days;
     this.saveState();
   }
 
@@ -101,8 +117,10 @@ class ViewStore {
     const stateToSave = {
       selectedItems: this.selectedItems,
       showOnlySelected: this.showOnlySelected,
-      sortedColumn: this.sortedColumn,
-      sortDirection: this.sortDirection
+      daysDisplay: this.daysDisplay,
+      goodDetailsDaysDisplay: this.goodDetailsDaysDisplay,
+      // sortedColumn: this.sortedColumn,
+      // sortDirection: this.sortDirection
     };
 
     apiClient.post(`/${this.workSpaceId}/${this.viewId}`, { viewState: stateToSave })
