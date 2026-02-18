@@ -29,7 +29,7 @@ class Good extends Model
 
     public function status(): BelongsTo
     {
-        return $this->belongsTo(GoodStatus::class);
+        return $this->belongsTo(GoodStatus::class, 'good_status_id', 'id');
     }
 
     public function wbListGoodRow(): HasOne

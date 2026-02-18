@@ -15,11 +15,11 @@ class GoodStatusSeeder extends Seeder
     {
         $statuses = [
             [
-                'name' => 'Активный ассортимент',
+                'name' => 'Актив. ассорт.',
                 'slug' => 'active_assortment',
             ],
             [
-                'name' => 'Организационные продажи',
+                'name' => 'Орг. продажи',
                 'slug' => 'org_sales',
             ],
             [

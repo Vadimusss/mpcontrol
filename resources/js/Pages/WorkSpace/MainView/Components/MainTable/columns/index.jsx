@@ -81,6 +81,15 @@ export const createColumns = (dates, handleOpenModal) => [
         }
     },
     {
+        accessorKey: 'status',
+        header: 'Статус',
+        meta: {
+            isClassNameDynamic: false,
+            thClassName: 'sticky-column sticky-left',
+            tdClassName: 'sticky-column sticky-left',
+        }
+    },
+    {
         accessorKey: 'wbArticle',
         header: 'Арт. WB',
         meta: {
