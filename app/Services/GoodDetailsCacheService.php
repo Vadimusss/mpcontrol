@@ -26,12 +26,10 @@ class GoodDetailsCacheService
             return null;
         }
 
-        // Проверяем, что все запрошенные даты есть в кэше
         $cachedDates = array_keys($goodData['salesData'] ?? []);
         $missingDates = array_diff($dates, $cachedDates);
         
         if (!empty($missingDates)) {
-            // Если каких-то дат нет в кэше, используем оригинальный метод
             return null;
         }
 

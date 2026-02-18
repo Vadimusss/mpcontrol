@@ -34,8 +34,7 @@ class MainViewCacheService
             return [];
         }
 
-        $viewSettings = json_decode($workSpace->viewSettings->settings);
-        $days = $viewSettings->days ?? 14;
+        $days = 30;
 
         return $this->processCachedData($cachedData, $goodIds, $days, $shop);
     }

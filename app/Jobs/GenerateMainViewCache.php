@@ -47,7 +47,7 @@ class GenerateMainViewCache implements ShouldQueue
         $commission = $shop->settings['commission'] ?? null;
         $logistics = $shop->settings['logistics'] ?? null;
 
-        $dates = collect(range(0, 29))->map(function ($day) {
+        $dates = collect(range(0, 30))->map(function ($day) {
             return Carbon::now()->subDays($day)->format('Y-m-d');
         })->all();
 
@@ -83,6 +83,7 @@ class GenerateMainViewCache implements ShouldQueue
             ->with([
                 'nsi:good_id,name,variant,cost_with_taxes',
                 'sizes:good_id,price',
+                'status',
                 'wbListGoodRow:good_id,discount',
                 'salesFunnel' => function ($q) use ($dates) {
                     $q->whereIn('date', $dates)
@@ -177,6 +178,7 @@ class GenerateMainViewCache implements ShouldQueue
                 'name' => $good->nsi->name ?? '-',
                 'variant' => $good->nsi->variant ?? '-',
                 'wbArticle' => $good->nm_id,
+                'status' => $good->status->name ?? 'Без статуса',
                 'mainRowMetadata' => 'Шт.',
                 'totalsOrdersCount' => $totalsOrdersCountMap[$good->id] ?? 0,
                 'orders_count' => $ordersCountByDate,

@@ -26,8 +26,8 @@ class MainViewHandler implements ViewHandler
         $commission = $shop->settings['commission'] ?? null;
         $logistics = $shop->settings['logistics'] ?? null;
 
-        $viewSettings = json_decode($workSpace->viewSettings->settings);
-        $dates = collect(range(0, $viewSettings->days))->map(function ($day) {
+        // $viewSettings = json_decode($workSpace->viewSettings->settings);
+        $dates = collect(range(0, 30))->map(function ($day) {
             return Carbon::now()->subDays($day)->format('Y-m-d');
         })->all();
 
@@ -94,6 +94,7 @@ class MainViewHandler implements ViewHandler
                     $query->with([
                         'nsi:good_id,name,variant,cost_with_taxes',
                         'sizes:good_id,price',
+                        'status',
                         'wbListGoodRow:good_id,discount',
                         'salesFunnel' => function ($q) use ($dates) {
                             $q->whereIn('date', $dates)
@@ -190,6 +191,7 @@ class MainViewHandler implements ViewHandler
                 'name' => $good->nsi->name ?? '-',
                 'variant' => $good->nsi->variant ?? '-',
                 'wbArticle' => $good->nm_id,
+                'status' => $good->status->name ?? 'Без статуса',
                 'mainRowMetadata' => 'Шт.',
                 'totalsOrdersCount' => $totalsOrdersCountMap[$good->id] ?? 0,
                 'orders_count' => $ordersCountByDate,
