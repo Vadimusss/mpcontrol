@@ -94,6 +94,7 @@ class ViewStore {
         good.article?.toString().toLowerCase() || '',
         good.name?.toString().toLowerCase() || '',
         good.variant?.toString().toLowerCase() || '',
+        good.status?.toString().toLowerCase() || '',
         good.wbArticle?.toString().toLowerCase() || ''
       ];
 

@@ -91,7 +91,7 @@ class GenerateMainViewCache implements ShouldQueue
                         ->orderBy('date');
                 }
             ])
-            ->get(['id', 'nm_id', 'vendor_code']);
+            ->get(['id', 'nm_id', 'vendor_code', 'good_status_id']);
 
         $totalsStartDate = Carbon::now()->subDays(30)->format('Y-m-d');
         $totalsOrdersCountMap = $this->calculateTotalsOrdersCount($totalsStartDate);

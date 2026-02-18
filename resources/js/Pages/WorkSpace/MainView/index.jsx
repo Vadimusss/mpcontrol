@@ -11,7 +11,6 @@ import './styles.css';
 export default observer(function VirtualizedMainView({ shop, workSpace, goods: initialGoods, initialViewState }) {
     const workSpaceSettings = JSON.parse(workSpace.view_settings.settings);
     const viewId = workSpace.view_settings.view.id;
-    console.log(initialGoods);
 
     useEffect(() => {
         goodsStore.setGoods(initialGoods);

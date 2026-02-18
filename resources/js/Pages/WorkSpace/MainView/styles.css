@@ -84,6 +84,10 @@
   left: 492px;
 }
 
+.sticky-header th.sticky-left.sticky-column:nth-child(6), .sticky-table td.sticky-left.sticky-column:nth-child(6) {
+  left: 602px;
+}
+
 .sticky-header th.sticky-left.sticky-column, .sticky-table td.sticky-left.sticky-column {
   border-right: 1px solid #d9d9d9;
   box-shadow: 1px 0 1px rgba(217, 217, 217, 1);
@@ -615,6 +619,10 @@ input[type='checkbox']:checked {
 .search-input:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-input-no-result:focus {
+  border: 1px solid #ff0000;
 }
 
 .clear-button {

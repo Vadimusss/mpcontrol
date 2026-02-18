@@ -6,6 +6,7 @@ import { apiClient } from '../utils';
 class GoodsStore {
   static sortConfig = {
     'article': 'string',
+    'status': 'string',
     'stocks.totals': 'number',
     'totalsOrdersCount': 'number',
     'days_of_stock': 'number'

@@ -38,7 +38,7 @@ export const createColumns = (dates, handleOpenModal) => [
     },
     {
         accessorKey: 'article',
-        header: ({ column }) => (
+        header: () => (
             <div
                 style={{
                     display: 'flex',
@@ -82,7 +82,25 @@ export const createColumns = (dates, handleOpenModal) => [
     },
     {
         accessorKey: 'status',
-        header: 'Статус',
+        header: () => (
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    gap: '4px',
+                    paddingLeft: '2px',
+                }}
+                onClick={() => goodsStore.toggleSort('status')}
+            >
+                Статус
+                {{
+                    asc: <BarsArrowUpIcon className="w-4 h-4" />,
+                    desc: <BarsArrowDownIcon className="w-4 h-4" />,
+                }[viewStore.isSortedColumn('status')] ?? <ArrowsUpDownIcon className="w-4 h-4" />}
+            </div>
+        ),
         meta: {
             isClassNameDynamic: false,
             thClassName: 'sticky-column sticky-left',
