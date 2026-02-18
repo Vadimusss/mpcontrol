@@ -35,7 +35,8 @@ export const SearchBar = observer(({ onClose }) => {
   };
   
   const totalResults = viewStore.searchResults.length;
-  
+  const inputClasses = `search-input ${totalResults === 0 && localQuery !== '' ? 'search-input-no-result' : ''}`;
+
   return (
     <div className="search-bar">
       <div className="search-bar-content">
@@ -46,8 +47,8 @@ export const SearchBar = observer(({ onClose }) => {
             type="text"
             value={localQuery}
             onChange={handleInputChange}
-            placeholder="Арт., Название, Вариант, Арт. WB"
-            className="search-input"
+            placeholder="Арт., Название, Вариант, Статус, Арт. WB"
+            className={inputClasses}
           />
           {localQuery && (
             <button
