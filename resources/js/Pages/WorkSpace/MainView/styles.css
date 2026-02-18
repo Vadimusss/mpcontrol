@@ -421,15 +421,16 @@ input[type='checkbox']:checked {
 .good-details-modal .table-container {
   height: calc(95vh - 90px);
   max-height: fit-content;
+  width: fit-content;
 }
 
 .good-details-modal .sticky-table {
-  table-layout: auto;
+  width: fit-content;
 }
 
-.good-details-modal .sticky-column {
+/* .good-details-modal .sticky-column {
   width: 120px;
-}
+} */
 
 .good-details-modal .sticky-table td {
   overflow: visible;
