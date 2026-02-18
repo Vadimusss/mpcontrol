@@ -1,6 +1,6 @@
 import React from 'react';
 import viewStore from '../../../Stores/ViewStore';
-import '../styles.css';
+import '../../../styles.css';
 
 export const GoodDetailsTableHeader = ({
     dates,

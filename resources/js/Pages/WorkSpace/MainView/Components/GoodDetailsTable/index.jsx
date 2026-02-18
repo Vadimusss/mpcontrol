@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { GoodDetailsTableHeader } from './Components/GoodDetailsTableHeader';
 import { GoodDetailsTableBody } from './Components/GoodDetailsTableBody';
-import './styles.css';
+import '../../styles.css';
 
 export const GoodDetailsTable = observer(({ goodDetails, dates, workSpaceSettings, handleOpenNotes }) => {
     return (

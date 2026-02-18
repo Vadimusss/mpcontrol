@@ -7,7 +7,7 @@ import notesStore from '../../../Stores/NotesStore';
 import viewStore from '../../../Stores/ViewStore';
 import goodsStore from '../../../Stores/GoodsStore';
 import { generateDateHeaders } from '../../../utils';
-import '../styles.css';
+import '../../../styles.css';
 
 export const GoodDetailsModal = observer(({
     isOpen,

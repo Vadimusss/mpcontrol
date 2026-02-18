@@ -2,7 +2,7 @@ import React from 'react';
 import { flexRender } from '@tanstack/react-table';
 import { checkOverflow, generateDateHeaders } from '../../../utils';
 import viewStore from '../../../Stores/ViewStore';
-import '../styles.css';
+import '../../../styles.css';
 
 export const TableHeader = ({
     shop,

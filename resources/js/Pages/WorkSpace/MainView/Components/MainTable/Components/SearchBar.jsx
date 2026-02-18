@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import { viewStore } from '../../../Stores/ViewStore';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import '../styles.css';
+import '../../../styles.css';
 
 export const SearchBar = observer(({ onClose }) => {
   const [localQuery, setLocalQuery] = useState(viewStore.searchQuery);

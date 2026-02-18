@@ -9,7 +9,7 @@ import { GoodDetailsModal } from './Components/GoodDetailsModal';
 import { SearchBar } from './Components/SearchBar';
 import { useReactTable, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table';
 import { createColumns } from './columns'
-import './styles.css';
+import '../../styles.css';
 
 export const MainTable = observer(({
     dates,

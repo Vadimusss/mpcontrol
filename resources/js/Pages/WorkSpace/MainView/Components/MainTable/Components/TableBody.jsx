@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { flexRender } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { checkOverflow } from '../../../utils';
-import '../styles.css';
+import '../../../styles.css';
 
 export const TableBody = observer(({ tableContainerRef, table, columns, onTooltip }) => {
     const { rows } = table.getRowModel();

@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { formatValueByType, stylingFormatter } from '../../../utils';
-import '../styles.css';
+import '../../../styles.css';
 
 export const GoodDetailsTableBody = observer(({ dates, goodDetails, handleOpenNotes }) => {
     const { salesData, monthlyTotals, prcentColumn, salesByWarehouse, subRowsMetadata, notesData } = goodDetails;
