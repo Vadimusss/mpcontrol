@@ -76,4 +76,9 @@ class Good extends Model
     {
         return $this->hasMany(WbAnalyticsV3ProductsHistory::class);
     }
+
+    public function internalNsi(): HasOne
+    {
+        return $this->hasOne(InternalNsi::class);
+    }
 }

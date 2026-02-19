@@ -33,7 +33,7 @@ class UpdateWbRealizationReport implements ShouldQueue
 
         $externalConnection = DB::connection('ozon_api');
 
-        $totalRecords = $externalConnection->table('wb_realization_report')
+        $totalRecords = $externalConnection->table('wb.wb_realization_report')
             ->where('cabinet', $this->shop->id)
             ->where('date_from', $this->date)
             ->count();
@@ -74,7 +74,7 @@ class UpdateWbRealizationReport implements ShouldQueue
 
     private function exportDataViaSelect($externalConnection): string
     {
-        $data = $externalConnection->table('wb_realization_report')
+        $data = $externalConnection->table('wb.wb_realization_report')
             ->where('cabinet', $this->shop->id)
             ->where('date_from', $this->date)
             ->orderBy('rrd_id')

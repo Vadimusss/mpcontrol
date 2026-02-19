@@ -122,7 +122,7 @@ return [
             'password' => 'd464b20e686746185c5b',
             'charset' => 'utf8',
             'prefix' => '',
-            'schema' => 'wb',
+            // 'schema' => '',
             'sslmode' => 'prefer',
         ],
 
