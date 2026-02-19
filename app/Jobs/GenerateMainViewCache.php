@@ -81,7 +81,9 @@ class GenerateMainViewCache implements ShouldQueue
 
         $goods = Good::where('shop_id', $shop->id)
             ->with([
+                // 'nsi:good_id,name,variant,cost_with_taxes',
                 'nsi:good_id,name,variant,cost_with_taxes',
+                'internalNsi:good_id,product_name,cost_price',
                 'sizes:good_id,price',
                 'status',
                 'wbListGoodRow:good_id,discount',
@@ -129,7 +131,9 @@ class GenerateMainViewCache implements ShouldQueue
             $discount = $good->wbListGoodRow?->discount ?? 0;
             $discountedPrice = $price * (1 - $discount / 100);
 
-            $costWithTaxes = $good->nsi?->cost_with_taxes;
+            // $costWithTaxes = $good->nsi?->cost_with_taxes;
+
+            $costWithTaxes = $good->internalNsi?->cost_price ?? $good->nsi?->cost_with_taxes;
 
             $mainRowProfit = $this->calculateMainRowProfit(
                 $price,
@@ -175,8 +179,9 @@ class GenerateMainViewCache implements ShouldQueue
                     'discount' => $discount,
                     'costWithTaxes' => $costWithTaxes ? round($costWithTaxes) : null,
                 ],
-                'name' => $good->nsi->name ?? '-',
-                'variant' => $good->nsi->variant ?? '-',
+                // 'name' => $good->nsi->name ?? '-',
+                'name' => $good->internalNsi->product_name ?? '-',
+                'variant' => $good->nsi->variant ?? $good->nsi->name ?? '-',
                 'wbArticle' => $good->nm_id,
                 'status' => $good->status->name ?? 'Без статуса',
                 'mainRowMetadata' => 'Шт.',
