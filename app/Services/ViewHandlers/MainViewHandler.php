@@ -93,6 +93,7 @@ class MainViewHandler implements ViewHandler
                 'goods' => function ($query) use ($dates) {
                     $query->with([
                         'nsi:good_id,name,variant,cost_with_taxes',
+                        'internalNsi:good_id,product_name,cost_price',
                         'sizes:good_id,price',
                         'status',
                         'wbListGoodRow:good_id,discount',
@@ -142,7 +143,10 @@ class MainViewHandler implements ViewHandler
             $discount = $good->wbListGoodRow?->discount ?? 0;
             $discountedPrice = $price * (1 - $discount / 100);
 
-            $costWithTaxes = $good->nsi?->cost_with_taxes;
+            // $costWithTaxes = $good->nsi?->cost_with_taxes;
+
+            $costWithTaxes = $good->internalNsi?->cost_price ?? $good->nsi?->cost_with_taxes;
+
 
             $mainRowProfit = $this->calculateMainRowProfit(
                 $price,
@@ -188,7 +192,7 @@ class MainViewHandler implements ViewHandler
                     'discount' => $discount,
                     'costWithTaxes' => $costWithTaxes ? round($costWithTaxes) : null,
                 ],
-                'name' => $good->nsi->name ?? '-',
+                'name' => $good->internalNsi->product_name ?? $good->nsi->name ?? '-',
                 'variant' => $good->nsi->variant ?? '-',
                 'wbArticle' => $good->nm_id,
                 'status' => $good->status->name ?? 'Без статуса',
