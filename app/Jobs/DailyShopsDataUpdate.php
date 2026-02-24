@@ -10,8 +10,7 @@ use App\Jobs\ProcessNmReportDownload;
 use App\Jobs\UpdateWbNmReportFromTempData;
 use App\Jobs\AddWbApiV3Warehouses;
 use App\Jobs\UpdateWbContentV2CardsList;
-use App\Jobs\UpdateWbAdvV0AuctionAdvert;
-use App\Jobs\UpdateWbAdvV1PromotionAdverts;
+use App\Jobs\SyncInternalNsi;
 use App\Jobs\UpdateWbApiAdvertV2Advert;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -48,14 +47,14 @@ class DailyShopsDataUpdate implements ShouldQueue
             'end' => $dates->max(),
         ];
 
+        SyncInternalNsi::dispatch();
+
         $shops->each(function ($shop) use ($period, $dates) {
             СheckApiKey::dispatch($shop->apiKey);
 
             AddWbApiV3Warehouses::dispatch($shop);
 
             UpdateWbApiAdvertV2Advert::dispatch($shop->id);
-
-            // UpdateWbAdvV0AuctionAdvert::dispatch($shop);
 
             // UpdateWbAdvV1PromotionAdverts::dispatch($shop);
 
