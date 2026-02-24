@@ -109,6 +109,10 @@ export default function Shop({ shop }) {
 
     const isKeyOk = shop.api_key.is_active;
 
+    const canManage = shop.owner.id === auth.user.id || shop.customers.some(customer => 
+        customer.id === auth.user.id && customer.pivot?.role === 'admin');
+    const isOwner = shop.owner.id === auth.user.id;
+
     return (
         <div className="border border-gray-300 rounded-md shadow-sm bg-white mb-2 p-2">
             <p className='font-semibold'>{shop.name}</p>
@@ -126,11 +130,15 @@ export default function Shop({ shop }) {
             </p>
             <p>Обновление НСИ: {lastUpdates.nsi}</p>
             <p>Обновление товаров и цен: {lastUpdates.goods}</p>
-            {(shop.customers.length !== 0 && shop.owner.id === auth.user.id) &&
-                <Customers shopId={shop.id} customers={shop.customers} />
-            }
+            {shop.customers.length !== 0 && (
+                <Customers 
+                    shopId={shop.id} 
+                    customers={shop.customers} 
+                    canManageUsers={canManage}
+                />
+            )}
             <div className="flex flex-col">
-                {(shop.owner.id === auth.user.id) &&
+                {canManage &&
                     <>
                         <div className="flex gap-x-2">
                             <PrimaryButton
@@ -177,7 +185,8 @@ export default function Shop({ shop }) {
                             </PrimaryButton>
                             <PrimaryButton
                                 className="mt-4 max-w-fit"
-                                onClick={(e) => openDeleteModal()}>
+                                onClick={(e) => openDeleteModal()}
+                                disabled={!isOwner}>
                                 Удалить магазин
                             </PrimaryButton>
                             <PrimaryButton
@@ -197,7 +206,7 @@ export default function Shop({ shop }) {
                             IsOpen={modalState.deleteShopConfirmModalIsOpen}
                             closeModal={closeDeleteModal} />
                     </>}
-                {(shop.owner.id !== auth.user.id) &&
+                {!canManage &&
                     <div className="flex gap-x-2">
                         <PrimaryButton
                             className="mt-4 max-w-fit"

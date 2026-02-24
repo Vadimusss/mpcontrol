@@ -27,10 +27,15 @@ class UniqueCustomer implements DataAwareRule, ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $userId = User::firstWhere('email', $value)->id;
+        $user = User::firstWhere('email', $value);
+        
+        if (!$user) {
+            return;
+        }
+        
         $shopId = $this->data['shopId'];
 
-        if (DB::table('shop_user')->where('shop_id', $shopId)->where('user_id', $userId)->exists()) {
+        if (DB::table('shop_user')->where('shop_id', $shopId)->where('user_id', $user->id)->exists()) {
              $fail("Пользователь с e-mail {$this->data['email']} уже добавлен!");
         }
     }

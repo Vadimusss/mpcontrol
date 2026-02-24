@@ -12,6 +12,7 @@ use Inertia\Response;
 use App\Rules\UniqueCustomer;
 use App\Rules\ApiKeyIsWorking;
 use App\Rules\NotOwner;
+use App\Rules\UserExists;
 use Illuminate\Support\Facades\Gate;
 use App\Events\ShopDeleted;
 use App\Events\ShopCreated;
@@ -80,15 +81,16 @@ class ShopController extends Controller
                 $validated = $request->validate([
                     'email' => [
                         'required',
-                        'exists:users,email',
+                        'bail',
                         'email',
+                        new UserExists,
                         new UniqueCustomer,
                         new NotOwner,
                     ],
                 ]);
 
                 $user = User::firstWhere('email', $validated['email']);
-                $shop->customers()->attach($user->id);
+                $shop->customers()->attach($user->id, ['role' => Shop::ROLE_MANAGER]);
                 break;
             case 'deleteCustomer':
                 $validated = $request->validate([
@@ -99,6 +101,30 @@ class ShopController extends Controller
                 ]);
 
                 $shop->customers()->detach($validated['customerId']);
+                break;
+            case 'updateCustomerRole':
+                Gate::authorize('manageUsers', $shop);
+                
+                $validated = $request->validate([
+                    'customerId' => [
+                        'required',
+                        'integer',
+                        'exists:users,id',
+                    ],
+                    'role' => [
+                        'required',
+                        'string',
+                        'in:admin,manager',
+                    ],
+                ]);
+
+                if ($shop->owner->id === $validated['customerId']) {
+                    abort(403, 'Cannot change role for shop owner');
+                }
+
+                $shop->customers()->syncWithoutDetaching([
+                    $validated['customerId'] => ['role' => $validated['role']]
+                ]);
                 break;
             case 'update_nsi':
                 UpdateNsiFromGoogleSheets::dispatch($shop->id);

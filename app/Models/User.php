@@ -14,6 +14,9 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    const ROLE_ADMIN = 'admin';
+    const ROLE_MANAGER = 'manager';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -70,7 +73,7 @@ class User extends Authenticatable
 
     public function availableShops(): BelongsToMany
     {
-        return $this->belongsToMany(Shop::class);
+        return $this->belongsToMany(Shop::class)->withPivot('role');
     }
 
     public function viewStates(): HasMany

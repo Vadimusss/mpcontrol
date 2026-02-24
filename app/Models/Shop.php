@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Shop extends Model
 {
+    const ROLE_ADMIN = 'admin';
+    const ROLE_MANAGER = 'manager';
+
     protected $fillable = [
         'api_key_id',
         'name',
@@ -32,7 +35,7 @@ class Shop extends Model
 
     public function customers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class)->withPivot('role');
     }
 
     public function apiKey(): HasOne
@@ -241,5 +244,16 @@ class Shop extends Model
         }
 
         return $chrtIdsWithMetadata;
+    }
+
+    public function isAdmin(User $user): bool
+    {
+        return $this->owner->is($user) || 
+               $this->customers()->where('user_id', $user->id)->where('role', self::ROLE_ADMIN)->exists();
+    }
+
+    public function hasAccess(User $user): bool
+    {
+        return $this->owner->is($user) || $this->customers()->where('user_id', $user->id)->exists();
     }
 }
