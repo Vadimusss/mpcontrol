@@ -7,7 +7,7 @@ use App\Models\Shop;
 use App\Jobs\AddWbAdvV2Fullstats;
 use App\Jobs\AddWbAdvV1PromotionCount;
 use App\Jobs\AddWbAnalyticsV3ProductsHistory;
-use App\Jobs\AddWbAdvV1Upd;
+// use App\Jobs\AddWbAdvV1Upd;
 use App\Jobs\AddWbV1SupplierOrders;
 use App\Jobs\UpdateWbV1SupplierStocks;
 use App\Jobs\GenerateSalesFunnelReport;
@@ -75,7 +75,7 @@ class DailyWbApiDataUpdate implements ShouldQueue
             Bus::batch([
                 $fullstatsJobs,
                 $productsHistoryJobs,
-                [new AddWbAdvV1Upd($shop, $period)],
+                // [new AddWbAdvV1Upd($shop, $period)],
                 [new AddWbV1SupplierOrders($shop, $date)],
                 [new UpdateWbV1SupplierStocks($shop)],
             ])->then(function (Batch $batch) use ($shop, $date) {
