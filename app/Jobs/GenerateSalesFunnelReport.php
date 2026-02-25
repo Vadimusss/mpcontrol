@@ -87,9 +87,25 @@ class GenerateSalesFunnelReport implements ShouldQueue
             })
             ->toArray();
 
+        $costPricesData = DB::table('goods as g')
+            ->join('internal_nsis as i', 'i.good_id', '=', 'g.id')
+            ->where('g.shop_id', $this->shop->id)
+            ->pluck('i.cost_price', 'g.id')
+            ->all();
+
         $assocFromThisData = $this->getAssocFromThisData($avgPricesByDay);
 
-        $report = $WbAnalyticsV3ProductsHistory->map(function ($row) use ($advCostsSumByGoodId, $aacData, $aucData, $aucAdvIds, $allData, $assocFromThisData, $avgPricesByDay, $expenseData) {
+        $report = $WbAnalyticsV3ProductsHistory->map(function ($row) use (
+            $advCostsSumByGoodId,
+            $aacData,
+            $aucData,
+            $aucAdvIds,
+            $allData,
+            $assocFromThisData,
+            $avgPricesByDay,
+            $expenseData,
+            $costPricesData,
+        ) {
             $row->advertising_costs = array_key_exists($row->good_id, $advCostsSumByGoodId) ? $advCostsSumByGoodId[$row->good_id] : 0;
             $row->finished_price = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['finished_price'] : 0;
             $row->price_with_disc = array_key_exists($row->nm_id, $avgPricesByDay) ? $avgPricesByDay[$row->nm_id]['price_with_disc'] : 0;
@@ -114,15 +130,22 @@ class GenerateSalesFunnelReport implements ShouldQueue
             $row->assoc_orders_from_this_sum = array_key_exists($row->good_id, $assocFromThisData) ? $assocFromThisData[$row->good_id]['sum'] : 0;
 
             $expenseInfo = array_key_exists($row->nm_id, $expenseData) ? $expenseData[$row->nm_id] : null;
+            $ordersCountByRealization = $expenseInfo ? $expenseInfo['orders_count'] : 0;
             $row->commission_total = $expenseInfo ? $expenseInfo['commission_total'] : 0;
             $row->logistics_total = $expenseInfo ? $expenseInfo['logistics_total'] : 0;
             $row->storage_total = $expenseInfo ? $expenseInfo['storage_total'] : 0;
             $row->acquiring_total = $expenseInfo ? $expenseInfo['acquiring_total'] : 0;
             $row->other_total = $expenseInfo ? $expenseInfo['other_total'] : 0;
 
-            $op_after_spp = $expenseInfo ? $expenseInfo['op_after_spp'] : 0;
+            $amount_to_transfer = $expenseInfo ? $expenseInfo['amount_to_transfer'] : null;
+            $costPrice = $costPricesData[$row->good_id] ?? null;
 
-            $row->profit_without_ads = $op_after_spp - $row->commission_total;
+            if ($row->nm_id === 136549399) {
+                dump($expenseInfo);
+                dump($costPricesData[$row->good_id]);
+            }
+
+            $row->profit_without_ads = $this->calculateProfit($amount_to_transfer, $row->logistics_total, $ordersCountByRealization, $costPrice);
             $row->profit_with_ads = $row->profit_without_ads - $row->advertising_costs;
 
             $row->aac_cpm_id = array_key_exists($row->good_id, $aacData) ? $aacData[$row->good_id]['advert_id'] : 0;
@@ -398,5 +421,14 @@ class GenerateSalesFunnelReport implements ShouldQueue
         }
 
         return $result;
+    }
+
+    private function calculateProfit($amount, $logistics, $ordersCount, $costPrice)
+    {
+        if ($amount === null || $logistics === 0 || $ordersCount === 0 || $costPrice === null) {
+            return 0;
+        }
+
+        return $amount - $logistics - ($ordersCount * $costPrice);
     }
 }

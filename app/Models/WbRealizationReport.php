@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class WbRealizationReport extends Model
 {
@@ -97,52 +98,55 @@ class WbRealizationReport extends Model
     public static function getExpenseData($dateFrom, $shopId, $nmIds = [])
     {
         $query = self::selectRaw("
-            date_from, 
+            DATE(order_dt) as date_from,
             nm_id,
-             (
-                (
-                    (
-                        SUM(CASE WHEN doc_type_name = 'Продажа' AND supplier_oper_name = 'Продажа' THEN retail_price ELSE 0 END) 
-                        - SUM(CASE WHEN doc_type_name = 'Возврат' THEN retail_price ELSE 0 END)
-                    ) - (
-                        SUM(CASE WHEN doc_type_name = 'Продажа' AND supplier_oper_name = 'Продажа' THEN ppvz_for_pay ELSE 0 END) 
-                        - SUM(CASE WHEN doc_type_name = 'Возврат' THEN ppvz_for_pay ELSE 0 END)
-                    )
-                ) - (
-                    (
-                        SUM(CASE WHEN doc_type_name = 'Продажа' AND supplier_oper_name = 'Продажа' THEN retail_price ELSE 0 END) 
-                        - SUM(CASE WHEN doc_type_name = 'Возврат' THEN retail_price ELSE 0 END)
-                    ) - (
-                         SUM(CASE WHEN doc_type_name = 'Продажа' AND supplier_oper_name = 'Продажа' THEN retail_amount ELSE 0 END) 
-                        - SUM(CASE WHEN doc_type_name = 'Возврат' THEN retail_amount ELSE 0 END)
-                    )
-                )
-            ) + SUM(COALESCE(delivery_rub, 0)) + SUM(COALESCE(storage_fee, 0)) + SUM(COALESCE(penalty, 0)) + SUM(CASE WHEN supplier_oper_name = 'Удержание' AND bonus_type_name NOT LIKE 'Списание за отзыв%%' AND bonus_type_name <> 'Оказание услуг «WB Продвижение»' THEN COALESCE(deduction, 0) ELSE 0 END) AS commission_total,
-            SUM(COALESCE(delivery_rub, 0)) AS logistics_total,
-            SUM(COALESCE(storage_fee, 0)) AS storage_total,
-            SUM(COALESCE(acquiring_fee, 0)) AS acquiring_total,
-            SUM(COALESCE(penalty, 0)) + SUM(CASE WHEN supplier_oper_name = 'Удержание' AND bonus_type_name NOT LIKE 'Списание за отзыв%%' AND bonus_type_name <> 'Оказание услуг «WB Продвижение»' THEN COALESCE(deduction, 0) ELSE 0 END) + SUM(CASE WHEN supplier_oper_name = 'Удержание' AND bonus_type_name LIKE 'Списание за отзыв%%' THEN COALESCE(deduction, 0) ELSE 0 END) AS other_total,
-            SUM(CASE WHEN doc_type_name = 'Продажа' AND supplier_oper_name = 'Продажа' THEN retail_amount ELSE 0 END) 
-            - SUM(CASE WHEN doc_type_name = 'Возврат' THEN retail_amount ELSE 0 END) AS op_after_spp
+            -- Количество заказов (продажи с quantity=1)
+            SUM(CASE 
+                WHEN LOWER(doc_type_name) NOT LIKE '%возврат%' 
+                AND quantity = 1 
+                THEN 1 
+                ELSE 0 
+            END) as orders_count,
+            -- Объем продаж после СПП (retail_amount с учетом знака)
+            ROUND(SUM(CASE 
+                WHEN LOWER(doc_type_name) NOT LIKE '%возврат%' 
+                THEN retail_amount 
+                ELSE -retail_amount 
+            END), 2) as op_after_spp,
+            -- Логистика (delivery_rub с учетом знака)
+            ROUND(SUM(CASE 
+                WHEN LOWER(doc_type_name) NOT LIKE '%возврат%' 
+                THEN COALESCE(delivery_rub, 0)
+                ELSE -COALESCE(delivery_rub, 0)
+            END), 2) as logistics_total,
+            -- Сумма к перечислению продавцу (ppvz_for_pay с учетом знака)
+            ROUND(SUM(CASE 
+                WHEN LOWER(doc_type_name) NOT LIKE '%возврат%' 
+                THEN ppvz_for_pay
+                ELSE -ppvz_for_pay
+            END), 2) as amount_to_transfer
         ")
             ->where('cabinet', $shopId)
-            ->where('date_from', $dateFrom);
+            ->whereDate('order_dt', '=', $dateFrom)
+            ->where('quantity', '!=', 2);
 
         if (!empty($nmIds)) {
             $query->whereIn('nm_id', $nmIds);
         }
 
-        return $query->groupBy('date_from', 'nm_id')
+        return $query->groupBy(DB::raw('DATE(order_dt)'), 'nm_id')
             ->get()
             ->mapWithKeys(function ($item) {
                 return [
                     $item->nm_id => [
-                        'commission_total' => (float)$item->commission_total,
-                        'logistics_total' => (float)$item->logistics_total,
-                        'storage_total' => (float)$item->storage_total,
-                        'acquiring_total' => (float)$item->acquiring_total,
-                        'other_total' => (float)$item->other_total,
-                        'op_after_spp' => (float)$item->op_after_spp,
+                        'commission_total' => 0,
+                        'logistics_total' => (float) $item->logistics_total,
+                        'storage_total' => 0,
+                        'acquiring_total' => 0,
+                        'other_total' => 0,
+                        'op_after_spp' => (float) $item->op_after_spp,
+                        'orders_count' => (int) $item->orders_count,
+                        'amount_to_transfer' => (float)$item->amount_to_transfer,
                     ]
                 ];
             })
