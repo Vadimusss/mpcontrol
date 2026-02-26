@@ -64,8 +64,11 @@ class GenerateSalesFunnelReport implements ShouldQueue
         $aucAdvIds = $this->getAucAdvIds();
         $allData = $this->getAllAdvData();
 
-        $nmIds = $WbAnalyticsV3ProductsHistory->pluck('nm_id')->toArray();
-        $expenseData = WbRealizationReport::getExpenseData($this->day, $this->shop->id, $nmIds);
+        $expenseData = $this->shop->wbExpensesByOrderDays()
+            ->where('order_date', '=', $this->day)
+            ->get()
+            ->keyBy('nm_id')
+            ->toArray();
 
         $avgPricesByDay = DB::table('wb_v1_supplier_orders')
             ->where('shop_id', $this->shop->id)
@@ -131,19 +134,14 @@ class GenerateSalesFunnelReport implements ShouldQueue
 
             $expenseInfo = array_key_exists($row->nm_id, $expenseData) ? $expenseData[$row->nm_id] : null;
             $ordersCountByRealization = $expenseInfo ? $expenseInfo['orders_count'] : 0;
-            $row->commission_total = $expenseInfo ? $expenseInfo['commission_total'] : 0;
             $row->logistics_total = $expenseInfo ? $expenseInfo['logistics_total'] : 0;
-            $row->storage_total = $expenseInfo ? $expenseInfo['storage_total'] : 0;
-            $row->acquiring_total = $expenseInfo ? $expenseInfo['acquiring_total'] : 0;
-            $row->other_total = $expenseInfo ? $expenseInfo['other_total'] : 0;
+            $row->commission_total = $expenseInfo ? $expenseInfo['op_after_spp'] - $expenseInfo['amount_to_transfer'] : 0;
+            $row->storage_total = 0;
+            $row->acquiring_total = 0;
+            $row->other_total = 0;
 
             $amount_to_transfer = $expenseInfo ? $expenseInfo['amount_to_transfer'] : null;
             $costPrice = $costPricesData[$row->good_id] ?? null;
-
-            if ($row->nm_id === 136549399) {
-                dump($expenseInfo);
-                dump($costPricesData[$row->good_id]);
-            }
 
             $row->profit_without_ads = $this->calculateProfit($amount_to_transfer, $row->logistics_total, $ordersCountByRealization, $costPrice);
             $row->profit_with_ads = $row->profit_without_ads - $row->advertising_costs;
