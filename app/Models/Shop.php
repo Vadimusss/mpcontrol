@@ -175,6 +175,11 @@ class Shop extends Model
         return $this->HasMany(WbRealizationReport::class, 'cabinet');
     }
 
+    public function wbExpensesByOrderDays(): HasMany
+    {
+        return $this->hasMany(WbExpensesByOrderDay::class, 'shop_id');
+    }
+
     public function barcodes(): array
     {
         $barcodes = $this->wbContentV2CardsListSizes->reduce(function (array $skus, $size) {
