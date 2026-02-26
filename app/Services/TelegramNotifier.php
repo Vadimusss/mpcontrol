@@ -15,12 +15,20 @@ class TelegramNotifier
         $this->chatId = config('services.telegram.chat_id');
     }
 
+    protected function escapeMarkdown(string $text): string
+    {
+        return str_replace('_', '\\_', $text);
+    }
+
     public function notifyJobSucceeded(string $jobName, float $duration, ?string $message = null): bool
     {
-        $text = "✅ Задание *{$jobName}* успешно выполнено за *".round($duration, 2)." сек*";
-        
+        $jobNameEscaped = $this->escapeMarkdown($jobName);
+        $durationFormatted = round($duration, 2);
+
+        $text = "✅ Задание *{$jobNameEscaped}* успешно выполнено за *{$durationFormatted} сек*";
+
         if ($message) {
-            $text .= "\n\n{$message}";
+            $text .= "\n\n" . $this->escapeMarkdown($message);
         }
 
         return $this->sendMessage($text);
