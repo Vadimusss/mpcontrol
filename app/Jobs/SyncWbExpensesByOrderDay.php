@@ -18,14 +18,12 @@ class SyncWbExpensesByOrderDay implements ShouldQueue
 
     public function __construct(
         public Shop $shop,
-        public ?string $startDate = null,
-        public ?string $endDate = null,
-        public int $daysBack = 32
+        public Carbon $startDate,
+        public Carbon $endDate,
     ) {
         $this->shop = $shop;
         $this->startDate = $startDate;
         $this->endDate = $endDate;
-        $this->daysBack = $daysBack;
     }
 
     public $timeout = 600;
@@ -41,24 +39,16 @@ class SyncWbExpensesByOrderDay implements ShouldQueue
 
         $externalConnection = DB::connection('ozon_api');
 
-        $endDate = $this->endDate
-            ? Carbon::parse($this->endDate)
-            : Carbon::yesterday();
-
-        $startDate = $this->startDate
-            ? Carbon::parse($this->startDate)
-            : $endDate->copy()->subDays($this->daysBack);
-
         $query = $externalConnection->table('wb.mv_expenses_by_orderday')
             ->where('cabinet', $this->shop->id)
-            ->whereBetween('order_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->whereBetween('order_date', [$this->startDate->toDateString(), $this->endDate->toDateString()])
             ->orderBy('order_date')
             ->orderBy('nm_id');
 
         $totalRecords = $query->count();
 
         if ($totalRecords === 0) {
-            $message = "Нет данных в wb.mv_expenses_by_orderday для магазина {$this->shop->name} за период с {$startDate->toDateString()} по {$endDate->toDateString()}";
+            $message = "Нет данных в wb.mv_expenses_by_orderday для магазина {$this->shop->name} за период с {$this->startDate->toDateString()} по {$this->endDate->toDateString()}";
 
             $duration = microtime(true) - $startTime;
             JobSucceeded::dispatch('SyncWbExpensesByOrderDay', $duration, $message);
@@ -67,7 +57,7 @@ class SyncWbExpensesByOrderDay implements ShouldQueue
 
         DB::table('wb_expenses_by_order_days')
             ->where('shop_id', $this->shop->id)
-            ->whereBetween('order_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->whereBetween('order_date', [$this->startDate->toDateString(), $this->endDate->toDateString()])
             ->delete();
 
         $insertedCount = 0;
@@ -94,7 +84,7 @@ class SyncWbExpensesByOrderDay implements ShouldQueue
             }
         });
 
-        $message = "Данные wb.mv_expenses_by_orderday успешно синхронизированы для магазина {$this->shop->name}. Период: с {$startDate->toDateString()} по {$endDate->toDateString()}. Записей: {$insertedCount}";
+        $message = "Данные wb.mv_expenses_by_orderday успешно синхронизированы для магазина {$this->shop->name}. Период: с {$this->startDate->toDateString()} по {$this->endDate->toDateString()}. Записей: {$insertedCount}";
 
         $duration = microtime(true) - $startTime;
         JobSucceeded::dispatch('SyncWbExpensesByOrderDay', $duration, $message);
