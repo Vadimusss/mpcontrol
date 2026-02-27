@@ -8,7 +8,6 @@ use Illuminate\Bus\Batchable;
 use Illuminate\Support\Facades\DB;
 use App\Models\Shop;
 use App\Models\SalesFunnel;
-use App\Models\WbRealizationReport;
 use App\Events\JobFailed;
 use App\Events\JobSucceeded;
 use Throwable;
