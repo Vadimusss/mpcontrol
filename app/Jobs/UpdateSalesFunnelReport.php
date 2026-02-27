@@ -5,18 +5,13 @@ namespace App\Jobs;
 use App\Models\Shop;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use App\Jobs\AddWbAdvV2Fullstats;
-use App\Jobs\UpdateNsiFromGoogleSheets;
-use App\Jobs\UpdateWbAdvV2FullstatsForDate;
 use App\Jobs\GenerateSalesFunnelReport;
 use Illuminate\Bus\Batchable;
-use Illuminate\Foundation\Bus\ClosureJob;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 use App\Events\JobFailed;
-use Throwable;
 use Carbon\Carbon;
-use Illuminate\Support\Arr;
+use Throwable;
 
 class UpdateSalesFunnelReport implements ShouldQueue
 {
