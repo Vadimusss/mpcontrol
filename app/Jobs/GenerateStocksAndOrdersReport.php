@@ -28,26 +28,28 @@ class GenerateStocksAndOrdersReport implements ShouldQueue
     public function handle(): void
     {
         $startTime = microtime(true);
-        $this->shop->stocksAndOrders()->where('date', '=', $this->day)->delete();
 
-        $this->shop->stocks()->select(
+        $stocks = $this->shop->stocks()->where('date', '=', $this->day)->select(
             'shop_id',
             'barcode',
             'supplier_article',
             'nm_id',
             'warehouse_name',
-            'quantity')->
-        get()->
-        map(function ($row) {
-            $row['date'] = $this->day;
-                return $row;
-        })->
-        chunk(1000)->
-        each(function ($chunk) {
-            DB::table('stocks_and_orders')->insert($chunk->toArray());
-        });
+            'quantity',
+            'date')->get();
 
-        $message = "Остатки и продажи магазина {$this->shop->name} за {$this->day} обновлены!";
+        if ($stocks->isNotEmpty()) {
+            $this->shop->stocksAndOrders()->where('date', '=', $this->day)->delete();
+
+            $stocks->chunk(1000)->each(function ($chunk) {
+                DB::table('stocks_and_orders')->insert($chunk->toArray());
+            });
+
+            $message = "Остатки и продажи магазина {$this->shop->name} за {$this->day} обновлены!";
+        } else {
+            $message = "Нет данных об остатках магазина {$this->shop->name} за {$this->day}, отчет не обновлен.";
+        }
+
         $duration = microtime(true) - $startTime;
         JobSucceeded::dispatch('GenerateStocksAndOrdersReport', $duration, $message);
     }

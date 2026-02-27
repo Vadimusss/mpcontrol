@@ -25,34 +25,39 @@ class UpdateStocksAndOrdersReport implements ShouldQueue
     {
         $startTime = microtime(true);
 
-        $stocksAndOrdersReport = $this->shop->stocksAndOrders()->
-            select('shop_id', 'barcode', 'supplier_article', 'nm_id', 'warehouse_name', 'date', 'quantity', 'orders_count')->
-                where('date', '=', $this->date)->get();
+        $stocks = $this->shop->stocks()->
+            select('shop_id', 'barcode', 'supplier_article', 'nm_id', 'warehouse_name', 'quantity', 'date')->
+            where('date', '=', $this->date)->get();
 
-        $this->shop->stocksAndOrders()->where('date', '=', $this->date)->delete();
+        if ($stocks->isNotEmpty()) {
+            $this->shop->stocksAndOrders()->where('date', '=', $this->date)->delete();
 
-        $wbV1SupplierOrders = $this->shop->WbV1SupplierOrders()->
-            select('date', 'warehouse_name', 'barcode')->
-                where('date', 'like', "%{$this->date}%")->get();
+            $wbV1SupplierOrders = $this->shop->WbV1SupplierOrders()->
+                select('warehouse_name', 'barcode')->
+                whereRaw("DATE(date) = '{$this->date}'")->get();
 
-        $ordersCount = $wbV1SupplierOrders->groupBy('warehouse_name')->map(function ($warehouse) {
-            return $warehouse->countBy('barcode');
-        })->toArray();
+            $ordersCount = $wbV1SupplierOrders->groupBy('warehouse_name')->map(function ($warehouse) {
+                return $warehouse->countBy('barcode');
+            })->toArray();
 
-        $stocksAndOrdersReport->map(function ($row) use ($ordersCount) {
-            $warehouseName = $row->warehouse_name;
-            $barcode = $row->barcode;
-            $row->orders_count = array_key_exists($warehouseName, $ordersCount) &&
-                array_key_exists($barcode, $ordersCount[$warehouseName]) ? $ordersCount[$warehouseName][$barcode] : 0;
+            $stocks->map(function ($row) use ($ordersCount) {
+                $warehouseName = $row->warehouse_name;
+                $barcode = $row->barcode;
+                $row->orders_count = array_key_exists($warehouseName, $ordersCount) &&
+                    array_key_exists($barcode, $ordersCount[$warehouseName]) ? $ordersCount[$warehouseName][$barcode] : 0;
 
-            return $row;
-        })->
-        chunk(1000)->
-        each(function ($chunk) {
-            DB::table('stocks_and_orders')->insert($chunk->toArray());
-        });
+                return $row;
+            })->
+            chunk(1000)->
+            each(function ($chunk) {
+                DB::table('stocks_and_orders')->insert($chunk->toArray());
+            });
 
-        $message = $message = "Остатки и продажи магазина {$this->shop->name} за {$this->date} обновлены!";
+            $message = "Остатки и продажи магазина {$this->shop->name} за {$this->date} обновлены!";
+        } else {
+            $message = "Нет данных об остатках магазина {$this->shop->name} за {$this->date}, отчет не обновлен.";
+        }
+
         $duration = microtime(true) - $startTime;
         JobSucceeded::dispatch('UpdateStocksAndOrdersReport', $duration, $message);
     }

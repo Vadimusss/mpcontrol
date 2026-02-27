@@ -51,7 +51,7 @@ class GenerateMainViewCache implements ShouldQueue
             return Carbon::now()->subDays($day)->format('Y-m-d');
         })->all();
 
-        $currentDate = Carbon::now()->subDays(1)->format('Y-m-d');
+        $currentDate = Carbon::now()->format('Y-m-d');
 
         $warehouses = [
             'elektrostal' => 'Электросталь',
@@ -259,6 +259,7 @@ class GenerateMainViewCache implements ShouldQueue
     private function calculateStocks(array $warehouses, string $date): array
     {
         $fboTotals = WbV1SupplierStocks::where('shop_id', $this->shop->id)
+            ->where('date', '=', $date)
             ->selectRaw('nm_id, sum(quantity) as total')
             ->groupBy('nm_id')
             ->pluck('total', 'nm_id');
@@ -270,6 +271,7 @@ class GenerateMainViewCache implements ShouldQueue
             ->pluck('total', 'nm_id');
 
         $warehouseStocks = WbV1SupplierStocks::where('shop_id', $this->shop->id)
+            ->where('date', '=', $date)
             ->whereIn('warehouse_name', array_values($warehouses))
             ->selectRaw('nm_id, warehouse_name, sum(quantity) as quantity')
             ->groupBy('nm_id', 'warehouse_name')

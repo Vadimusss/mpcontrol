@@ -26,14 +26,13 @@ class MainViewHandler implements ViewHandler
         $commission = $shop->settings['commission'] ?? null;
         $logistics = $shop->settings['logistics'] ?? null;
 
-        // $viewSettings = json_decode($workSpace->viewSettings->settings);
         $dates = collect(range(0, 30))->map(function ($day) {
             return Carbon::now()->subDays($day)->format('Y-m-d');
         })->all();
 
         $totalsStartDate = Carbon::now()->subDays(30)->format('Y-m-d');
 
-        $currentDate = Carbon::now()->subDays(1)->format('Y-m-d');
+        $currentDate = Carbon::now()->format('Y-m-d');
 
         $warehouses = [
             'elektrostal' => 'Электросталь',
@@ -143,10 +142,7 @@ class MainViewHandler implements ViewHandler
             $discount = $good->wbListGoodRow?->discount ?? 0;
             $discountedPrice = $price * (1 - $discount / 100);
 
-            // $costWithTaxes = $good->nsi?->cost_with_taxes;
-
             $costWithTaxes = $good->internalNsi?->cost_price ?? $good->nsi?->cost_with_taxes;
-
 
             $mainRowProfit = $this->calculateMainRowProfit(
                 $price,
@@ -264,6 +260,7 @@ class MainViewHandler implements ViewHandler
     private function calculateStocks($shop, $warehouses, $date): array
     {
         $fboTotals = $shop->stocks()
+            ->where('date', '=', $date)
             ->selectRaw('nm_id, sum(quantity) as total')
             ->groupBy('nm_id')
             ->pluck('total', 'nm_id');
@@ -275,6 +272,7 @@ class MainViewHandler implements ViewHandler
             ->pluck('total', 'nm_id');
 
         $warehouseStocks = $shop->stocks()
+            ->where('date', '=', $date)
             ->whereIn('warehouse_name', array_values($warehouses))
             ->selectRaw('nm_id, warehouse_name, sum(quantity) as quantity')
             ->groupBy('nm_id', 'warehouse_name')

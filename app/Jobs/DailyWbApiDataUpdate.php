@@ -9,7 +9,7 @@ use App\Jobs\AddWbAdvV1PromotionCount;
 use App\Jobs\AddWbAnalyticsV3ProductsHistory;
 // use App\Jobs\AddWbAdvV1Upd;
 use App\Jobs\AddWbV1SupplierOrders;
-use App\Jobs\UpdateWbV1SupplierStocks;
+use App\Jobs\AddWbV1SupplierStocks;
 use App\Jobs\GenerateSalesFunnelReport;
 use App\Jobs\GenerateStocksAndOrdersReport;
 use App\Jobs\UpdateStocksAndOrdersReport;
@@ -36,11 +36,8 @@ class DailyWbApiDataUpdate implements ShouldQueue
         })->get();
 
         $shops->each(function ($shop, int $key) {
-            $date = date('Y-m-d', strtotime("-{$this->daysAgo} days"));
-            $period = [
-                'begin' => $date,
-                'end' => $date,
-            ];
+            $daysAgo = $this->daysAgo;
+            $date = date('Y-m-d', strtotime("-{$daysAgo} days"));
 
             $advertIds = $shop->wbAdvV1PromotionCounts()
                 ->where('shop_id', $shop->id)
@@ -72,19 +69,24 @@ class DailyWbApiDataUpdate implements ShouldQueue
                 ))->delay(20);
             }
 
-            Bus::batch([
+            $batchChains = [
                 $fullstatsJobs,
                 $productsHistoryJobs,
-                // [new AddWbAdvV1Upd($shop, $period)],
                 [new AddWbV1SupplierOrders($shop, $date)],
-                [new UpdateWbV1SupplierStocks($shop)],
-            ])->then(function (Batch $batch) use ($shop, $date) {
-                GenerateSalesFunnelReport::dispatch($shop, $date);
-                Bus::chain([
-                    new GenerateStocksAndOrdersReport($shop, $date),
-                    new UpdateStocksAndOrdersReport($shop, $date),
-                ])->dispatch();
-            })->allowFailures()->dispatch();
+            ];
+
+            if ($daysAgo == 0) {
+                $batchChains[] = [new AddWbV1SupplierStocks($shop, $date)];
+            }
+
+            Bus::batch($batchChains)
+                ->then(function (Batch $batch) use ($shop, $date, $daysAgo) {
+                    GenerateSalesFunnelReport::dispatch($shop, $date);
+                    Bus::chain(array_filter([
+                        $daysAgo == 0 ? new GenerateStocksAndOrdersReport($shop, $date) : null,
+                        new UpdateStocksAndOrdersReport($shop, $date),
+                    ]))->dispatch();
+                })->allowFailures()->dispatch();
         });
     }
 

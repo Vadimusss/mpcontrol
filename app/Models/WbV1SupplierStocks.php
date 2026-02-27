@@ -9,6 +9,7 @@ class WbV1SupplierStocks extends Model
 {
     protected $fillable = [
         'shop_id',
+        'date',
         'last_change_date',
         'warehouse_name',
         'supplier_article',
