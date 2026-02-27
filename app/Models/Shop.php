@@ -170,11 +170,6 @@ class Shop extends Model
         );
     }
 
-    public function wbRealizationReport(): HasMany
-    {
-        return $this->HasMany(WbRealizationReport::class, 'cabinet');
-    }
-
     public function wbExpensesByOrderDays(): HasMany
     {
         return $this->hasMany(WbExpensesByOrderDay::class, 'shop_id');
