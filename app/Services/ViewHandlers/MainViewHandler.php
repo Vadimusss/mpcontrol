@@ -66,7 +66,7 @@ class MainViewHandler implements ViewHandler
                     $query->with([
                         'salesFunnel' => function ($q) use ($totalsStartDate) {
                             $q->where('date', '>=', $totalsStartDate)
-                                ->select('good_id', 'orders_count');
+                                ->select('good_id', 'orders_count', 'advertising_costs', 'finished_price');
                         }
                     ]);
                 }
@@ -76,15 +76,26 @@ class MainViewHandler implements ViewHandler
                 return $list->goods;
             });
 
-        $totalsOrdersCountMap = [];
+        $goodsTotalsMap = [];
         foreach ($goodsWithTotals as $good) {
-            $total = 0;
+            $ordersTotal = 0;
+            $adCostsTotal = 0;
+            $finishedPrices = [];
+
             foreach ($good->salesFunnel as $row) {
                 if (is_numeric($row->orders_count)) {
-                    $total += $row->orders_count;
+                    $ordersTotal += $row->orders_count;
+                }
+                if (is_numeric($row->advertising_costs)) {
+                    $adCostsTotal += $row->advertising_costs;
+                }
+                if (is_numeric($row->finished_price)) {
+                    $finishedPrices[] = $row->finished_price;
                 }
             }
-            $totalsOrdersCountMap[$good->id] = $total;
+            $goodsTotalsMap[$good->id]['orders'] = $ordersTotal;
+            $goodsTotalsMap[$good->id]['adCost'] = $adCostsTotal;
+            $goodsTotalsMap[$good->id]['finPrices'] = $finishedPrices;
         }
 
         $goods = $workSpace->connectedGoodLists()
@@ -114,7 +125,7 @@ class MainViewHandler implements ViewHandler
             $logistics,
             $stocks,
             $dates,
-            $totalsOrdersCountMap,
+            $goodsTotalsMap,
         ) {
 
             $ordersCountByDate = [];
@@ -151,6 +162,12 @@ class MainViewHandler implements ViewHandler
                 $costWithTaxes
             );
             $percent = ($mainRowProfit == '' || $discountedPrice == 0) ? '' : round(($mainRowProfit / $discountedPrice) * 100);
+
+            $mainRowDrr = $this->calculateMainRowDrr(
+                $goodsTotalsMap[$good->id]['orders'],
+                $goodsTotalsMap[$good->id]['adCost'],
+                $goodsTotalsMap[$good->id]['finPrice'],
+            );
 
             return [
                 'id' => $good->id,
@@ -196,7 +213,7 @@ class MainViewHandler implements ViewHandler
                 'wbArticle' => $good->nm_id,
                 'status' => $good->status->name ?? 'Без статуса',
                 'mainRowMetadata' => 'Шт.',
-                'totalsOrdersCount' => $totalsOrdersCountMap[$good->id] ?? 0,
+                'totalsOrdersCount' => $goodsTotalsMap[$good->id]['orders'] ?? 0,
                 'orders_count' => $ordersCountByDate,
                 'isHighlighted' => $isHighlightedByDate,
                 'mainRowProfit' => $mainRowProfit == '' ? $mainRowProfit : round($mainRowProfit),
@@ -244,6 +261,11 @@ class MainViewHandler implements ViewHandler
 
         $profit = $price - ($price * ($commission / 100)) - $logistics - $costWithTaxes;
         return round($profit) == 0 ? '' : round($profit);
+    }
+
+    private function calculateMainRowDrr{}: int
+    {
+        
     }
 
     public function getDefaultViewState(): array
