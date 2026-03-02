@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Events\JobFailed;
-use App\Services\GoogleSheetsService;
+use App\Services\Integrations\GoogleSheetsService;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Queue\Events\JobProcessed;

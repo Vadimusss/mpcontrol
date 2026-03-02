@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Integrations;
 
 use Google\Client;
 use Google\Service\Sheets;

@@ -4,7 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Shop;
 use App\Models\Good;
-use App\Services\GoogleSheetsService;
+use App\Services\Integrations\GoogleSheetsService;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
