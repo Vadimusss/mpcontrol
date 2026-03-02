@@ -170,7 +170,10 @@ class GenerateMainViewCache implements ShouldQueue
                     'ekbPerspektivnyj12' => $stocks['ekbPerspektivnyj12']->get($good->nm_id, 0),
                     'sarapul' => $stocks['sarapul']->get($good->nm_id, 0),
                 ],
-                'days_of_stock' => $this->calculateDaysOfStock($ordersCountByDate, $stocks['fboTotals']->get($good->nm_id, 0)),
+                'days_of_stock' => $this->calculateDaysOfStock(
+                    $ordersCountByDate,
+                    $stocks['fboTotals']->get($good->nm_id, 0) + $stocks['fbsTotals']->get($good->nm_id, 0)
+                ),
                 'article' => $good->vendor_code,
                 'prices' => [
                     'discountedPrice' => round($discountedPrice),
