@@ -30,8 +30,6 @@ class MainViewHandler implements ViewHandler
             return Carbon::now()->subDays($day)->format('Y-m-d');
         })->all();
 
-        $totalsStartDate = Carbon::now()->subDays(30)->format('Y-m-d');
-
         $currentDate = Carbon::now()->format('Y-m-d');
 
         $warehouses = [
@@ -60,44 +58,6 @@ class MainViewHandler implements ViewHandler
 
         $stocks = $this->calculateStocks($shop, $warehouses, $currentDate);
 
-        $goodsWithTotals = $workSpace->connectedGoodLists()
-            ->with([
-                'goods' => function ($query) use ($totalsStartDate) {
-                    $query->with([
-                        'salesFunnel' => function ($q) use ($totalsStartDate) {
-                            $q->where('date', '>=', $totalsStartDate)
-                                ->select('good_id', 'orders_count', 'advertising_costs', 'finished_price');
-                        }
-                    ]);
-                }
-            ])
-            ->get()
-            ->flatMap(function ($list) {
-                return $list->goods;
-            });
-
-        $goodsTotalsMap = [];
-        foreach ($goodsWithTotals as $good) {
-            $ordersTotal = 0;
-            $adCostsTotal = 0;
-            $finishedPrices = [];
-
-            foreach ($good->salesFunnel as $row) {
-                if (is_numeric($row->orders_count)) {
-                    $ordersTotal += $row->orders_count;
-                }
-                if (is_numeric($row->advertising_costs)) {
-                    $adCostsTotal += $row->advertising_costs;
-                }
-                if (is_numeric($row->finished_price)) {
-                    $finishedPrices[] = $row->finished_price;
-                }
-            }
-            $goodsTotalsMap[$good->id]['orders'] = $ordersTotal;
-            $goodsTotalsMap[$good->id]['adCost'] = $adCostsTotal;
-            $goodsTotalsMap[$good->id]['finPrices'] = $finishedPrices;
-        }
-
         $goods = $workSpace->connectedGoodLists()
             ->with([
                 'goods' => function ($query) use ($dates) {
@@ -109,7 +69,7 @@ class MainViewHandler implements ViewHandler
                         'wbListGoodRow:good_id,discount',
                         'salesFunnel' => function ($q) use ($dates) {
                             $q->whereIn('date', $dates)
-                                ->select('good_id', 'date', 'orders_count', 'advertising_costs')
+                                ->select('good_id', 'date', 'orders_count', 'advertising_costs', 'finished_price')
                                 ->orderBy('date');
                         }
                     ]);
@@ -119,6 +79,8 @@ class MainViewHandler implements ViewHandler
             ->flatMap(function ($list) {
                 return $list->goods;
             });
+
+        $goodsTotalsMap = $this->calculateTotals($goods);
 
         return $goods->map(function ($good) use (
             $commission,
@@ -162,12 +124,6 @@ class MainViewHandler implements ViewHandler
                 $costWithTaxes
             );
             $percent = ($mainRowProfit == '' || $discountedPrice == 0) ? '' : round(($mainRowProfit / $discountedPrice) * 100);
-
-            $mainRowDrr = $this->calculateMainRowDrr(
-                $goodsTotalsMap[$good->id]['orders'],
-                $goodsTotalsMap[$good->id]['adCost'],
-                $goodsTotalsMap[$good->id]['finPrice'],
-            );
 
             return [
                 'id' => $good->id,
@@ -214,6 +170,17 @@ class MainViewHandler implements ViewHandler
                 'status' => $good->status->name ?? 'Без статуса',
                 'mainRowMetadata' => 'Шт.',
                 'totalsOrdersCount' => $goodsTotalsMap[$good->id]['orders'] ?? 0,
+                'drr30days' => $this->calculateDrr(
+                    $goodsTotalsMap[$good->id]['orders'],
+                    $goodsTotalsMap[$good->id]['adCost'],
+                    $goodsTotalsMap[$good->id]['finPrices'],
+                ),
+                'drr7days' => $this->calculateDrr(
+                    $goodsTotalsMap[$good->id]['sevenDays']['orders'],
+                    $goodsTotalsMap[$good->id]['sevenDays']['adCost'],
+                    $goodsTotalsMap[$good->id]['sevenDays']['finPrices'],
+                ),
+                'avgDailyAdCost' => round($goodsTotalsMap[$good->id]['adCost'] / 30),
                 'orders_count' => $ordersCountByDate,
                 'isHighlighted' => $isHighlightedByDate,
                 'mainRowProfit' => $mainRowProfit == '' ? $mainRowProfit : round($mainRowProfit),
@@ -253,6 +220,36 @@ class MainViewHandler implements ViewHandler
         return $dailySalesEstimate > 0 ? round($totalStock / $dailySalesEstimate) : '';
     }
 
+    private function calculateTotals($goods): array
+    {
+        $sevenDaysAgo = now()->subDays(7)->startOfDay();
+
+        return $goods->mapWithKeys(function ($good) use ($sevenDaysAgo) {
+            $salesFunnel = $good->salesFunnel;
+
+            $allData = [
+                'orders' => $salesFunnel->sum('orders_count'),
+                'adCost' => $salesFunnel->sum('advertising_costs'),
+                'finPrices' => $salesFunnel->pluck('finished_price')->filter()->values()->toArray(),
+            ];
+
+            $sevenDaysData = $salesFunnel->filter(function ($row) use ($sevenDaysAgo) {
+                return $row->date >= $sevenDaysAgo;
+            });
+
+            return [$good->id => [
+                'orders' => $allData['orders'],
+                'adCost' => $allData['adCost'],
+                'finPrices' => $allData['finPrices'],
+                'sevenDays' => [
+                    'orders' => $sevenDaysData->sum('orders_count'),
+                    'adCost' => $sevenDaysData->sum('advertising_costs'),
+                    'finPrices' => $sevenDaysData->pluck('finished_price')->filter()->values()->toArray(),
+                ]
+            ]];
+        })->toArray();
+    }
+
     private function calculateMainRowProfit(float $price, ?float $commission, ?float $logistics, ?float $costWithTaxes): string
     {
         if ($commission === null || $logistics === null || $costWithTaxes === null) {
@@ -263,9 +260,17 @@ class MainViewHandler implements ViewHandler
         return round($profit) == 0 ? '' : round($profit);
     }
 
-    private function calculateMainRowDrr{}: int
+    private function calculateDrr(int $orders, int $adCost, array $prices): int
     {
-        
+        if ($orders == 0 || $adCost == 0 || count($prices) == 0) {
+            return 0;
+        }
+
+        $avgPrice = array_sum($prices) / count($prices);
+
+        $revenue = $orders * $avgPrice;
+
+        return (int) round(($adCost / $revenue) * 100);
     }
 
     public function getDefaultViewState(): array

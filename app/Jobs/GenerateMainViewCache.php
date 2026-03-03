@@ -88,21 +88,20 @@ class GenerateMainViewCache implements ShouldQueue
                 'wbListGoodRow:good_id,discount',
                 'salesFunnel' => function ($q) use ($dates) {
                     $q->whereIn('date', $dates)
-                        ->select('good_id', 'date', 'orders_count', 'advertising_costs')
+                        ->select('good_id', 'date', 'orders_count', 'advertising_costs', 'finished_price')
                         ->orderBy('date');
                 }
             ])
             ->get(['id', 'nm_id', 'vendor_code', 'good_status_id']);
 
-        $totalsStartDate = Carbon::now()->subDays(30)->format('Y-m-d');
-        $totalsOrdersCountMap = $this->calculateTotalsOrdersCount($totalsStartDate);
+        $goodsTotalsMap = $this->calculateTotals($goods);
 
         $result = $goods->map(function ($good) use (
             $commission,
             $logistics,
             $stocks,
             $dates,
-            $totalsOrdersCountMap,
+            $goodsTotalsMap,
         ) {
             $ordersCountByDate = [];
             $isHighlightedByDate = [];
@@ -129,8 +128,6 @@ class GenerateMainViewCache implements ShouldQueue
             $price = $good->sizes->first()?->price ?? 0;
             $discount = $good->wbListGoodRow?->discount ?? 0;
             $discountedPrice = $price * (1 - $discount / 100);
-
-            // $costWithTaxes = $good->nsi?->cost_with_taxes;
 
             $costWithTaxes = $good->internalNsi?->cost_price ?? $good->nsi?->cost_with_taxes;
 
@@ -186,7 +183,18 @@ class GenerateMainViewCache implements ShouldQueue
                 'wbArticle' => $good->nm_id,
                 'status' => $good->status->name ?? 'Без статуса',
                 'mainRowMetadata' => 'Шт.',
-                'totalsOrdersCount' => $totalsOrdersCountMap[$good->id] ?? 0,
+                'totalsOrdersCount' => $goodsTotalsMap[$good->id]['orders'] ?? 0,
+                'drr30days' => $this->calculateDrr(
+                    $goodsTotalsMap[$good->id]['orders'],
+                    $goodsTotalsMap[$good->id]['adCost'],
+                    $goodsTotalsMap[$good->id]['finPrices'],
+                ),
+                'drr7days' => $this->calculateDrr(
+                    $goodsTotalsMap[$good->id]['sevenDays']['orders'],
+                    $goodsTotalsMap[$good->id]['sevenDays']['adCost'],
+                    $goodsTotalsMap[$good->id]['sevenDays']['finPrices'],
+                ),
+                'avgDailyAdCost' => round($goodsTotalsMap[$good->id]['adCost'] / 30),
                 'orders_count' => $ordersCountByDate,
                 'isHighlighted' => $isHighlightedByDate,
                 'mainRowProfit' => $mainRowProfit == '' ? $mainRowProfit : round($mainRowProfit),
@@ -204,18 +212,34 @@ class GenerateMainViewCache implements ShouldQueue
         ];
     }
 
-    private function calculateTotalsOrdersCount(string $startDate): array
+    private function calculateTotals($goods): array
     {
-        return SalesFunnel::whereIn('good_id', function ($query) {
-            $query->select('id')
-                ->from('goods')
-                ->where('shop_id', $this->shop->id);
-        })
-            ->where('date', '>=', $startDate)
-            ->select('good_id', DB::raw('SUM(orders_count) as total'))
-            ->groupBy('good_id')
-            ->pluck('total', 'good_id')
-            ->toArray();
+        $sevenDaysAgo = now()->subDays(7)->startOfDay();
+
+        return $goods->mapWithKeys(function ($good) use ($sevenDaysAgo) {
+            $salesFunnel = $good->salesFunnel;
+
+            $allData = [
+                'orders' => $salesFunnel->sum('orders_count'),
+                'adCost' => $salesFunnel->sum('advertising_costs'),
+                'finPrices' => $salesFunnel->pluck('finished_price')->filter()->values()->toArray(),
+            ];
+
+            $sevenDaysData = $salesFunnel->filter(function ($row) use ($sevenDaysAgo) {
+                return $row->date >= $sevenDaysAgo;
+            });
+
+            return [$good->id => [
+                'orders' => $allData['orders'],
+                'adCost' => $allData['adCost'],
+                'finPrices' => $allData['finPrices'],
+                'sevenDays' => [
+                    'orders' => $sevenDaysData->sum('orders_count'),
+                    'adCost' => $sevenDaysData->sum('advertising_costs'),
+                    'finPrices' => $sevenDaysData->pluck('finished_price')->filter()->values()->toArray(),
+                ]
+            ]];
+        })->toArray();
     }
 
     private function calculateDaysOfStock(array $ordersCountByDate, float $totalStock): string
@@ -257,6 +281,19 @@ class GenerateMainViewCache implements ShouldQueue
 
         $profit = $price - ($price * ($commission / 100)) - $logistics - $costWithTaxes;
         return round($profit) == 0 ? '' : round($profit);
+    }
+
+    private function calculateDrr(int $orders, int $adCost, array $prices): int
+    {
+        if ($orders == 0 || $adCost == 0 || count($prices) == 0) {
+            return 0;
+        }
+
+        $avgPrice = array_sum($prices) / count($prices);
+
+        $revenue = $orders * $avgPrice;
+
+        return (int) round(($adCost / $revenue) * 100);
     }
 
     private function calculateStocks(array $warehouses, string $date): array

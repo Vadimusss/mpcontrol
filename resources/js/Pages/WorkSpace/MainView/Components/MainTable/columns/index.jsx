@@ -187,6 +187,36 @@ export const createColumns = (dates, handleOpenModal) => [
         }
     },
     {
+        accessorKey: 'drr30days',
+        header: 'ДРР 30',
+        cell: (info) => numericFormatter(info.getValue()),
+        meta: {
+            isClassNameDynamic: false,
+            thClassName: 'bg-gray',
+            tdClassName: 'bg-gray',
+        }
+    },
+    {
+        accessorKey: 'drr7days',
+        header: 'ДРР 7',
+        cell: (info) => numericFormatter(info.getValue()),
+        meta: {
+            isClassNameDynamic: false,
+            thClassName: 'bg-gray',
+            tdClassName: 'bg-gray',
+        }
+    },
+    {
+        accessorKey: 'avgDailyAdCost',
+        header: 'Ср. РР/д',
+        cell: (info) => numericFormatter(info.getValue()),
+        meta: {
+            isClassNameDynamic: false,
+            thClassName: 'bg-gray',
+            tdClassName: 'bg-gray',
+        }
+    },
+    {
         accessorKey: 'percent',
         header: '%',
         cell: (info) => numericFormatter(info.getValue()),

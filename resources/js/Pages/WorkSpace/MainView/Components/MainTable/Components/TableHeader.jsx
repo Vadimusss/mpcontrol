@@ -44,7 +44,7 @@ export const TableHeader = ({
                                 Коэф. процентиля: ${shop.settings?.percentile_coefficient},
                                 Коэф. веса: ${shop.settings?.weight_coefficient}`}
                 </th>
-                <th colSpan={dates.length + 3}>
+                <th colSpan={dates.length + 6}>
                     <div className="days-selector">
                         <span className="days-label">Дней: </span>
                         <a 
@@ -99,7 +99,7 @@ export const TableHeader = ({
                 {Array.from({ length: displayDays }, (_, index) => -index).reverse().map((number, index) => (
                     <th key={index}>{number}</th>
                 ))}
-                <th colSpan={37}></th>
+                <th colSpan={40}></th>
             </tr>
         </thead>
     );
