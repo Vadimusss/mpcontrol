@@ -189,7 +189,7 @@ export const createColumns = (dates, handleOpenModal) => [
     {
         accessorKey: 'drr30days',
         header: 'ДРР 30',
-        cell: (info) => numericFormatter(info.getValue()),
+        cell: (info) => numericFormatter(info.getValue(), 0, '%'),
         meta: {
             isClassNameDynamic: false,
             thClassName: 'bg-gray',
@@ -199,7 +199,7 @@ export const createColumns = (dates, handleOpenModal) => [
     {
         accessorKey: 'drr7days',
         header: 'ДРР 7',
-        cell: (info) => numericFormatter(info.getValue()),
+        cell: (info) => numericFormatter(info.getValue(), 0, '%'),
         meta: {
             isClassNameDynamic: false,
             thClassName: 'bg-gray',
