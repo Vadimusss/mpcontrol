@@ -14,6 +14,7 @@ import '../../styles.css';
 export const MainTable = observer(({
     dates,
     shop,
+    displayDays,
     workSpaceSettings,
     filteredGoods,
     tableContainerRef
@@ -26,19 +27,19 @@ export const MainTable = observer(({
     useEffect(() => {
         const handleKeyDown = (e) => {
             const isCtrlPressed = e.ctrlKey || e.metaKey;
-            
+
             if (isCtrlPressed && e.keyCode === 70) {
                 e.preventDefault();
                 setShowSearchBar(true);
             }
-            
+
             if (e.key === 'Escape' && showSearchBar) {
                 e.preventDefault();
                 setShowSearchBar(false);
                 viewStore.clearSearch();
             }
         };
-        
+
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [showSearchBar]);
@@ -60,18 +61,17 @@ export const MainTable = observer(({
 
     const goodsWithSearchFilter = useMemo(() => {
         if (!viewStore.searchQuery.trim() || viewStore.searchResults.length === 0) {
-            return filteredGoods;
+            return filteredGoods ? [...filteredGoods] : [];
         }
-        
-        return filteredGoods.filter(good => 
+
+        return filteredGoods.filter(good =>
             viewStore.searchResults.includes(good.id)
         );
-    }, [filteredGoods, viewStore.searchQuery, viewStore.searchResults]);
+    }, [filteredGoods, viewStore.searchQuery, viewStore.searchResults, displayDays]);
 
-    const columns = useMemo(() =>
-        createColumns(dates, handleOpenModal),
-        [viewStore, dates]
-    );
+    const columns = useMemo(() => {
+        return createColumns(dates, displayDays, handleOpenModal);
+    }, [dates, displayDays]);
 
     const table = useReactTable({
         data: goodsWithSearchFilter,
@@ -85,7 +85,7 @@ export const MainTable = observer(({
             {showSearchBar && (
                 <SearchBar onClose={handleCloseSearch} />
             )}
-            
+
             <table className="sticky-table">
                 <Colgroup dates={dates} />
                 <TableHeader

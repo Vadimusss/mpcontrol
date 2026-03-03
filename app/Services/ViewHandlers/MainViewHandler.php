@@ -69,8 +69,17 @@ class MainViewHandler implements ViewHandler
                         'wbListGoodRow:good_id,discount',
                         'salesFunnel' => function ($q) use ($dates) {
                             $q->whereIn('date', $dates)
-                                ->select('good_id', 'date', 'orders_count', 'advertising_costs', 'finished_price')
-                                ->orderBy('date');
+                                ->select(
+                                    'good_id',
+                                    'date',
+                                    'orders_count',
+                                    'advertising_costs',
+                                    'finished_price',
+                                    'aac_orders',
+                                    'auc_orders',
+                                    'assoc_orders_from_other',
+                                    'assoc_orders_from_this',
+                                )->orderBy('date');
                         }
                     ]);
                 }
@@ -171,16 +180,17 @@ class MainViewHandler implements ViewHandler
                 'mainRowMetadata' => 'Шт.',
                 'totalsOrdersCount' => $goodsTotalsMap[$good->id]['orders'] ?? 0,
                 'drr30days' => $this->calculateDrr(
-                    $goodsTotalsMap[$good->id]['orders'],
-                    $goodsTotalsMap[$good->id]['adCost'],
-                    $goodsTotalsMap[$good->id]['finPrices'],
+                    $goodsTotalsMap[$good->id]['thirtyDays']['orders'],
+                    $goodsTotalsMap[$good->id]['thirtyDays']['adCost'],
+                    $goodsTotalsMap[$good->id]['thirtyDays']['finPrices'],
                 ),
                 'drr7days' => $this->calculateDrr(
                     $goodsTotalsMap[$good->id]['sevenDays']['orders'],
                     $goodsTotalsMap[$good->id]['sevenDays']['adCost'],
                     $goodsTotalsMap[$good->id]['sevenDays']['finPrices'],
                 ),
-                'avgDailyAdCost' => round($goodsTotalsMap[$good->id]['adCost'] / 30),
+                'avgDailyAdCost' => round($goodsTotalsMap[$good->id]['thirtyDays']['adCost'] / 30),
+                'orderTotals' => $this->prepareOrdersTotals($goodsTotalsMap[$good->id]),
                 'orders_count' => $ordersCountByDate,
                 'isHighlighted' => $isHighlightedByDate,
                 'mainRowProfit' => $mainRowProfit == '' ? $mainRowProfit : round($mainRowProfit),
@@ -222,29 +232,55 @@ class MainViewHandler implements ViewHandler
 
     private function calculateTotals($goods): array
     {
+        $fourteenDaysAgo = now()->subDays(14)->startOfDay();
         $sevenDaysAgo = now()->subDays(7)->startOfDay();
 
-        return $goods->mapWithKeys(function ($good) use ($sevenDaysAgo) {
+        return $goods->mapWithKeys(function ($good) use ($sevenDaysAgo, $fourteenDaysAgo) {
             $salesFunnel = $good->salesFunnel;
 
-            $allData = [
+            $thirtyDaysData = [
                 'orders' => $salesFunnel->sum('orders_count'),
                 'adCost' => $salesFunnel->sum('advertising_costs'),
                 'finPrices' => $salesFunnel->pluck('finished_price')->filter()->values()->toArray(),
+                'aac_orders' => $salesFunnel->sum('aac_orders'),
+                'auc_orders' => $salesFunnel->sum('auc_orders'),
+                'assoc_orders_from_other' => $salesFunnel->sum('assoc_orders_from_other'),
+                'assoc_orders_from_this' => $salesFunnel->sum('assoc_orders_from_this'),
             ];
+
+            $fourteenDaysData = $salesFunnel->filter(function ($row) use ($fourteenDaysAgo) {
+                return $row->date >= $fourteenDaysAgo;
+            });
 
             $sevenDaysData = $salesFunnel->filter(function ($row) use ($sevenDaysAgo) {
                 return $row->date >= $sevenDaysAgo;
             });
 
             return [$good->id => [
-                'orders' => $allData['orders'],
-                'adCost' => $allData['adCost'],
-                'finPrices' => $allData['finPrices'],
+                'thirtyDays' => [
+                    'orders' => $thirtyDaysData['orders'],
+                    'adCost' => $thirtyDaysData['adCost'],
+                    'finPrices' => $thirtyDaysData['finPrices'],
+                    'aac_orders' => $thirtyDaysData['aac_orders'],
+                    'auc_orders' => $thirtyDaysData['auc_orders'],
+                    'assoc_orders_from_other' => $thirtyDaysData['assoc_orders_from_other'],
+                    'assoc_orders_from_this' => $thirtyDaysData['assoc_orders_from_this'],
+                ],
+                'fourteenDays' => [
+                    'orders' => $fourteenDaysData->sum('orders_count'),
+                    'aac_orders' => $fourteenDaysData->sum('aac_orders'),
+                    'auc_orders' => $fourteenDaysData->sum('auc_orders'),
+                    'assoc_orders_from_other' => $fourteenDaysData->sum('assoc_orders_from_other'),
+                    'assoc_orders_from_this' => $fourteenDaysData->sum('assoc_orders_from_this'),
+                ],
                 'sevenDays' => [
                     'orders' => $sevenDaysData->sum('orders_count'),
                     'adCost' => $sevenDaysData->sum('advertising_costs'),
                     'finPrices' => $sevenDaysData->pluck('finished_price')->filter()->values()->toArray(),
+                    'aac_orders' => $sevenDaysData->sum('aac_orders'),
+                    'auc_orders' => $sevenDaysData->sum('auc_orders'),
+                    'assoc_orders_from_other' => $sevenDaysData->sum('assoc_orders_from_other'),
+                    'assoc_orders_from_this' => $sevenDaysData->sum('assoc_orders_from_this'),
                 ]
             ]];
         })->toArray();
@@ -271,6 +307,34 @@ class MainViewHandler implements ViewHandler
         $revenue = $orders * $avgPrice;
 
         return (int) round(($adCost / $revenue) * 100);
+    }
+
+    private function prepareOrdersTotals($totals): array
+    {
+        $thirtyDays = $totals['thirtyDays'];
+        $fourteenDays = $totals['fourteenDays'];
+        $sevenDays = $totals['sevenDays'];
+
+        return [
+            'thirtyDays' => [
+                'adOrders' => $thirtyDays['aac_orders'] + $thirtyDays['auc_orders'],
+                'noAdOrders' => $thirtyDays['orders'] - ($thirtyDays['aac_orders'] + $thirtyDays['auc_orders']),
+                'assoc_orders_from_other' => $thirtyDays['assoc_orders_from_other'],
+                'assoc_orders_from_this' => $thirtyDays['assoc_orders_from_this'],
+            ],
+            'fourteenDays' => [
+                'adOrders' => $fourteenDays['aac_orders'] + $fourteenDays['auc_orders'],
+                'noAdOrders' => $fourteenDays['orders'] - ($fourteenDays['aac_orders'] + $fourteenDays['auc_orders']),
+                'assoc_orders_from_other' => $fourteenDays['assoc_orders_from_other'],
+                'assoc_orders_from_this' => $fourteenDays['assoc_orders_from_this'],
+            ],
+            'sevenDays' => [
+                'adOrders' => $sevenDays['aac_orders'] + $sevenDays['auc_orders'],
+                'noAdOrders' => $sevenDays['orders'] - ($sevenDays['aac_orders'] + $sevenDays['auc_orders']),
+                'assoc_orders_from_other' => $sevenDays['assoc_orders_from_other'],
+                'assoc_orders_from_this' => $sevenDays['assoc_orders_from_this'],
+            ]
+        ];
     }
 
     public function getDefaultViewState(): array

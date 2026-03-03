@@ -60,6 +60,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                 <MainTable
                     shop={shop}
                     dates={dates}
+                    displayDays={displayDays}
                     workSpaceSettings={workSpaceSettings}
                     filteredGoods={filteredGoods}
                     tableContainerRef={tableContainerRef}
