@@ -192,7 +192,7 @@ class GenerateMainViewCache implements ShouldQueue
                 'wbArticle' => $good->nm_id,
                 'status' => $good->status->name ?? 'Без статуса',
                 'mainRowMetadata' => 'Шт.',
-                'totalsOrdersCount' => $goodsTotalsMap[$good->id]['orders'] ?? 0,
+                'totalsOrdersCount' => $goodsTotalsMap[$good->id]['thirtyDays']['orders'] ?? 0,
                 'drr30days' => $this->calculateDrr(
                     $goodsTotalsMap[$good->id]['thirtyDays']['orders'],
                     $goodsTotalsMap[$good->id]['thirtyDays']['adCost'],
