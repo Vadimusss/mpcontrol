@@ -44,7 +44,7 @@ export const TableHeader = ({
                                 Коэф. процентиля: ${shop.settings?.percentile_coefficient},
                                 Коэф. веса: ${shop.settings?.weight_coefficient}`}
                 </th>
-                <th colSpan={dates.length + 5}>
+                <th colSpan={dates.length + 2}>
                     <div className="days-selector">
                         <span className="days-label">Дней: </span>
                         <a 
@@ -72,6 +72,7 @@ export const TableHeader = ({
                         </a>
                     </div>
                 </th>
+                <th colSpan={3}>Реклама</th>
                 <th colSpan={4}>Заказы</th>
                 <th></th>
                 <th colSpan={3}>Цена сейчас</th>

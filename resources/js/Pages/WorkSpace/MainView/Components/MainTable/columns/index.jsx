@@ -202,7 +202,6 @@ export const createColumns = (dates, displayDays, handleOpenModal) => {
             meta: {
                 isClassNameDynamic: false,
                 thClassName: 'bg-gray',
-                tdClassName: 'bg-gray',
             }
         },
         {
@@ -212,7 +211,6 @@ export const createColumns = (dates, displayDays, handleOpenModal) => {
             meta: {
                 isClassNameDynamic: false,
                 thClassName: 'bg-gray',
-                tdClassName: 'bg-gray',
             }
         },
         {
@@ -222,18 +220,16 @@ export const createColumns = (dates, displayDays, handleOpenModal) => {
             meta: {
                 isClassNameDynamic: false,
                 thClassName: 'bg-gray',
-                tdClassName: 'bg-gray',
             }
         },
         {
             id: 'adOrders',
-            header: 'Рекл зак',
+            header: 'Рек зак',
             accessorFn: (row) => row.orderTotals[currentPeriod]?.adOrders || 0,
             cell: (info) => numericFormatter(info.getValue()),
             meta: {
                 isClassNameDynamic: false,
                 thClassName: 'bg-gray',
-                tdClassName: 'bg-gray',
             }
         },
         {
@@ -244,7 +240,6 @@ export const createColumns = (dates, displayDays, handleOpenModal) => {
             meta: {
                 isClassNameDynamic: false,
                 thClassName: 'bg-gray',
-                tdClassName: 'bg-gray',
             }
         },
         {
@@ -255,7 +250,6 @@ export const createColumns = (dates, displayDays, handleOpenModal) => {
             meta: {
                 isClassNameDynamic: false,
                 thClassName: 'bg-gray',
-                tdClassName: 'bg-gray',
             }
         },
         {
@@ -266,7 +260,6 @@ export const createColumns = (dates, displayDays, handleOpenModal) => {
             meta: {
                 isClassNameDynamic: false,
                 thClassName: 'bg-gray',
-                tdClassName: 'bg-gray',
             }
         },
         {
