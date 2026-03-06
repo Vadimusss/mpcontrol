@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { viewStore } from '../../Stores/ViewStore';
 import { Colgroup } from './Components/Colgroup';
@@ -44,15 +44,15 @@ export const MainTable = observer(({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [showSearchBar]);
 
-    const handleOpenModal = (good) => {
+    const handleOpenModal = useCallback((good) => {
         setSelectedGood(good);
         setIsModalOpen(true);
-    };
+    }, []);
 
-    const handleCloseModal = () => {
+    const handleCloseModal = useCallback(() => {
         setIsModalOpen(false);
         setSelectedGood(null);
-    };
+    }, []);
 
     const handleCloseSearch = () => {
         setShowSearchBar(false);
@@ -67,7 +67,7 @@ export const MainTable = observer(({
         return filteredGoods.filter(good =>
             viewStore.searchResults.includes(good.id)
         );
-    }, [filteredGoods, viewStore.searchQuery, viewStore.searchResults, displayDays]);
+    }, [filteredGoods, viewStore.searchQuery, viewStore.searchResults]);
 
     const columns = useMemo(() => {
         return createColumns(dates, displayDays, handleOpenModal);
@@ -77,7 +77,7 @@ export const MainTable = observer(({
         data: goodsWithSearchFilter,
         columns,
         getCoreRowModel: getCoreRowModel(),
-        getSortedRowModel: getSortedRowModel(),
+        manualSorting: true,
     });
 
     return (

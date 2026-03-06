@@ -37,7 +37,6 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
 
         echo.channel(channelName)
             .listen('NoteUpdated', (data) => {
-                console.log('???');
                 notesStore.handleNoteUpdated(data.goodId, data.date, data.exists);
             })
             .error((err) => {
@@ -70,7 +69,9 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         viewStore.selectedItems,
         viewStore.searchQuery,
         viewStore.searchResults,
-        goodsStore.goods
+        goodsStore.goods,
+        viewStore.sortedColumn,
+        viewStore.sortDirection
     ]);
 
     return (

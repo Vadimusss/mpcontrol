@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { flexRender } from '@tanstack/react-table';
 import { checkOverflow, generateDateHeaders } from '../../../utils';
 import viewStore from '../../../Stores/ViewStore';
@@ -10,7 +10,7 @@ export const TableHeader = ({
     table,
     onTooltip
 }) => {
-    const handleMouseEnter = (e, cellValue) => {
+    const handleMouseEnter = useCallback((e, cellValue) => {
         if (!cellValue) return;
 
         const displayText = String(cellValue);
@@ -26,14 +26,14 @@ export const TableHeader = ({
             x: rect.left + 40,
             y: rect.bottom + 5
         });
-    };
+    }, [onTooltip]);
 
-    const handleMouseLeave = () => {
+    const handleMouseLeave = useCallback(() => {
         onTooltip(null);
-    };
+    }, [onTooltip]);
 
     const displayDays = viewStore.daysDisplay || workSpaceSettings.days;
-    const dates = generateDateHeaders(displayDays);
+    const dates = useMemo(() => generateDateHeaders(displayDays), [displayDays]);
 
     return (
         <thead className={`sticky-header`}>

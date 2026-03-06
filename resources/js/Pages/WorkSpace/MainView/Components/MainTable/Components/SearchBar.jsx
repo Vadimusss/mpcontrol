@@ -9,13 +9,13 @@ export const SearchBar = observer(({ onClose }) => {
   const inputRef = useRef(null);
   
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (localQuery !== viewStore.searchQuery) {
+    if (localQuery !== viewStore.searchQuery) {
+      if (localQuery === '') {
+        viewStore.clearSearch();
+      } else {
         viewStore.setSearchQuery(localQuery);
       }
-    }, 300);
-    
-    return () => clearTimeout(timer);
+    }
   }, [localQuery]);
   
   useEffect(() => {

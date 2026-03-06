@@ -10,21 +10,20 @@ const NoteIconCell = observer(({ goodId, date, value }) => {
 
   const handleClick = (e) => {
     e.stopPropagation();
-    console.log('Opening notes modal for:', { date, goodId, viewId });
     notesStore.openModal({ date, goodId, viewId });
   };
 
-  const iconColor = hasNotes ? 'text-green-500' : 'text-gray-400';
+  const iconColor = hasNotes ? 'text-green-500 hover:text-green-700' : 'text-gray-300 hover:text-gray-400';
   const title = hasNotes ? "Есть заметки" : "Добавить заметку";
 
   return (
     <div className="flex items-center justify-between">
       <button
         onClick={handleClick}
-        className={`rounded hover:bg-gray-100 transition-colors ${iconColor}`}
+        className={`bg-transparent rounded transition-colors ${iconColor}`}
         title={title}
       >
-        <PlusIcon className="w-3 h-3" />
+        <PlusIcon className="w-4 h-4" />
       </button>
       <span>{value}</span>
     </div>

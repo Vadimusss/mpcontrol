@@ -10,10 +10,18 @@ const periodMap = {
     30: 'thirtyDays'
 };
 
+const columnsCache = new Map();
+
 export const createColumns = (dates, displayDays, handleOpenModal) => {
+    const cacheKey = JSON.stringify({ dates, displayDays });
+    
+    if (columnsCache.has(cacheKey)) {
+        return columnsCache.get(cacheKey);
+    }
+
     const currentPeriod = periodMap[displayDays] || 'thirtyDays';
 
-    return [
+    const columns = [
         {
             id: 'select',
             header: () => (
@@ -165,8 +173,8 @@ export const createColumns = (dates, displayDays, handleOpenModal) => {
                     tdClassName: (row) => {
                         const isHighlighted = row.isHighlighted?.[date];
                         return isHighlighted
-                            ? 'bg-yellow font-large font-bold'
-                            : 'bg-gray font-large font-bold';
+                            ? 'bg-yellow font-large font-bold orders-count-cell'
+                            : 'bg-gray font-large font-bold orders-count-cell';
                     },
                 }
             }
@@ -599,5 +607,8 @@ export const createColumns = (dates, displayDays, handleOpenModal) => {
                 thClassName: 'sticky-header-city',
             }
         }
-    ]
+    ];
+
+    columnsCache.set(cacheKey, columns);
+    return columns;
 };

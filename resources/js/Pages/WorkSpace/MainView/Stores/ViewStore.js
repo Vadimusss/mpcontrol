@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
 import { goodsStore } from './GoodsStore';
 import { apiClient } from '../utils';
 
@@ -15,6 +15,7 @@ class ViewStore {
   searchQuery = '';
   searchResults = [];
   isSearchActive = false;
+  searchTimeout = null;
 
   constructor(initialState = {}, workSpaceId = null, viewId = null) {
     makeAutoObservable(this);
@@ -56,62 +57,79 @@ class ViewStore {
     this.selectedItems = this.selectedItems.includes(id)
       ? this.selectedItems.filter(item => item !== id)
       : [...this.selectedItems, id];
-    this.saveState();
+    this.debouncedSaveState();
   }
 
   toggleShowOnlySelected() {
     this.showOnlySelected = !this.showOnlySelected;
-    this.saveState();
+    this.debouncedSaveState();
   }
 
   setDaysDisplay(days) {
     this.daysDisplay = days;
-    this.saveState();
+    this.debouncedSaveState();
   }
 
   setGoodDetailsDaysDisplay(days) {
     this.goodDetailsDaysDisplay = days;
-    this.saveState();
+    this.debouncedSaveState();
   }
 
   setSearchQuery(query) {
     this.searchQuery = query;
+    
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = null;
+    }
+    
+    if (!query.trim()) {
+      this.clearSearch();
+      return;
+    }
+
     this.performSearch();
   }
 
   performSearch() {
-    if (!this.searchQuery.trim()) {
+    const query = this.searchQuery.toLowerCase().trim();
+    
+    if (!query) {
       this.searchResults = [];
       this.isSearchActive = false;
       return;
     }
 
-    const query = this.searchQuery.toLowerCase().trim();
     const results = [];
+    const goods = goodsStore.goods;
 
-    goodsStore.goods.forEach((good, index) => {
-      const searchFields = [
-        good.article?.toString().toLowerCase() || '',
-        good.name?.toString().toLowerCase() || '',
-        good.variant?.toString().toLowerCase() || '',
-        good.status?.toString().toLowerCase() || '',
-        good.wbArticle?.toString().toLowerCase() || ''
-      ];
-
-      const found = searchFields.some(field => field.includes(query));
-      if (found) {
+    for (let i = 0; i < goods.length; i++) {
+      const good = goods[i];
+      
+      if ((good.article && String(good.article).toLowerCase().includes(query)) ||
+          (good.name && String(good.name).toLowerCase().includes(query)) ||
+          (good.variant && String(good.variant).toLowerCase().includes(query)) ||
+          (good.status && String(good.status).toLowerCase().includes(query)) ||
+          (good.wbArticle && String(good.wbArticle).toLowerCase().includes(query))) {
         results.push(good.id);
       }
-    });
+    }
 
     this.searchResults = results;
     this.isSearchActive = results.length > 0;
   }
 
   clearSearch() {
-    this.searchQuery = '';
-    this.searchResults = [];
-    this.isSearchActive = false;
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = null;
+    }
+    
+    runInAction(() => {
+      this.searchQuery = '';
+      this.searchResults = [];
+      this.isSearchActive = false;
+    });
   }
 
   saveState() {
@@ -120,12 +138,21 @@ class ViewStore {
       showOnlySelected: this.showOnlySelected,
       daysDisplay: this.daysDisplay,
       goodDetailsDaysDisplay: this.goodDetailsDaysDisplay,
-      // sortedColumn: this.sortedColumn,
-      // sortDirection: this.sortDirection
     };
 
     apiClient.post(`/${this.workSpaceId}/${this.viewId}`, { viewState: stateToSave })
       .catch(error => console.error('Error saving view state:', error));
+  }
+
+  saveTimeout = null;
+  debouncedSaveState() {
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+    
+    this.saveTimeout = setTimeout(() => {
+      this.saveState();
+    }, 500);
   }
 }
 
