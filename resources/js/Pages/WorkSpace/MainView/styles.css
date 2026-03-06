@@ -131,8 +131,12 @@
   color: blue;
 }
 
-.sticky-table td:nth-child(n+6) {
+.sticky-table td:nth-child(n+7) {
   text-align: right;
+}
+
+.sticky-table .orders-count-cell {
+  padding: 2px 1px;
 }
 
 .sticky-table tbody tr:hover {
@@ -253,7 +257,6 @@ input[type='checkbox']:checked {
   transition: all 0.3s ease-in-out;
   transform: translateY(0);
   text-align: left;
-  /* overflow: hidden; */
 
   border-radius: 0.5rem;
   background-color: white;
@@ -432,30 +435,12 @@ input[type='checkbox']:checked {
   width: fit-content;
 }
 
-/* .good-details-modal .sticky-column {
-  width: 120px;
-} */
-
 .good-details-modal .sticky-table td {
   overflow: visible;
 
   border-right: 1px solid #ffffff;
   border-bottom: 1px solid #ffffff;
 }
-
-/* .good-details-modal .sticky-table th:first-child,
-.good-details-modal .sticky-table td:first-child {
-  width: 110px;
-  min-width: 110px;
-  max-width: 110px;
-}
-
-.good-details-modal .sticky-table th:nth-child(n+2),
-.good-details-modal .sticky-table td:nth-child(n+2) {
-  width: 80px;
-  min-width: 80px;
-  max-width: 80px;
-} */
 
 .good-details-modal .sticky-table td:nth-child(n+2) {
   text-align: right;
@@ -513,7 +498,6 @@ input[type='checkbox']:checked {
   color: #374151;
 }
 
-/* Условное форматирование для таблицы деталей товара */
 .bg-yellow {
   background-color: #fff9c4 !important;
 }
@@ -559,7 +543,6 @@ input[type='checkbox']:checked {
   padding: 0.75rem 1rem;
 }
 
-/* Дополнительные стили из файла 2 */
 .search-bar {
   position: fixed;
   z-index: 1000;

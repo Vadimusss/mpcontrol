@@ -62,6 +62,7 @@ Route::prefix('api')->group(function () {
     Route::put('notes/{note}', [NoteController::class, 'update']);
     Route::delete('notes/{note}', [NoteController::class, 'destroy']);
     Route::get('notes/isNotesExists', [NoteController::class, 'isNotesExists']);
+    Route::get('notes/all', [NoteController::class, 'all']);
 })->middleware(['auth']);
 
 require __DIR__ . '/auth.php';

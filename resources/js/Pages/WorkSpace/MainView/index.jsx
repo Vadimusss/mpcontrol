@@ -4,6 +4,9 @@ import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import goodsStore from './Stores/GoodsStore';
 import { viewStore } from './Stores/ViewStore';
+import notesStore from './Stores/NotesStore';
+import NotesModal from './Components/GoodDetailsTable/Components/NotesModal';
+import echo from '@/echo';
 import { MainTable } from './Components/MainTable';
 import { generateDateHeaders } from './utils';
 import './styles.css';
@@ -22,25 +25,49 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         viewStore.setInitialState(initialViewState);
     }, [initialViewState]);
 
+    useEffect(() => {
+        const loadNotes = async () => {
+            await notesStore.fetchAllNotes(viewId, shop.id);
+        };
+        loadNotes();
+    }, [viewId, shop.id]);
+
+    useEffect(() => {
+        const channelName = `shop.${shop.id}.notes`;
+
+        echo.channel(channelName)
+            .listen('NoteUpdated', (data) => {
+                console.log('???');
+                notesStore.handleNoteUpdated(data.goodId, data.date, data.exists);
+            })
+            .error((err) => {
+                console.error('Ошибка вещания:', err);
+            });;
+
+        return () => {
+            echo.leave(channelName);
+        };
+    }, [shop.id]);
+
     const displayDays = viewStore.daysDisplay || workSpaceSettings.days;
     const dates = generateDateHeaders(displayDays);
     const tableContainerRef = useRef(null);
 
     const filteredGoods = useMemo(() => {
         let result = goodsStore.goods;
-        
+
         if (viewStore.showOnlySelected) {
             result = result.filter(item => viewStore.selectedItems.includes(item.id));
         }
-        
+
         if (viewStore.searchQuery && viewStore.searchResults.length > 0) {
             result = result.filter(item => viewStore.searchResults.includes(item.id));
         }
-        
+
         return result;
     }, [
-        viewStore.showOnlySelected, 
-        viewStore.selectedItems, 
+        viewStore.showOnlySelected,
+        viewStore.selectedItems,
         viewStore.searchQuery,
         viewStore.searchResults,
         goodsStore.goods
@@ -66,6 +93,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
                     tableContainerRef={tableContainerRef}
                 />
             </div>
+            <NotesModal />
         </AuthenticatedLayout>
     );
 });

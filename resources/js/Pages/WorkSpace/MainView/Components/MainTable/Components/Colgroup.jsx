@@ -9,7 +9,7 @@ export const Colgroup = ({ dates }) => {
             <col style={{ width: '150px' }} />
             <col style={{ width: '110px' }} />
             <col style={{ width: '90px' }} />
-            {dates.map((date) => <col key={`date-${date}`} style={{ width: '56px' }} />)}
+            {dates.map((date) => <col key={`date-${date}`} style={{ width: '62px' }} />)}
             <col style={{ width: '80px' }} />
             {[...Array(6).keys()].map((number) => <col key={`col-${number}`} style={{ width: '70px' }} />)}
             {[...Array(2).keys()].map((number) => <col key={`col-${number}`} style={{ width: '94px' }} />)}

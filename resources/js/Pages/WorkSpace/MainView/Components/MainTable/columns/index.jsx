@@ -2,6 +2,7 @@ import { numericFormatter } from '../../../utils';
 import { ArrowsUpDownIcon, BarsArrowUpIcon, BarsArrowDownIcon, EyeIcon } from '@heroicons/react/24/outline'
 import goodsStore from '../../../Stores/GoodsStore';
 import viewStore from '../../../Stores/ViewStore';
+import NoteIconCell from '../Components/NoteIconCell';
 
 const periodMap = {
     7: 'sevenDays',
@@ -147,7 +148,18 @@ export const createColumns = (dates, displayDays, handleOpenModal) => {
                 id: `date-${date}`,
                 header: formattedDate,
                 accessorFn: (row) => row.orders_count?.[date] ?? '',
-                cell: (info) => numericFormatter(info.getValue()),
+                cell: (info) => {
+                    const value = info.getValue();
+                    const row = info.row.original;
+                    const goodId = row.id;
+                    return (
+                        <NoteIconCell 
+                            goodId={goodId} 
+                            date={date} 
+                            value={numericFormatter(value)} 
+                        />
+                    );
+                },
                 meta: {
                     isClassNameDynamic: true,
                     tdClassName: (row) => {
