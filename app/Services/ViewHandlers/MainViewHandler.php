@@ -404,7 +404,7 @@ class MainViewHandler implements ViewHandler
                     'profit_without_ads' => 0,
                     'advertising_costs' => 0,
                     'orders_sum_rub' => 0,
-                    'ddr' => 0,
+                    'drr' => 0,
                 ];
             }
 
@@ -416,7 +416,7 @@ class MainViewHandler implements ViewHandler
                         'profit_without_ads' => 0,
                         'advertising_costs' => 0,
                         'orders_sum_rub' => 0,
-                        'ddr' => 0,
+                        'drr' => 0,
                     ];
                 }
 
@@ -432,14 +432,14 @@ class MainViewHandler implements ViewHandler
 
         foreach ($result as $category => $dates) {
             foreach ($dates as $date => $data) {
-                $result[$category][$date]['ddr'] = $data['orders_sum_rub'] > 0
+                $result[$category][$date]['drr'] = $data['orders_sum_rub'] > 0
                     ? round($data['advertising_costs'] / $data['orders_sum_rub'], 4)
                     : 0;
             }
         }
 
         foreach ($totals as $category => $data) {
-            $totals[$category]['ddr'] = $data['orders_sum_rub'] > 0
+            $totals[$category]['drr'] = $data['orders_sum_rub'] > 0
                 ? round($data['advertising_costs'] / $data['orders_sum_rub'], 4)
                 : 0;
         }

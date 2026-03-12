@@ -41,9 +41,7 @@ class MainViewCacheService
             ];
         }
 
-        $days = 30;
-
-        return $this->processCachedData($cachedData, $goodIds, $days);
+        return $this->processCachedData($cachedData, $goodIds);
     }
 
     public function clearForShop(Shop $shop): void
@@ -58,7 +56,7 @@ class MainViewCacheService
         return Cache::has($cacheKey);
     }
 
-    private function processCachedData(array $cachedData, array $goodIds, int $days): array
+    private function processCachedData(array $cachedData, array $goodIds): array
     {
         $goodsData = $cachedData['data']['goods'] ?? [];
         $categorysTotals = $cachedData['data']['categorysTotals'] ?? [];
@@ -67,17 +65,10 @@ class MainViewCacheService
             return in_array($goodData['id'], $goodIds);
         });
 
-        $processedGoods = array_map(function ($goodData) use ($days) {
-            if (isset($goodData['sales_funnel']) && is_array($goodData['sales_funnel'])) {
-                $goodData['sales_funnel'] = array_slice($goodData['sales_funnel'], 0, $days, true);
-            }
-            return $goodData;
-        }, $filteredGoods);
-
-        $filteredCategorysTotals = $this->filterCategorysTotals($categorysTotals, $processedGoods);
+        $filteredCategorysTotals = $this->filterCategorysTotals($categorysTotals, $filteredGoods);
 
         return [
-            'goods' => array_values($processedGoods),
+            'goods' => array_values($filteredGoods),
             'categorysTotals' => $filteredCategorysTotals,
         ];
     }
@@ -90,7 +81,7 @@ class MainViewCacheService
 
         $categories = [];
         foreach ($processedGoods as $good) {
-            $category = $good['internal_nsi']['fg_1'] ?? 'Без категории';
+            $category = $good['fg_1'];
             $categories[$category] = true;
         }
 

@@ -210,6 +210,7 @@ class GenerateMainViewCache implements ShouldQueue
                 'orders_count' => $ordersCountByDate,
                 'isHighlighted' => $isHighlightedByDate,
                 'mainRowProfit' => $mainRowProfit == '' ? $mainRowProfit : round($mainRowProfit),
+                'fg_1' => $good->internalNsi->fg_1 ?? 'Без категории',
                 'percent' => $percent,
             ];
         })->toArray();
@@ -412,7 +413,7 @@ class GenerateMainViewCache implements ShouldQueue
                     'profit_without_ads' => 0,
                     'advertising_costs' => 0,
                     'orders_sum_rub' => 0,
-                    'ddr' => 0,
+                    'drr' => 0,
                 ];
             }
 
@@ -424,7 +425,7 @@ class GenerateMainViewCache implements ShouldQueue
                         'profit_without_ads' => 0,
                         'advertising_costs' => 0,
                         'orders_sum_rub' => 0,
-                        'ddr' => 0,
+                        'drr' => 0,
                     ];
                 }
 
@@ -440,14 +441,14 @@ class GenerateMainViewCache implements ShouldQueue
 
         foreach ($result as $category => $dates) {
             foreach ($dates as $date => $data) {
-                $result[$category][$date]['ddr'] = $data['orders_sum_rub'] > 0
+                $result[$category][$date]['drr'] = $data['orders_sum_rub'] > 0
                     ? round($data['advertising_costs'] / $data['orders_sum_rub'], 4)
                     : 0;
             }
         }
 
         foreach ($totals as $category => $data) {
-            $totals[$category]['ddr'] = $data['orders_sum_rub'] > 0
+            $totals[$category]['drr'] = $data['orders_sum_rub'] > 0
                 ? round($data['advertising_costs'] / $data['orders_sum_rub'], 4)
                 : 0;
         }
