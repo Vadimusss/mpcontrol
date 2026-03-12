@@ -13,9 +13,9 @@ class MainViewCacheService
     {
         $shop = $workSpace->shop;
         $cacheKey = "main_view_cache:shop_{$shop->id}";
-        
+
         $cachedData = Cache::get($cacheKey);
-        
+
         if (!$cachedData) {
             return null;
         }
@@ -31,12 +31,19 @@ class MainViewCacheService
             ->toArray();
 
         if (empty($goodIds)) {
-            return [];
+            return [
+                'data' => [
+                    'goods' => [],
+                    'categorysTotals' => []
+                ],
+                'calculated_at' => $cachedData['calculated_at'] ?? now(),
+                'shop_settings' => $cachedData['shop_settings'] ?? null,
+            ];
         }
 
         $days = 30;
 
-        return $this->processCachedData($cachedData, $goodIds, $days, $shop);
+        return $this->processCachedData($cachedData, $goodIds, $days);
     }
 
     public function clearForShop(Shop $shop): void
@@ -51,44 +58,74 @@ class MainViewCacheService
         return Cache::has($cacheKey);
     }
 
-    private function processCachedData(array $cachedData, array $goodIds, int $days, Shop $shop): array
+    private function processCachedData(array $cachedData, array $goodIds, int $days): array
     {
-        $goodsMap = [];
-        foreach ($cachedData['goods'] as $goodData) {
-            $goodsMap[$goodData['id']] = $goodData;
-        }
+        $goodsData = $cachedData['data']['goods'] ?? [];
+        $categorysTotals = $cachedData['data']['categorysTotals'] ?? [];
 
-        $filteredGoods = array_filter($cachedData['goods'], function ($goodData) use ($goodIds) {
+        $filteredGoods = array_filter($goodsData, function ($goodData) use ($goodIds) {
             return in_array($goodData['id'], $goodIds);
         });
 
         $processedGoods = array_map(function ($goodData) use ($days) {
-            if (isset($goodData['orders_count']) && is_array($goodData['orders_count'])) {
-                $goodData['orders_count'] = array_slice($goodData['orders_count'], 0, $days, true);
+            if (isset($goodData['sales_funnel']) && is_array($goodData['sales_funnel'])) {
+                $goodData['sales_funnel'] = array_slice($goodData['sales_funnel'], 0, $days, true);
             }
             return $goodData;
         }, $filteredGoods);
 
-        return array_values($processedGoods);
+        $filteredCategorysTotals = $this->filterCategorysTotals($categorysTotals, $processedGoods);
+
+        return [
+            'goods' => array_values($processedGoods),
+            'categorysTotals' => $filteredCategorysTotals,
+        ];
+    }
+
+    private function filterCategorysTotals(array $categorysTotals, array $processedGoods): array
+    {
+        if (empty($categorysTotals)) {
+            return [];
+        }
+
+        $categories = [];
+        foreach ($processedGoods as $good) {
+            $category = $good['internal_nsi']['fg_1'] ?? 'Без категории';
+            $categories[$category] = true;
+        }
+
+        $filtered = [];
+        foreach ($categorysTotals as $category => $data) {
+            if (isset($categories[$category])) {
+                $filtered[$category] = $data;
+            }
+        }
+
+        return $filtered;
     }
 
     public function getCacheInfo(Shop $shop): array
     {
         $cacheKey = "main_view_cache:shop_{$shop->id}";
         $cachedData = Cache::get($cacheKey);
-        
+
         if (!$cachedData) {
             return [
                 'exists' => false,
                 'calculated_at' => null,
                 'goods_count' => 0,
+                'categories_count' => 0,
             ];
         }
+
+        $goodsCount = count($cachedData['data']['goods'] ?? []);
+        $categoriesCount = count($cachedData['data']['categorysTotals'] ?? []);
 
         return [
             'exists' => true,
             'calculated_at' => $cachedData['calculated_at'] ?? null,
-            'goods_count' => count($cachedData['goods'] ?? []),
+            'goods_count' => $goodsCount,
+            'categories_count' => $categoriesCount,
             'shop_settings' => $cachedData['shop_settings'] ?? null,
         ];
     }
@@ -97,7 +134,7 @@ class MainViewCacheService
     {
         $shops = Shop::all();
         $result = [];
-        
+
         foreach ($shops as $shop) {
             $info = $this->getCacheInfo($shop);
             if ($info['exists']) {
@@ -107,7 +144,7 @@ class MainViewCacheService
                 ];
             }
         }
-        
+
         return $result;
     }
 }

@@ -71,7 +71,7 @@ class WorkSpaceController extends Controller
         return Inertia::render("WorkSpace/{$handler->getComponent()}/index", [
             'shop' => $shop,
             'workSpace' => $workspace,
-            'goods' => $handler->prepareData($workspace),
+            'data' => $handler->prepareData($workspace),
             'initialViewState' => $viewState->view_state ?? [
                 'expandedRows' => [],
                 'selectedItems' => [],

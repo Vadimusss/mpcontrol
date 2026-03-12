@@ -82,7 +82,7 @@ class GenerateMainViewCache implements ShouldQueue
         $goods = Good::where('shop_id', $shop->id)
             ->with([
                 'nsi:good_id,name,variant,cost_with_taxes',
-                'internalNsi:good_id,product_name,cost_price',
+                'internalNsi:good_id,product_name,fg_1,cost_price',
                 'sizes:good_id,price',
                 'status',
                 'wbListGoodRow:good_id,discount',
@@ -92,12 +92,14 @@ class GenerateMainViewCache implements ShouldQueue
                             'good_id',
                             'date',
                             'orders_count',
+                            'orders_sum_rub',
                             'advertising_costs',
                             'finished_price',
                             'aac_orders',
                             'auc_orders',
                             'assoc_orders_from_other',
                             'assoc_orders_from_this',
+                            'profit_without_ads',
                         )->orderBy('date');
                 }
             ])
@@ -105,7 +107,7 @@ class GenerateMainViewCache implements ShouldQueue
 
         $goodsTotalsMap = $this->calculateTotals($goods);
 
-        $result = $goods->map(function ($good) use (
+        $result['goods'] = $goods->map(function ($good) use (
             $commission,
             $logistics,
             $stocks,
@@ -212,8 +214,10 @@ class GenerateMainViewCache implements ShouldQueue
             ];
         })->toArray();
 
+        $result['categorysTotals'] = $this->calculateCategorysTotals($goods);
+
         return [
-            'goods' => $result,
+            'data' => $result,
             'calculated_at' => now()->toDateTimeString(),
             'shop_settings' => [
                 'commission' => $commission,
@@ -390,6 +394,66 @@ class GenerateMainViewCache implements ShouldQueue
             $result[$key] = $warehouseStocks->map(function ($items) use ($name) {
                 return $items->firstWhere('warehouse_name', $name)?->quantity ?? 0;
             });
+        }
+
+        return $result;
+    }
+
+    private function calculateCategorysTotals($goods): array
+    {
+        $result = [];
+        $totals = [];
+
+        foreach ($goods as $good) {
+            $category = $good->internalNsi->fg_1 ?? 'Без категории';
+
+            if (!isset($totals[$category])) {
+                $totals[$category] = [
+                    'profit_without_ads' => 0,
+                    'advertising_costs' => 0,
+                    'orders_sum_rub' => 0,
+                    'ddr' => 0,
+                ];
+            }
+
+            foreach ($good->salesFunnel as $funnel) {
+                $date = $funnel->date;
+
+                if (!isset($result[$category][$date])) {
+                    $result[$category][$date] = [
+                        'profit_without_ads' => 0,
+                        'advertising_costs' => 0,
+                        'orders_sum_rub' => 0,
+                        'ddr' => 0,
+                    ];
+                }
+
+                $result[$category][$date]['profit_without_ads'] += round($funnel->profit_without_ads) ?? 0;
+                $result[$category][$date]['advertising_costs'] += $funnel->advertising_costs ?? 0;
+                $result[$category][$date]['orders_sum_rub'] += $funnel->orders_sum_rub ?? 0;
+
+                $totals[$category]['profit_without_ads'] += round($funnel->profit_without_ads) ?? 0;
+                $totals[$category]['advertising_costs'] += $funnel->advertising_costs ?? 0;
+                $totals[$category]['orders_sum_rub'] += $funnel->orders_sum_rub ?? 0;
+            }
+        }
+
+        foreach ($result as $category => $dates) {
+            foreach ($dates as $date => $data) {
+                $result[$category][$date]['ddr'] = $data['orders_sum_rub'] > 0
+                    ? round($data['advertising_costs'] / $data['orders_sum_rub'], 4)
+                    : 0;
+            }
+        }
+
+        foreach ($totals as $category => $data) {
+            $totals[$category]['ddr'] = $data['orders_sum_rub'] > 0
+                ? round($data['advertising_costs'] / $data['orders_sum_rub'], 4)
+                : 0;
+        }
+
+        foreach ($result as $category => $dates) {
+            $result[$category]['total'] = $totals[$category];
         }
 
         return $result;
