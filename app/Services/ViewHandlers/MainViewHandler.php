@@ -93,7 +93,7 @@ class MainViewHandler implements ViewHandler
 
         $goodsTotalsMap = $this->calculateTotals($goods);
 
-        $result['goods'] = $goods->map(function ($good) use (
+        return $goods->map(function ($good) use (
             $commission,
             $logistics,
             $stocks,
@@ -102,14 +102,24 @@ class MainViewHandler implements ViewHandler
         ) {
 
             $ordersCountByDate = [];
+            $ordersSumRubByDate = [];
+            $advertisingCostsByDate = [];
+            $profitWithoutAdsByDate = [];
             $isHighlightedByDate = [];
 
             foreach ($good->salesFunnel as $row) {
                 if (is_numeric($row->orders_count)) {
                     $ordersCountByDate[$row->date] = $row->orders_count === 0 ? 0 : $row->orders_count;
                 }
+                if (is_numeric($row->orders_sum_rub)) {
+                    $ordersSumRubByDate[$row->date] = $row->orders_sum_rub === 0 ? 0 : $row->orders_sum_rub;
+                }
                 if (is_numeric($row->advertising_costs)) {
+                    $advertisingCostsByDate[$row->date] = $row->advertising_costs === 0 ? 0 : $row->advertising_costs;
                     $isHighlightedByDate[$row->date] = $row->advertising_costs < 100 ? false : true;
+                }
+                if (is_numeric($row->profit_without_ads)) {
+                    $profitWithoutAdsByDate[$row->date] = $row->profit_without_ads === 0 ? 0 : $row->profit_without_ads;
                 }
             }
 
@@ -194,14 +204,15 @@ class MainViewHandler implements ViewHandler
                 'avgDailyAdCost' => round($goodsTotalsMap[$good->id]['thirtyDays']['adCost'] / 30),
                 'orderTotals' => $this->prepareOrdersTotals($goodsTotalsMap[$good->id]),
                 'orders_count' => $ordersCountByDate,
+                'ordersSumRubByDate' => $ordersSumRubByDate,
+                'advertisingCostsByDate' => $advertisingCostsByDate,
+                'profitWithoutAdsByDate' => $profitWithoutAdsByDate,
                 'isHighlighted' => $isHighlightedByDate,
                 'mainRowProfit' => $mainRowProfit == '' ? $mainRowProfit : round($mainRowProfit),
+                'category' => $good->internalNsi->fg_1 ?? 'Без категории',
                 'percent' => $percent,
             ];
         })->toArray();
-
-        $result['categorysTotals'] = $this->calculateCategorysTotals($goods);
-        return $result;
     }
 
     private function calculateDaysOfStock(array $ordersCountByDate, float $totalStock): string
@@ -386,66 +397,6 @@ class MainViewHandler implements ViewHandler
             $result[$key] = $warehouseStocks->map(function ($items) use ($name) {
                 return $items->firstWhere('warehouse_name', $name)?->quantity ?? 0;
             });
-        }
-
-        return $result;
-    }
-
-    private function calculateCategorysTotals($goods): array
-    {
-        $result = [];
-        $totals = [];
-
-        foreach ($goods as $good) {
-            $category = $good->internalNsi->fg_1 ?? 'Без категории';
-
-            if (!isset($totals[$category])) {
-                $totals[$category] = [
-                    'profit_without_ads' => 0,
-                    'advertising_costs' => 0,
-                    'orders_sum_rub' => 0,
-                    'drr' => 0,
-                ];
-            }
-
-            foreach ($good->salesFunnel as $funnel) {
-                $date = $funnel->date;
-
-                if (!isset($result[$category][$date])) {
-                    $result[$category][$date] = [
-                        'profit_without_ads' => 0,
-                        'advertising_costs' => 0,
-                        'orders_sum_rub' => 0,
-                        'drr' => 0,
-                    ];
-                }
-
-                $result[$category][$date]['profit_without_ads'] += round($funnel->profit_without_ads) ?? 0;
-                $result[$category][$date]['advertising_costs'] += $funnel->advertising_costs ?? 0;
-                $result[$category][$date]['orders_sum_rub'] += $funnel->orders_sum_rub ?? 0;
-
-                $totals[$category]['profit_without_ads'] += round($funnel->profit_without_ads) ?? 0;
-                $totals[$category]['advertising_costs'] += $funnel->advertising_costs ?? 0;
-                $totals[$category]['orders_sum_rub'] += $funnel->orders_sum_rub ?? 0;
-            }
-        }
-
-        foreach ($result as $category => $dates) {
-            foreach ($dates as $date => $data) {
-                $result[$category][$date]['drr'] = $data['orders_sum_rub'] > 0
-                    ? round($data['advertising_costs'] / $data['orders_sum_rub'], 4)
-                    : 0;
-            }
-        }
-
-        foreach ($totals as $category => $data) {
-            $totals[$category]['drr'] = $data['orders_sum_rub'] > 0
-                ? round($data['advertising_costs'] / $data['orders_sum_rub'], 4)
-                : 0;
-        }
-
-        foreach ($result as $category => $dates) {
-            $result[$category]['total'] = $totals[$category];
         }
 
         return $result;
