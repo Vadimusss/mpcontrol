@@ -1,8 +1,17 @@
 import { numericFormatter } from '../../../utils';
 import { ArrowsUpDownIcon, BarsArrowUpIcon, BarsArrowDownIcon, EyeIcon } from '@heroicons/react/24/outline'
+import { observer } from 'mobx-react-lite';
 import goodsStore from '../../../Stores/GoodsStore';
 import viewStore from '../../../Stores/ViewStore';
 import NoteIconCell from '../Components/NoteIconCell';
+
+const SelectCheckbox = observer(({ goodId }) => (
+  <input
+    type="checkbox"
+    checked={viewStore.selectedItems.includes(goodId)}
+    onChange={() => viewStore.toggleItemSelection(goodId)}
+  />
+));
 
 const periodMap = {
     7: 'sevenDays',
@@ -34,11 +43,7 @@ export const createColumns = (dates, displayDays, handleOpenModal) => {
             ),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        checked={viewStore.selectedItems.includes(row.original.id)}
-                        onChange={() => viewStore.toggleItemSelection(row.original.id)}
-                    />
+                    <SelectCheckbox goodId={row.original.id} />
                     <button
                         onClick={() => handleOpenModal(row.original)}
                         className="text-gray-400 hover:text-blue-600 transition-colors"
