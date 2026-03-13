@@ -21,9 +21,7 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
     }, [initialGoods]);
 
     useEffect(() => {
-        viewStore.workSpaceId = workSpace.id;
-        viewStore.viewId = viewId;
-        viewStore.setInitialState(initialViewState);
+        viewStore.setInitialState(initialViewState, workSpace.id, viewId);
     }, [initialViewState]);
 
     useEffect(() => {

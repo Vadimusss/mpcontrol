@@ -27,7 +27,7 @@ class ViewStore {
     this.setInitialState(initialState);
   }
 
-  setInitialState(state = {}) {
+  setInitialState(state = {}, workSpaceId, viewId) {
     const {
       selectedItems = [],
       showOnlySelected = false,
@@ -50,6 +50,8 @@ class ViewStore {
     this.searchQuery = '';
     this.searchResults = [];
     this.isSearchActive = false;
+    this.workSpaceId = workSpaceId;
+    this.viewId = viewId;
   }
 
   get isExpanded() {
