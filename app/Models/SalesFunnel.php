@@ -52,6 +52,10 @@ class SalesFunnel extends Model
         'laravel_through_key'
     ];
 
+    protected $casts = [
+        'profit_without_ads' => 'float',
+    ];
+
     public function good(): BelongsTo
     {
         return $this->belongsTo(Good::class);
