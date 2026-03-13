@@ -5,10 +5,11 @@ import { observer } from 'mobx-react-lite';
 import goodsStore from './Stores/GoodsStore';
 import { viewStore } from './Stores/ViewStore';
 import notesStore from './Stores/NotesStore';
+import categorysTotalsStore from './Stores/CategorysTotalsStore';
 import NotesModal from './Components/GoodDetailsTable/Components/NotesModal';
 import echo from '@/echo';
 import { MainTable } from './Components/MainTable';
-import { generateDateHeaders } from './utils';
+import { generateDateHeaders, calculateCategorysTotalsFromGoods } from './utils';
 import './styles.css';
 
 export default observer(function VirtualizedMainView({ shop, workSpace, goods: initialGoods, initialViewState }) {
@@ -24,6 +25,11 @@ export default observer(function VirtualizedMainView({ shop, workSpace, goods: i
         viewStore.viewId = viewId;
         viewStore.setInitialState(initialViewState);
     }, [initialViewState]);
+
+    useEffect(() => {
+        const calculatedTotals = calculateCategorysTotalsFromGoods(goodsStore.goods);
+        categorysTotalsStore.setCategorysTotals(calculatedTotals);
+    }, [goodsStore.goods]);
 
     useEffect(() => {
         const loadNotes = async () => {

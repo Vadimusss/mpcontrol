@@ -16,6 +16,9 @@ class ViewStore {
   searchResults = [];
   isSearchActive = false;
   searchTimeout = null;
+  showCategoryTotals = false;
+  showCategorySelectionModal = false;
+  selectedCategories = [];
 
   constructor(initialState = {}, workSpaceId = null, viewId = null) {
     makeAutoObservable(this);
@@ -31,7 +34,9 @@ class ViewStore {
       daysDisplay = null,
       goodDetailsDaysDisplay = null,
       sortedColumn = null,
-      sortDirection = 'asc'
+      sortDirection = 'asc',
+      showCategoryTotals = false,
+      selectedCategories = []
     } = state;
 
     this.selectedItems = selectedItems;
@@ -40,6 +45,8 @@ class ViewStore {
     this.goodDetailsDaysDisplay = goodDetailsDaysDisplay;
     this.sortedColumn = sortedColumn;
     this.sortDirection = sortDirection;
+    this.showCategoryTotals = showCategoryTotals;
+    this.selectedCategories = selectedCategories;
     this.searchQuery = '';
     this.searchResults = [];
     this.isSearchActive = false;
@@ -73,6 +80,43 @@ class ViewStore {
   setGoodDetailsDaysDisplay(days) {
     this.goodDetailsDaysDisplay = days;
     this.debouncedSaveState();
+  }
+
+  toggleCategoryTotals() {
+    this.showCategoryTotals = !this.showCategoryTotals;
+    this.debouncedSaveState();
+  }
+
+  toggleCategorySelectionModal() {
+    this.showCategorySelectionModal = !this.showCategorySelectionModal;
+  }
+
+  toggleCategorySelection(categoryName) {
+    if (this.selectedCategories.includes(categoryName)) {
+      this.selectedCategories = this.selectedCategories.filter(cat => cat !== categoryName);
+    } else {
+      this.selectedCategories = [...this.selectedCategories, categoryName];
+    }
+    this.debouncedSaveState();
+  }
+
+  selectAllCategories(categoryNames) {
+    this.selectedCategories = [...categoryNames];
+    this.debouncedSaveState();
+  }
+
+  deselectAllCategories() {
+    this.selectedCategories = [];
+    this.debouncedSaveState();
+  }
+
+  isCategorySelected(categoryName) {
+    return this.selectedCategories.includes(categoryName);
+  }
+
+  shouldDisplayCategory(categoryName) {
+    if (this.selectedCategories.length === 0) return true;
+    return this.selectedCategories.includes(categoryName);
   }
 
   setSearchQuery(query) {
@@ -138,6 +182,8 @@ class ViewStore {
       showOnlySelected: this.showOnlySelected,
       daysDisplay: this.daysDisplay,
       goodDetailsDaysDisplay: this.goodDetailsDaysDisplay,
+      showCategoryTotals: this.showCategoryTotals,
+      selectedCategories: this.selectedCategories,
     };
 
     apiClient.post(`/${this.workSpaceId}/${this.viewId}`, { viewState: stateToSave })

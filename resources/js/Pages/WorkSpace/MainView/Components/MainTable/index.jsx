@@ -1,14 +1,18 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { viewStore } from '../../Stores/ViewStore';
+import goodsStore from '../../Stores/GoodsStore';
+import categorysTotalsStore from '../../Stores/CategorysTotalsStore';
 import { Colgroup } from './Components/Colgroup';
 import { TableHeader } from './Components/TableHeader';
 import { TableBody } from './Components/TableBody';
 import { ToolTip } from './Components/ToolTip';
 import { GoodDetailsModal } from './Components/GoodDetailsModal';
+import { CategorySelectionModal } from './Components/CategorySelectionModal';
 import { SearchBar } from './Components/SearchBar';
 import { useReactTable, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table';
-import { createColumns } from './columns'
+import { createColumns } from './columns';
+import { getCategoryRows } from '../../utils';
 import '../../styles.css';
 
 export const MainTable = observer(({
@@ -69,6 +73,10 @@ export const MainTable = observer(({
         );
     }, [filteredGoods, viewStore.searchQuery, viewStore.searchResults]);
 
+    const categoryRows = useMemo(() => {
+        return getCategoryRows(dates, categorysTotalsStore.categorysTotalsData, goodsStore.goods);
+    }, [dates, categorysTotalsStore.categorysTotalsData, goodsStore.goods, viewStore.selectedCategories]);
+
     const columns = useMemo(() => {
         return createColumns(dates, displayDays, handleOpenModal);
     }, [dates, displayDays]);
@@ -99,9 +107,15 @@ export const MainTable = observer(({
                     table={table}
                     columns={columns}
                     onTooltip={setTooltipData}
+                    categoryRows={categoryRows}
+                    dates={dates}
                 />
             </table>
+
             {tooltipData && <ToolTip tooltipData={tooltipData} />}
+            {viewStore.showCategorySelectionModal && (
+                <CategorySelectionModal categoriesData={categorysTotalsStore.categorysTotalsData} />
+            )}
             <GoodDetailsModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
