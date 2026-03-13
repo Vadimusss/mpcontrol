@@ -79,7 +79,7 @@ export const MainTable = observer(({
 
     const columns = useMemo(() => {
         return createColumns(dates, displayDays, handleOpenModal);
-    }, [dates, displayDays]);
+    }, [dates, displayDays, handleOpenModal]);
 
     const table = useReactTable({
         data: goodsWithSearchFilter,

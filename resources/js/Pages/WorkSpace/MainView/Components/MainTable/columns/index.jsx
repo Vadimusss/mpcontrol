@@ -19,15 +19,7 @@ const periodMap = {
     30: 'thirtyDays'
 };
 
-const columnsCache = new Map();
-
 export const createColumns = (dates, displayDays, handleOpenModal) => {
-    const cacheKey = JSON.stringify({ dates, displayDays });
-    
-    if (columnsCache.has(cacheKey)) {
-        return columnsCache.get(cacheKey);
-    }
-
     const currentPeriod = periodMap[displayDays] || 'thirtyDays';
 
     const columns = [
@@ -614,6 +606,5 @@ export const createColumns = (dates, displayDays, handleOpenModal) => {
         }
     ];
 
-    columnsCache.set(cacheKey, columns);
     return columns;
 };
